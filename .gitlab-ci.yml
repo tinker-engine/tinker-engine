@@ -1,0 +1,14 @@
+image: pytorch/pytorch:latest
+
+pages:
+  script:
+  - python --version
+  - conda install -y sphinx sphinx_rtd_theme pandas scikit-learn
+  - pip install m2r fire ubelt boto3
+  - (cd docs && make html)
+  - mv docs/build/html/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master

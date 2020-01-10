@@ -1,0 +1,12 @@
+{
+    "dataset_dir": "/datasets/lwll_datasets",
+    "batch_size": 128,
+    "num_workers": 8,
+    "latent_dim": 32,
+    "cuda": true,
+    "train_iterations": 25,
+    "num_vae_steps": 2,
+    "num_adv_steps": 1,
+    "adversary_param": 1,
+    "beta": 1
+}
