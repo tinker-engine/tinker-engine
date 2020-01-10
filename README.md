@@ -127,7 +127,7 @@ we need to first build the docker image which contains our algorithm and its dep
 From the root of this repository (where Dockerfile is located) run:
 
 ```bash
-docker build -t my_algorithm -t gitlab.kitware.com:4567/darpa_learn/framework:my_crazy_innovative_research_lab_some_algorithm .
+docker build -t my_algorithm -t registry.lollllz.com/learn/framework:my_crazy_innovative_research_lab_some_algorithm .
 ```
 
 Make sure you replace "my_crazy_innovative_research_lab_some_algorithm" with something descriptive about your research 
@@ -163,7 +163,7 @@ In order to deliver the containers to us, you have to run the following commands
 The first step is authentication:
 
 ```bash
-docker login gitlab.kitware.com:4567
+docker login registry.lollllz.com
 ```
 
 Note: The "Login Succeeded" just means that it has hashed your credentials.  It has yet to test your credentials on
@@ -172,7 +172,7 @@ the gitlab.
 The next step is pushing the docker image to our registry using the tag you defined in the previous command.
 
 ```bash
-docker push gitlab.kitware.com:4567/darpa_learn/framework:my_crazy_innovative_research_lab_some_algorithm
+docker push registry.lollllz.com/learn/framework:my_crazy_innovative_research_lab_some_algorithm
 ```
 
 
@@ -204,7 +204,7 @@ or the pdf version at `<project root>/docs/build/latex/learn_framework.pdf`
 Note: To add images, you need to add them both the root level image folder and the docs/sources/images folder.  
 
 ## Running tests
-
+Note: These are still a work in progress.  
 To run the tests pip install development requirements.
 
 ```
