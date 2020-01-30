@@ -113,15 +113,30 @@ class LwLL(object):
         Get the task metadata from JPL's server.
         An example: ::
 
-            {   'adaptation_can_use_pretrained_model': False,
-            'adaptation_dataset': 'mnist',
-            'adaptation_evaluation_metrics': ['accuracy'],
-            'adaptation_label_budget': [5, 2000, 3000],
-            'base_can_use_pretrained_model': True,
-            'base_dataset': 'mnist',
-            'base_evaluation_metrics': ['accuracy'],
-            'base_label_budget': [3000, 6000, 8000],
-            'proble_id': 'problem_test'}
+            {
+                "adaptation_can_use_pretrained_model": false,
+                "adaptation_dataset": "mnist",
+                "adaptation_evaluation_metrics": [
+                    "accuracy"
+                ],
+                "adaptation_label_budget": [
+                    1000,
+                    2000,
+                    3000
+                ],
+                "base_can_use_pretrained_model": true,
+                "base_dataset": "mnist",
+                "base_evaluation_metrics": [
+                    "accuracy"
+                ],
+                "base_label_budget": [
+                    3000,
+                    6000,
+                    8000
+                ],
+                "problem_type": "image_classification",
+                "task_id": "problem_test_image_classification"
+            }
 
         """
         r = requests.get(
@@ -159,24 +174,44 @@ class LwLL(object):
         before evaluation, location of the dataset, number of classes, etc.
         An example session: ::
 
-            {   'active': True,
-            'budget_left_until_checkpoint': 3000,
-            'current_dataset': {
-                'data_url': '/datasets/lwll_datasets/mnist/mnist_full/train',
-                'dataset_type': 'image_classification',
-                'name': 'mnist',
-                'number_of_classes': 10,
-                'number_of_samples_test': 10000,
-                'number_of_samples_train': 60000,
-                'uid': 'mnist'},
-            'current_label_budget_stages': [3000, 6000, 8000],
-            'date_created': 1575935686000,
-            'date_last_interacted': 1575935686000,
-            'pair_stage': 'base',
-            'task_id': 'problem_test',
-            'uid': 'PxDGs4pEuSnGyJ1TPwhO',
-            'user_name': 'Berkely',
-            'using_sample_datasets': False}
+            {
+                "active": true,
+                "budget_left_until_checkpoint": 3000,
+                "current_dataset": {
+                    "classes": [
+                        "0",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9"
+                    ],
+                    "data_url": "/datasets/lwll_datasets/mnist/mnist_full/train",
+                    "dataset_type": "image_classification",
+                    "name": "mnist",
+                    "number_of_channels": 1,
+                    "number_of_classes": 10,
+                    "number_of_samples_test": 10000,
+                    "number_of_samples_train": 60000,
+                    "uid": "mnist"
+                },
+                "current_label_budget_stages": [
+                    3000,
+                    6000,
+                    8000
+                ],
+                "date_created": 1580411853000,
+                "date_last_interacted": 1580411853000,
+                "pair_stage": "base",
+                "task_id": "problem_test_image_classification",
+                "uid": "iN9xVy67QBt71K9ATOqx",
+                "user_name": "Berkely",
+                "using_sample_datasets": false
+            }
 
         Returns:
             dict[str, str]: status of problem/task

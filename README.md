@@ -203,7 +203,7 @@ or the pdf version at `<project root>/docs/build/latex/learn_framework.pdf`
 
 Note: To add images, you need to add them both the root level image folder and the docs/sources/images folder.  
 
-## Running tests
+## Running software tests
 Note: These are still a work in progress.  
 To run the tests pip install development requirements.
 

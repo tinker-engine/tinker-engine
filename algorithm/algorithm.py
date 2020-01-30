@@ -13,10 +13,11 @@ algorithm.
 
 import torch
 import torch.utils.data as data
-import model
-import vgg
-from sampler import AdversarySampler
-from solver import Solver
+import CloserLookFewShot.model
+import CloserLookFewShot.solver
+import VAAL.sampler
+import VAAL.solver
+import VAAL.model
 
 
 class Algorithm(object):
@@ -47,7 +48,7 @@ class Algorithm(object):
             (defined as None until that stage)
         arguments (dict[str, str]): same as input
         cuda (bool): whether or not to use cuda during inference
-        solver (Solver): solver class for VAAL code
+        vaal (Solver): solver class for VAAL code
         train_accuracies (list): training accuracies
         task_model (torch.nn.Module): pytorch model for bridging
             between train/adapt stages and the eval stage.
@@ -87,10 +88,13 @@ class Algorithm(object):
 
         # ############# Example Specific Attributes ####################
         # Here is where you can add your own attributes for your algorithm
-        self.solver = Solver(arguments, None)
+        self.vaal = VAAL.solver.Solver(arguments, None)
         self.cuda = arguments["cuda"] and torch.cuda.is_available()
         self.train_accuracies = []
-        self.task_model = None
+        self.num_classes = self.base_dataset.num_cats
+        model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
+        self.task_model = CloserLookFewShot.model.BaselineTrain(
+            model, self.num_classes, self.arguments['cuda'])
         # ############## End of Specific Attributes
 
     def train(self):
@@ -135,6 +139,7 @@ class Algorithm(object):
         #         The min batch size here is so that the batch size isn't
         #         larger than the labeled/unlabeled dataset which causes the
         #         dataloader to hang
+
         labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
             self.current_dataset.get_labeled_indices()
         )
@@ -178,25 +183,22 @@ class Algorithm(object):
         #       unlabeled data (at least be able to run)
 
         # Initialize/Re-Initialize models
-        num_classes = self.current_dataset.num_cats
-        self.task_model = vgg.vgg16_bn(
-            num_classes=num_classes
-        )
-        vae = model.VAE(int(self.arguments["latent_dim"]))
-        discriminator = model.Discriminator(int(self.arguments["latent_dim"]))
+
+        vae = VAAL.model.VAE(int(self.arguments["latent_dim"]))
+        discriminator = VAAL.model.Discriminator(int(self.arguments["latent_dim"]))
 
         # train the models on the current data
-        acc, self.task_model, vae, discriminator = self.solver.train(
+
+        acc, task_model, vae, discriminator = self.vaal.train(
             labeled_dataloader,
-            self.task_model,
+            None,  # Setting task model to None so it doesn't train
             vae,
             discriminator,
             unlabeled_dataloader,
         )
 
-        self.train_accuracies.append(acc)
         #
-        # ###################  End of Training Your Approach ###############
+        # ###################  End of Label Selection Your Approach ###############
 
         # ##################  ACTIVE LEARNING... Finally. #####################
         #  Figure out the current budget left before checkpoint/evaluation from
@@ -205,25 +207,50 @@ class Algorithm(object):
 
         #  This approach sets the budget for how many images that they want
         #  labeled.
-        self.solver.sampler = AdversarySampler(budget)
+        self.vaal.sampler = VAAL.sampler.AdversarySampler(budget)
 
-        # You pick which indices that you want labeled.  Here, it is using
-        # dataset to ensure the correct indices and tracking inside their
-        # function (the dataset getitem returns the index)
-        sampled_indices = self.solver.sample_for_labeling(
-            vae, discriminator, unlabeled_dataloader
-        )
-
-        #  ########### Query for labels -- Kitware managed ################
-        #  This function is handled by Kitware and takes the indices from the
-        #  algorithm and queries for new labels. The new labels are added to
-        #  the dataset and the labeled/unlabeled indices are updated
+#        # You pick which indices that you want labeled.  Here, it is using
+#        # dataset to ensure the correct indices and tracking inside their
+#        # function (the dataset getitem returns the index)
+        sampled_indices = self.vaal.sample_for_labeling(
+            vae, discriminator, unlabeled_dataloader)
+#
+#        #  ########### Query for labels -- Kitware managed ################
+#        #  This function is handled by Kitware and takes the indices from the
+#        #  algorithm and queries for new labels. The new labels are added to
+#        #  the dataset and the labeled/unlabeled indices are updated
         self.current_dataset.get_more_labels(sampled_indices)
-        #  Note: you don't have to request the entire budget, but
-        #      you shouldn't end the function until the budget is exhausted
-        #      since the budget is lost after evaluation.
+#        #  Note: you don't have to request the entire budget, but
+#        #      you shouldn't end the function until the budget is exhausted
+#        #      since the budget is lost after evaluation.
 
         #
+        # ##################  End of ACTIVE LEARNING #####################
+
+        # ##################  Training on all labels... #####################
+
+        # Update the labeled sampler and dataloader with the new data.
+        labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+            self.current_dataset.get_labeled_indices()
+        )
+
+        labeled_dataloader = torch.utils.data.DataLoader(
+            self.current_dataset,
+            sampler=labeled_sampler,
+            batch_size=min(len(self.current_dataset.get_labeled_indices()),
+                           int(self.arguments["batch_size"])
+                           ),
+            num_workers=int(self.arguments["num_workers"]),
+            collate_fn=self.current_dataset.collate_batch,
+            drop_last=True,
+        )
+
+        # train the models on the current data
+        acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
+                                                              labeled_dataloader,
+                                                              self.task_model)
+        self.train_accuracies.append(acc)
+
         # ##################  End of ACTIVE LEARNING #####################
 
         #  Note: Evaluation/inference will happen after this function is over so you
