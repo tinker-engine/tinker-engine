@@ -8,5 +8,9 @@
     "num_vae_steps": 2,
     "num_adv_steps": 1,
     "adversary_param": 1,
-    "beta": 1
+    "beta": 1,
+    "backbone": "Conv4S",
+    "start_epoch": 0,
+    "end_epoch": 25,
+    "checkpoint_dir": "/Users/huijuan/Downloads/framework/checkpoints"
 }

@@ -4,7 +4,6 @@ import torch.optim as optim
 
 import numpy as np
 from sklearn.metrics import accuracy_score
-import sampler
 
 import ubelt as ub
 
@@ -42,27 +41,32 @@ class Solver:
         unlabeled_data = self.read_data(unlabeled_dataloader, labels=False)
 
         optim_vae = optim.Adam(vae.parameters(), lr=5e-4)
-        optim_task_model = optim.Adam(task_model.parameters(), lr=5e-4)
+
+        if task_model:
+            optim_task_model = optim.Adam(task_model.parameters(), lr=5e-4)
         optim_discriminator = optim.Adam(discriminator.parameters(), lr=5e-4)
 
         vae.train()
         discriminator.train()
-        task_model.train()
+        if task_model:
+            task_model.train()
 
         if self.args["cuda"]:
             vae = vae.cuda()
             discriminator = discriminator.cuda()
-            task_model = task_model.cuda()
+            if task_model:
+                task_model = task_model.cuda()
 
         change_lr_iter = int(self.args["train_iterations"]) // 25
 
-        for iter_count in ub.ProgIter(range(int(self.args["train_iterations"])), desc='Training on Data'):
+        for iter_count in ub.ProgIter(range(int(self.args["train_iterations"])),
+                                      desc='Training on Data'):
             if iter_count is not 0 and iter_count % change_lr_iter == 0:
                 for param in optim_vae.param_groups:
                     param["lr"] = param["lr"] * 0.9
-
-                for param in optim_task_model.param_groups:
-                    param["lr"] = param["lr"] * 0.9
+                if task_model:
+                    for param in optim_task_model.param_groups:
+                        param["lr"] = param["lr"] * 0.9
 
                 for param in optim_discriminator.param_groups:
                     param["lr"] = param["lr"] * 0.9
@@ -74,12 +78,13 @@ class Solver:
                 unlabeled_imgs = unlabeled_imgs.cuda()
                 labels = labels.cuda()
 
-            # task_model step
-            preds = np.squeeze(task_model(labeled_imgs))
-            task_loss = self.ce_loss(preds, labels)
-            optim_task_model.zero_grad()
-            task_loss.backward()
-            optim_task_model.step()
+            if task_model:
+                # task_model step
+                preds = np.squeeze(task_model(labeled_imgs))
+                task_loss = self.ce_loss(preds, labels)
+                optim_task_model.zero_grad()
+                task_loss.backward()
+                optim_task_model.step()
 
             # VAE step
             for count in range(int(self.args["num_vae_steps"])):
@@ -166,9 +171,11 @@ class Solver:
 
             if iter_count % 100 == 0:
                 print("\nCurrent training iteration: {}".format(iter_count))
-                print(
-                    "\tCurrent task model loss: {:.4f}".format(task_loss.item())
-                )
+
+                if task_model:
+                    print(
+                        "\tCurrent task model loss: {:.4f}".format(task_loss.item())
+                    )
                 print(
                     "\tCurrent vae model loss: {:.4f}".format(
                         total_vae_loss.item()
@@ -180,7 +187,11 @@ class Solver:
                     )
                 )
 
-        final_accuracy = self.test(task_model, querry_dataloader)
+        if task_model:
+            final_accuracy = self.test(task_model, querry_dataloader)
+        else:
+            final_accuracy = 0
+
         return final_accuracy, task_model, vae, discriminator
 
     def sample_for_labeling(self, vae, discriminator, unlabeled_dataloader):

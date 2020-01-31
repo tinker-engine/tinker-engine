@@ -1,9 +1,9 @@
 import torch
 import pytest
 
-from ..sampler import AdversarySampler
-from ..model import VAE
-from ..model import Discriminator
+from VAAL.sampler import AdversarySampler
+from VAAL.model import VAE
+from VAAL.model import Discriminator
 from ..dataset import JPLDataset
 from .test_problem import get_problem
 

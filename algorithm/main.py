@@ -35,7 +35,8 @@ from problem import LwLL
 from algorithm import Algorithm
 from dataset import JPLDataset, JPLEvalDataset
 
-def execute(req, resp):
+
+def execute(req):
     """
     This function is managed by Kitware.  You will be modifying the algorithm.py
     file to run your algorithm which is called from this function.
@@ -51,29 +52,28 @@ def execute(req, resp):
                 >>> with open('input.json') as json_file:
                 >>>     req['arguments'] = json.load(json_file)
 
-        resp (dict): deprecated response for client-server approach (ignore)
 
 
     """
 
     # #### Get Secret/URL #####
     try:
-        SECRET = os.environ['JPL_API_SECRET']
-        URL = os.environ['JPL_API_URL']
+        secret = os.environ['JPL_API_SECRET']
+        url = os.environ['JPL_API_URL']
     except KeyError:
         raise RuntimeError('Need to have secrets file sourced ($source secrets)')
 
     # #### Get the list of problems from JPL and select the first one #####
-    headers = {'user_secret': SECRET}
-    r = requests.get(f"{URL}/list_tasks", headers=headers)
+    headers = {'user_secret': secret}
+    r = requests.get(f"{url}/list_tasks", headers=headers)
     r.raise_for_status()
-    problem_id = r.json()['tasks'][1]
+    problem_id = r.json()['tasks'][0]
 
     # ############## Initialize the Problem Class ###################
     #  This is a class which holds all the data about the problem
     #  Calling this will initialize the problem
     dataset_dir = req['arguments']['dataset_dir']
-    problem = LwLL(SECRET, URL, problem_id, dataset_dir=dataset_dir)
+    problem = LwLL(secret, url, problem_id, dataset_dir=dataset_dir)
     problem.download_dataset()  # Download the dataset
     print(problem)
 
@@ -83,20 +83,13 @@ def execute(req, resp):
     print(base_train_dataset)
     base_eval_dataset = JPLEvalDataset(problem, base_train_dataset)
     print(base_eval_dataset)
-    # ############# Initialize the Adapt Datasets ##################
-    # Initialize the adaption dataset now we are in the adaption state
-    adapt_train_dataset = JPLDataset(problem,
-                                     baseDataset=False)
-    adapt_eval_dataset = JPLEvalDataset(problem,
-                                        adapt_train_dataset,
-                                        baseDataset=False)
 
     # ############# Initialize the Algorithm ##################
     #    You will edit the algorithm.py to initialize your algorithm
     #    however you see fit
     alg = Algorithm(problem,
                     base_train_dataset,
-                    adapt_train_dataset,
+                    None,
                     req["arguments"])
 
     # ############# Run Train Stage Loop ##################
@@ -118,6 +111,13 @@ def execute(req, resp):
 
         print(problem.format_status() + '\n')
 
+    # ############# Initialize the Adapt Datasets ##################
+    # Initialize the adaption dataset now we are in the adaption state
+    adapt_train_dataset = JPLDataset(problem,
+                                     baseDataset=False)
+    adapt_eval_dataset = JPLEvalDataset(problem,
+                                        adapt_train_dataset,
+                                        baseDataset=False)
     # ############# Update the Algorithm's Datasets ##################
     # Updating the current dataset and the adapt dataset so that the algorithm
     # can use it.
@@ -151,7 +151,7 @@ def main():
     the :meth:`main.execute` function.
     """
     with open('input.json') as json_file:
-        execute({'arguments': json.load(json_file)}, {})
+        execute({'arguments': json.load(json_file)})
 
 
 if __name__ == "__main__":

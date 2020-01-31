@@ -289,10 +289,10 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             self._indices_to_fnames(unlabeled_indices))
 
         if self.problem.task_metadata['problem_type'] == 'image_classification':
-            columns = ['id', 'label']
+            columns = ['id', 'class']
 
         elif self.problem.task_metadata['problem_type'] == 'object_detection':
-            columns = ['id', 'label', 'class']
+            columns = ['id', 'bbox', 'class']
 
         else:
             raise NotImplementedError
@@ -311,16 +311,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
 
         """
         seed_labels = pd.DataFrame(self.problem.get_seed_labels())
-        if self.problem.task_metadata['problem_type'] == 'image_classification':
-            cat_labels = seed_labels['label'].tolist()
-
-        elif self.problem.task_metadata['problem_type'] == 'object_detection':
-            cat_labels = seed_labels['class'].tolist()
-
-        else:
-            print(f'Cannot handle problem type '
-                  f'{self.problem.task_metadata["dataset_type"]}')
-            raise NotImplementedError
+        cat_labels = seed_labels['class'].tolist()
 
         self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
@@ -367,20 +358,17 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         fnames = new_labels['id'].tolist()
         indices = self._fnames_to_indices(fnames)
 
+        cat_labels = new_labels['class'].tolist()
+        cat_labels = self._category_name_to_category_index(cat_labels)
+
         if self.problem.task_metadata['problem_type'] == 'image_classification':
-            cat_labels = new_labels['label'].tolist()
             bbox_labels = None
-
         elif self.problem.task_metadata['problem_type'] == 'object_detection':
-            cat_labels = new_labels['class'].tolist()
-            bbox_labels = new_labels['label'].tolist()
-
+            bbox_labels = new_labels['bbox'].tolist()
         else:
             print(f'Problem type {self.problem.task_metadata["dataset_type"]}'
                   f'not implemented')
             raise NotImplementedError
-
-        cat_labels = self._category_name_to_category_index(cat_labels)
 
         # Update labels on images
         unique_images = set(indices + requested)
@@ -416,8 +404,6 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             print(f'Problem type {self.problem.task_metadata["dataset_type"]}'
                   f'not implemented')
             raise NotImplementedError
-
-
 
         # Update Ids
         self.labeled_indices.update(unique_images)
@@ -494,7 +480,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         img = out[0].numpy().transpose(1, 2, 0)
         import matplotlib.pyplot as plt
         plt.imshow(img)
-        plt.title(f'Label: {out[1]}')
+        plt.title(f'Class: {out[1]}')
 
     def collate_batch(self, batch):
         """
@@ -673,13 +659,13 @@ class JPLEvalDataset(torchvision.datasets.VisionDataset):
 
             classes = self._category_index_to_category_name(classes)
             df = pd.DataFrame({'id': fnames,
-                               'label': bbox,
+                               'bbox': bbox,
                                'confidence': confidence,
                                'class': classes
                                })
         elif self.problem.task_metadata['problem_type'] == 'image_classification':
             preds = self._category_index_to_category_name(predictions)
-            df = pd.DataFrame({'id': fnames, 'label': predictions})
+            df = pd.DataFrame({'id': fnames, 'class': predictions})
 
         else:
             print(f'Cannot handle problem type '
@@ -687,7 +673,7 @@ class JPLEvalDataset(torchvision.datasets.VisionDataset):
             raise NotImplementedError
 
         # Enforce that the labels are strings
-        df.label = df.label.astype(str)
+        df['class'] = df['class'].astype(str)
 
         self.problem.submit_predictions(df.to_dict())
 
