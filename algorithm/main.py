@@ -32,8 +32,8 @@ import json
 import os
 import requests
 from problem import LwLL
-from algorithm import Algorithm
-from algorithm import Algorithm_OD
+# from algorithm import Algorithm
+from algorithm_objdet import Algorithm
 from dataset import JPLDataset, JPLEvalDataset
 
 
