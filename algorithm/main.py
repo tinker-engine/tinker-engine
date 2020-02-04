@@ -67,7 +67,9 @@ def execute(req):
     headers = {'user_secret': secret}
     r = requests.get(f"{url}/list_tasks", headers=headers)
     r.raise_for_status()
-    problem_id = r.json()['tasks'][0]
+    import ipdb
+    ipdb.set_trace()
+    # problem_id = r.json()['tasks'][0]
 
     # ############## Initialize the Problem Class ###################
     #  This is a class which holds all the data about the problem
@@ -87,7 +89,7 @@ def execute(req):
     # ############# Initialize the Algorithm ##################
     #    You will edit the algorithm.py to initialize your algorithm
     #    however you see fit
-    alg = Algorithm(problem,
+    alg = Algorithm_objdet(problem,
                     base_train_dataset,
                     None,
                     req["arguments"])
