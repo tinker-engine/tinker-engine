@@ -91,7 +91,12 @@ def execute(req):
         # ############# Initialize the Algorithm ##################
         #    You will edit the algorithm.py to initialize your algorithm
         #    however you see fit
-        alg = algorithm_objdet.Algorithm(problem,
+        if self.problem.task_metadata['problem_type'] == 'image_classification':
+            Algorithm = algorithm.Algorithm
+        elif self.problem.task_metadata['problem_type'] == 'object_detection':
+            Algorithm = algorithm_objdet.Algorithm
+
+        alg = Algorithm(problem,
                         base_train_dataset,
                         None,
                         req["arguments"])
