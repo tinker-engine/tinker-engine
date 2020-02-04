@@ -67,10 +67,9 @@ def execute(req):
     headers = {'user_secret': secret}
     r = requests.get(f"{url}/list_tasks", headers=headers)
     r.raise_for_status()
-    import ipdb
-    ipdb.set_trace()
-    problem_id = r.json()['tasks'][0]
 
+    # problem_id = r.json()['tasks'][0]
+    problem_id = 'problem_test_obj_detection'
     # ############## Initialize the Problem Class ###################
     #  This is a class which holds all the data about the problem
     #  Calling this will initialize the problem
