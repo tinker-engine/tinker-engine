@@ -32,8 +32,8 @@ import json
 import os
 import requests
 from problem import LwLL
-# from algorithm import Algorithm
-from algorithm_objdet import Algorithm
+import algorithm
+import algorithm_objdet
 from dataset import JPLDataset, JPLEvalDataset
 
 
@@ -89,7 +89,7 @@ def execute(req):
     # ############# Initialize the Algorithm ##################
     #    You will edit the algorithm.py to initialize your algorithm
     #    however you see fit
-    alg = Algorithm_objdet(problem,
+    alg = algorithm_objdet.Algorithm(problem,
                     base_train_dataset,
                     None,
                     req["arguments"])
