@@ -20,7 +20,7 @@ import VAAL.solver
 import VAAL.model
 
 
-class Algorithm(object):
+class Algorithm_OD(object):
     """
     Class which runs the algorithm consisting of at least four
     methods: :meth:`__init__`, :meth:`train`, :meth:`adapt`,
