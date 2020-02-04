@@ -69,7 +69,7 @@ def execute(req):
     r.raise_for_status()
     import ipdb
     ipdb.set_trace()
-    # problem_id = r.json()['tasks'][0]
+    problem_id = r.json()['tasks'][0]
 
     # ############## Initialize the Problem Class ###################
     #  This is a class which holds all the data about the problem
