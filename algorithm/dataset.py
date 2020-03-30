@@ -528,8 +528,30 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         elif isinstance(elem, list):  # Slight change to not cluster bboxes!!
             return batch
 
-
         raise NotImplementedError
+
+    def dummy_data(self, type):
+        """
+        Create dummy data for evaluation
+        Args:
+            type (str): either image_classification or object_detection
+            test_imgs (list[str]): list of image names to create fake data for
+
+        Returns:
+            preds, indices (same as inference)
+        """
+        classes = np.random.randint(0, len(self.categories), len(self.image_fnames))
+        if type == 'image_classification':
+            return classes, list(self.indices)
+        elif type == 'object_detection':
+            bbox = ['20, 20, 80, 80' for _ in range(len(self.image_fnames))]
+            conf = [0.95 for _ in range(len(self.image_fnames))]
+
+            preds = (bbox, conf, classes)
+
+            return preds, list(self.indices)
+        else:
+            raise NotImplementedError
 
 
 class JPLEvalDataset(torchvision.datasets.VisionDataset):
@@ -751,5 +773,5 @@ class JPLEvalDataset(torchvision.datasets.VisionDataset):
 
             return preds, list(self.indices)
         else:
-            NotImplementedError
+            raise NotImplementedError
 

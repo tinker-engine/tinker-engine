@@ -18,6 +18,7 @@ import CloserLookFewShot.solver
 import VAAL.sampler
 import VAAL.solver
 import VAAL.model
+import numpy as np
 
 
 class Algorithm(object):
@@ -88,13 +89,13 @@ class Algorithm(object):
 
         # ############# Example Specific Attributes ####################
         # Here is where you can add your own attributes for your algorithm
-        self.vaal = VAAL.solver.Solver(arguments, None)
-        self.cuda = arguments["cuda"] and torch.cuda.is_available()
-        self.train_accuracies = []
-        self.num_classes = self.base_dataset.num_cats
-        model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
-        self.task_model = CloserLookFewShot.model.BaselineTrain(
-            model, self.num_classes, self.arguments['cuda'])
+        # self.vaal = VAAL.solver.Solver(arguments, None)
+        # self.cuda = arguments["cuda"] and torch.cuda.is_available()
+        # self.train_accuracies = []
+        # self.num_classes = self.base_dataset.num_cats
+        # model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
+        # self.task_model = CloserLookFewShot.model.BaselineTrain(
+        #     model, self.num_classes, self.arguments['cuda'])
         # ############## End of Specific Attributes
 
     def train(self):
@@ -147,7 +148,7 @@ class Algorithm(object):
         labeled_dataloader = torch.utils.data.DataLoader(
             self.current_dataset,
             sampler=labeled_sampler,
-            batch_size=min(self.current_dataset.labeled_size,
+            batch_size=min(len(self.current_dataset.get_labeled_indices()),
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
@@ -163,7 +164,7 @@ class Algorithm(object):
         unlabeled_dataloader = torch.utils.data.DataLoader(
             self.current_dataset,
             sampler=unlabeled_sampler,
-            batch_size=min(self.current_dataset.unlabeled_size,
+            batch_size=min(len(self.current_dataset.get_unlabeled_indices()),
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
@@ -172,8 +173,8 @@ class Algorithm(object):
         #
         # ###################  End of the Creating DataLoaders ###############
 
-        # ###################  Find Labels for Active Learning ###############
-        #  Here you can run active learning.  This approach initializes the
+        # ###################  Train Your Approach ###############
+        #  Here you can train your approach.  This approach initializes the
         #  networks for each budget level separately though that isn't required.
         #  You could have persistence though different budget levels if you want.
         #  Everything between here and the active learning is where your code
@@ -183,73 +184,66 @@ class Algorithm(object):
         #       unlabeled data (at least be able to run)
 
         # Initialize/Re-Initialize models
-        if self.current_dataset.unlabeled_size > 0:
-            vae = VAAL.model.VAE(int(self.arguments["latent_dim"]))
-            discriminator = VAAL.model.Discriminator(int(self.arguments["latent_dim"]))
 
-            # train the models on the current data
+        #
+        # ###################  End of Label Selection Your Approach ###############
 
-            acc, task_model, vae, discriminator = self.vaal.train(
-                labeled_dataloader,
-                None,  # Setting task model to None so it doesn't train
-                vae,
-                discriminator,
-                unlabeled_dataloader,
-            )
+        # ##################  ACTIVE LEARNING... Finally. #####################
+        #  Figure out the current budget left before checkpoint/evaluation from
+        #  the status
+        budget = self.problem.get_current_status['budget_left_until_checkpoint']
 
-            #
-            # ###################  End of Label Selection Your Approach ###############
+        #  This approach sets the budget for how many images that they want
+        #  labeled.
+        # self.vaal.sampler = VAAL.sampler.AdversarySampler(budget)
 
-            # ##################  ACTIVE LEARNING... Finally. #####################
-            #  Figure out the current budget left before checkpoint/evaluation from
-            #  the status
-            budget = self.problem.get_current_status['budget_left_until_checkpoint']
+#        # You pick which indices that you want labeled.  Here, it is using
+#        # dataset to ensure the correct indices and tracking inside their
+#        # function (the dataset getitem returns the index)
+#         sampled_indices = self.vaal.sample_for_labeling(
+#             vae, discriminator, unlabeled_dataloader)
+#
+#        #  ########### Query for labels -- Kitware managed ################
+#        #  This function is handled by Kitware and takes the indices from the
+#        #  algorithm and queries for new labels. The new labels are added to
+#        #  the dataset and the labeled/unlabeled indices are updated
 
-            #  This approach sets the budget for how many images that they want
-            #  labeled.
-            self.vaal.sampler = VAAL.sampler.AdversarySampler(budget)
+        sampled_indices = np.random.choice(
+                                           list(self.current_dataset.unlabeled_indices),
+                                           budget
+                                           )
 
-             # You pick which indices that you want labeled.  Here, it is using
-             # dataset to ensure the correct indices and tracking inside their
-             # function (the dataset getitem returns the index)
-            sampled_indices = self.vaal.sample_for_labeling(
-                vae, discriminator, unlabeled_dataloader)
+        self.current_dataset.get_more_labels(sampled_indices)
+#        #  Note: you don't have to request the entire budget, but
+#        #      you shouldn't end the function until the budget is exhausted
+#        #      since the budget is lost after evaluation.
 
-             #  ########### Query for labels -- Kitware managed ################
-             #  This function is handled by Kitware and takes the indices from the
-             #  algorithm and queries for new labels. The new labels are added to
-             #  the dataset and the labeled/unlabeled indices are updated
-            self.current_dataset.get_more_labels(sampled_indices)
-             #  Note: you don't have to request the entire budget, but
-             #      you shouldn't end the function until the budget is exhausted
-             #      since the budget is lost after evaluation.
-
-            #
-            # ##################  End of ACTIVE LEARNING #####################
+        #
+        # ##################  End of ACTIVE LEARNING #####################
 
         # ##################  Training on all labels... #####################
 
         # Update the labeled sampler and dataloader with the new data.
-        labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            self.current_dataset.get_labeled_indices()
-        )
-
-        labeled_dataloader = torch.utils.data.DataLoader(
-            self.current_dataset,
-            sampler=labeled_sampler,
-            batch_size=min(self.current_dataset.labeled_size,
-                           int(self.arguments["batch_size"])
-                           ),
-            num_workers=int(self.arguments["num_workers"]),
-            collate_fn=self.current_dataset.collate_batch,
-            drop_last=True,
-        )
+        # labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+        #     self.current_dataset.get_labeled_indices()
+        # )
+        #
+        # labeled_dataloader = torch.utils.data.DataLoader(
+        #     self.current_dataset,
+        #     sampler=labeled_sampler,
+        #     batch_size=min(len(self.current_dataset.get_labeled_indices()),
+        #                    int(self.arguments["batch_size"])
+        #                    ),
+        #     num_workers=int(self.arguments["num_workers"]),
+        #     collate_fn=self.current_dataset.collate_batch,
+        #     drop_last=True,
+        # )
 
         # train the models on the current data
-        acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
-                                                              labeled_dataloader,
-                                                              self.task_model)
-        self.train_accuracies.append(acc)
+        # acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
+        #                                                       labeled_dataloader,
+        #                                                       self.task_model)
+        # self.train_accuracies.append(acc)
 
         # ##################  End of ACTIVE LEARNING #####################
 
@@ -297,23 +291,24 @@ class Algorithm(object):
                 predicted category indices and image indices
 
         """
-        self.task_model.eval()
-        eval_dataloader = data.DataLoader(
-            eval_dataset,
-            batch_size=int(self.arguments["batch_size"]),
-            drop_last=False
-        )
-        preds = []
-        indices = []
+        # self.task_model.eval()
+        # eval_dataloader = data.DataLoader(
+        #     eval_dataset,
+        #     batch_size=int(self.arguments["batch_size"]),
+        #     drop_last=False
+        # )
+        # preds = []
+        # indices = []
+        #
+        # for imgs, inds in eval_dataloader:
+        #     if self.cuda:
+        #         imgs = imgs.cuda()
+        #
+        #     with torch.no_grad():
+        #         preds_ = self.task_model(imgs)
+        #
+        #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
+        #     indices += inds.numpy().tolist()
 
-        for imgs, inds in eval_dataloader:
-            if self.cuda:
-                imgs = imgs.cuda()
-
-            with torch.no_grad():
-                preds_ = self.task_model(imgs)
-
-            preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
-            indices += inds.numpy().tolist()
-
+        preds, indices = eval_dataset.dummy_data('object_detection')
         return preds, indices
