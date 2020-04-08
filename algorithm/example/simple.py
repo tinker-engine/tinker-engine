@@ -12,12 +12,11 @@ import VAAL.model
 
 class Example(BaseAlgorithm):
 
-    def __init__(self, problem, base_dataset, adapt_dataset, arguments ):
+    def __init__(self, problem, toolset, base_dataset, adapt_dataset, arguments ):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
-        BaseAlgorithm.__init__(self)
+        BaseAlgorithm.__init__(self, problem, toolset)
         # ############# Necessary Attributes #############
         # This need to be the same for every algorithm to run the problem
-        self.problem = problem
         self.base_dataset = base_dataset
         self.current_dataset = base_dataset
         self.adapt_dataset = adapt_dataset
@@ -36,7 +35,7 @@ class Example(BaseAlgorithm):
         # ############## End of Specific Attributes
 
 
-    def execute(self, stage):
+    def execute(self, step_descriptor):
         # stage is a string that is passed in acording to the protocol. It identifies which
         # stage of the tets is being requested (e.g. "train", "adapt" )
         # execution does not return anything, it is purely for the sake of altering the internal model.
@@ -175,7 +174,7 @@ class Example(BaseAlgorithm):
 
 
 
-    def test(self,eval_dataset):
+    def test(self, eval_dataset, step_descriptor):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and
