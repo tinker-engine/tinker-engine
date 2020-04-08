@@ -1,16 +1,6 @@
-"""
-.. _algorithm.py:
-
-algorithm.py
-============
-
-Here is where your code is added to the algorithm.
-This code uses the VAAL algorithm as an example.
-The rest of the files in this folder pertain to that
-algorithm.
-
-"""
-
+import sys
+sys.path.append("..")
+from basealgorithm import BaseAlgorithm
 import torch
 import torch.utils.data as data
 import CloserLookFewShot.model
@@ -20,63 +10,11 @@ import VAAL.solver
 import VAAL.model
 
 
-class Algorithm(object):
-    """
-    Class which runs the algorithm consisting of at least four
-    methods: :meth:`__init__`, :meth:`train`, :meth:`adapt`,
-    and :meth:`inference`.  You may have more classes if you
-    want, but these are the ones called from the :ref:`main.py`
-    file.
+class Example(BaseAlgorithm):
 
-    This class requires an init, train, adapt, and
-    inference methods.  These methods run at the different
-    stages of the problem and are called from :ref:`main.py`.
-    You can add more attributes or functions as you see fit.
-
-    For example, you want to preserve the train stage task
-    model during the adapt stage so you can add in
-    ``self.train_task_model`` as an attribute.
-    Alternatively, you can just
-    save it in a helper class like "solver" here.
-
-    Attributes:
-        problem (LwLL): same as input
-        base_dataset (JPLDataset): same as input
-        current_dataset (JPLDataset): dataset currently in use
-            (either the train or adapt stage dataset)
-        adapt_dataset (JPLDataset): the adapt stage dataset
-            (defined as None until that stage)
-        arguments (dict[str, str]): same as input
-        cuda (bool): whether or not to use cuda during inference
-        vaal (Solver): solver class for VAAL code
-        train_accuracies (list): training accuracies
-        task_model (torch.nn.Module): pytorch model for bridging
-            between train/adapt stages and the eval stage.
-
-    The last four variables (after arguments) are specific to the VAAL algorithm
-    so are not necessary for the overall problem.
-    """
-    def __init__(self, problem, base_dataset, adapt_dataset, arguments):
-        """
-        Here is where you can add in your initialization of your algorithm.
-        You should also add any variables that need to persist between
-        budget levels and/or stages.
-
-        For example, you need to do inference during the
-        evaluate stage and thus task_model is saved here for VAAL to predict
-        on the evaluation data in :meth:`inference`.
-
-        Args:
-            problem (LwLL): a lwll object that contains all the information
-                about the problem.  Look at it's definition for more information
-            base_dataset (JPLDataset): a JPLDataset which is a pytorch dataset.
-                It contains the labeled and unlabeled data for training.
-            adapt_dataset (JPLDataset): a JPLDataset which is a pytorch dataset.
-                It contains the labeled and unlabeled data for adaption.
-            arguments (dict[str, str]): contains all the arguments for the algorithm
-                defined in the ``input.json`` file
-
-        """
+    def __init__(self, problem, base_dataset, adapt_dataset, arguments ):
+        #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
+        BaseAlgorithm.__init__(self)
         # ############# Necessary Attributes #############
         # This need to be the same for every algorithm to run the problem
         self.problem = problem
@@ -94,32 +32,16 @@ class Algorithm(object):
         self.num_classes = self.base_dataset.num_cats
         model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
         self.task_model = CloserLookFewShot.model.BaselineTrain(
-            model, self.num_classes, self.arguments['cuda'])
+        model, self.num_classes, self.arguments['cuda'])
         # ############## End of Specific Attributes
 
-    def train(self):
-        """ Method for the training in the train stage of the problem.
-        Also known as the base stage.
 
-        Here you will train your algorithm and query for new labels until the
-        labeling budget is used up. Once the labeling budget is used up and
-        your training is finished, return and it will run the inference function.
+    def execute(self, stage):
+        # stage is a string that is passed in acording to the protocol. It identifies which
+        # stage of the tets is being requested (e.g. "train", "adapt" )
+        # execution does not return anything, it is purely for the sake of altering the internal model.
+        # Available reources for training can be retreived using the BaseAlgorithm functions.
 
-        You may modify any part of this function however there are some things
-        you will need to do here.
-
-        1.  You will need to get the labels from the JPLdataset.  The examples
-            are one way to create the pytorch dataloaders (``labeled_dataloader``
-            and ``unlabeled_dataloader`` in the code).
-        2.  You will need to query for labels.  You can do this by specifying
-            the indices of the labels in the :class:`dataset.JPLDataset`.
-
-        In the example in the code, `self.current_dataset` is either train and adapt
-        dataset depending on the stage.  For this example, the VAAL approach doesn't
-        have a way to adapt from the trianing stage so we can use
-        self.current_dataset here.  VAAL is only an active training approach.
-
-        """
         # ###################  Creating the Labeled DataLoader ###############
         # Create Dataloaders for labeled data by getting the labeled indices and
         # creating a random sub-sampler.  Then create the dataloader using this
@@ -251,36 +173,9 @@ class Algorithm(object):
                                                               self.task_model)
         self.train_accuracies.append(acc)
 
-        # ##################  End of ACTIVE LEARNING #####################
 
-        #  Note: Evaluation/inference will happen after this function is over so you
-        #      will probably want to continue to train for the task after the active
-        #      learning part is done since you just got new labels.
 
-        #  This function should end when the budget is exhausted and your algorithm
-        #  is fully trained on the current set of labels. Feel free to turn this
-        #  function into a loop containing both the training and active learning
-        #  elements if you want to request labels in smaller increments of data
-        #  rather than requesting the entire budget here
-
-    def adapt(self):
-        """
-        Adapt Stage method that is called at each budget level (checkpoint).
-
-        You can use this function to do the domain transfer and adaption algorithms.
-        The self.current_dataset has been updated to the adapt dataset as well as
-        the `adapt_dataset`.
-
-        For this function, VAAL example approach is exactly the same between these
-        two so just calling train function.
-
-        All the calls to the dataset and to the problem are the same between the
-        train and adapt stages the methods.
-
-        """
-        self.train()
-
-    def inference(self, eval_dataset):
+    def test(self,eval_dataset):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and
@@ -317,3 +212,6 @@ class Algorithm(object):
             indices += inds.numpy().tolist()
 
         return preds, indices
+
+
+
