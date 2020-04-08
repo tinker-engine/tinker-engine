@@ -1,15 +1,6 @@
-"""
-.. _algorithm.py:
-
-algorithm.py
-============
-
-Here is where your code is added to the algorithm.
-This code uses the VAAL algorithm as an example.
-The rest of the files in this folder pertain to that
-algorithm.
-
-"""
+import sys
+sys.path.append("..")
+from basealgorithm import BaseAlgorithm
 
 import torch
 import torch.utils.data as data
@@ -21,7 +12,7 @@ import VAAL.model
 import numpy as np
 
 
-class Algorithm(object):
+class ObjectDetectorAlgorithm(BaseAlgorithm):
     """
     Class which runs the algorithm consisting of at least four
     methods: :meth:`__init__`, :meth:`train`, :meth:`adapt`,
@@ -57,7 +48,7 @@ class Algorithm(object):
     The last four variables (after arguments) are specific to the VAAL algorithm
     so are not necessary for the overall problem.
     """
-    def __init__(self, problem, base_dataset, adapt_dataset, arguments):
+    def __init__(self, problem, toolset, base_dataset, adapt_dataset, arguments):
         """
         Here is where you can add in your initialization of your algorithm.
         You should also add any variables that need to persist between
@@ -78,9 +69,9 @@ class Algorithm(object):
                 defined in the ``input.json`` file
 
         """
+        BaseAlgorithm.__init__(self, problem, toolset)
         # ############# Necessary Attributes #############
         # This need to be the same for every algorithm to run the problem
-        self.problem = problem
         self.base_dataset = base_dataset
         self.current_dataset = base_dataset
         self.adapt_dataset = adapt_dataset
@@ -98,7 +89,7 @@ class Algorithm(object):
         #     model, self.num_classes, self.arguments['cuda'])
         # ############## End of Specific Attributes
 
-    def train(self):
+    def execute(self, step_descriptor):
         """ Method for the training in the train stage of the problem.
         Also known as the base stage.
 
@@ -257,24 +248,7 @@ class Algorithm(object):
         #  elements if you want to request labels in smaller increments of data
         #  rather than requesting the entire budget here
 
-    def adapt(self):
-        """
-        Adapt Stage method that is called at each budget level (checkpoint).
-
-        You can use this function to do the domain transfer and adaption algorithms.
-        The self.current_dataset has been updated to the adapt dataset as well as
-        the `adapt_dataset`.
-
-        For this function, VAAL example approach is exactly the same between these
-        two so just calling train function.
-
-        All the calls to the dataset and to the problem are the same between the
-        train and adapt stages the methods.
-
-        """
-        self.train()
-
-    def inference(self, eval_dataset):
+    def test(self, eval_dataset, step_descriptor):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and

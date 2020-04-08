@@ -32,6 +32,7 @@ import json
 import os
 import requests
 from problem import LwLL
+from example.simple import ExampleAlgorithm
 import algorithm
 import algorithm_objdet
 from dataset import JPLDataset, JPLEvalDataset
@@ -39,9 +40,6 @@ from dataset import JPLDataset, JPLEvalDataset
 
 def execute(req):
     """
-    This function is managed by Kitware.  You will be modifying the algorithm.py
-    file to run your algorithm which is called from this function.
-
     Args:
         req (dict): The input json as a dictionary in this dictionary
             called arguments
@@ -92,11 +90,14 @@ def execute(req):
         #    You will edit the algorithm.py to initialize your algorithm
         #    however you see fit
         if problem.task_metadata['problem_type'] == 'image_classification':
-            Algorithm = algorithm.Algorithm
+            from example.image_classification import ImageClassifierAlgorithm
+            alg = ImageClassifierAlgorithm(problem, {},
+                        base_train_dataset,
+                        None,
+                        req["arguments"])
         elif problem.task_metadata['problem_type'] == 'object_detection':
-            Algorithm = algorithm_objdet.Algorithm
-
-        alg = Algorithm(problem,
+            from example.object_detector import ObjectDetectorAlgorithm
+            alg = ObjectDetectorAlgorithm(problem, {},
                         base_train_dataset,
                         None,
                         req["arguments"])
@@ -111,11 +112,11 @@ def execute(req):
             # ############### Run the train function for a single budget ##########
             #   This should be run until you have used up all your labeling budget
             #       and are finished training with the current labels
-            alg.train()
+            alg.execute("train")
 
             # ############### Evaluate and submit the labels ################
             #    Run forward inference on the labels and submit them to JPL
-            preds, indices = alg.inference(base_eval_dataset)
+            preds, indices = alg.test(base_eval_dataset, "inference")
             base_eval_dataset.submit_predictions(preds, indices)
 
             print(problem.format_status() + '\n')
@@ -130,7 +131,7 @@ def execute(req):
         # ############# Update the Algorithm's Datasets ##################
         # Updating the current dataset and the adapt dataset so that the algorithm
         # can use it.
-        alg.current_dataset = adapt_train_dataset
+        # TODO: need a better way to do this: alg.current_dataset = adapt_train_dataset
 
         # ############# Run Adapt Stage Loop ##################
         #  Run the adapt code for the number of budget levels
@@ -143,11 +144,11 @@ def execute(req):
             # ############### Run the adapt function for a single budget ##########
             #   This should be run until you have used up all your labeling budget
             #       and are finished training with the current labels
-            alg.adapt()
+            alg.adapt("adapt")
 
             # ############### Evaluate and submit the labels ################
             #    Run forward inference on the labels and submit them to JPL
-            preds, indices = alg.inference(adapt_eval_dataset)
+            preds, indices = alg.test(adapt_eval_dataset, "inference")
             adapt_eval_dataset.submit_predictions(preds, indices)
 
             print(problem.format_status(update=False) + '\n')

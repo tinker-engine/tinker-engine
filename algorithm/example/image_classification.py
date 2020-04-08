@@ -10,7 +10,7 @@ import VAAL.solver
 import VAAL.model
 
 
-class Example(BaseAlgorithm):
+class ImageClassifierAlgorithm(BaseAlgorithm):
 
     def __init__(self, problem, toolset, base_dataset, adapt_dataset, arguments ):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
