@@ -86,25 +86,24 @@ def execute(req):
         base_eval_dataset = JPLEvalDataset(problem, base_train_dataset)
         print(base_eval_dataset)
 
+        traintoolset = {}
+        evaltoolset = {}
+
+        traintoolset["Dataset"] = base_train_dataset
+        evaltoolset["Dataset"] = base_eval_dataset
         # ############# Initialize the Algorithm ##################
         #    You will edit the algorithm.py to initialize your algorithm
         #    however you see fit
         if problem.task_metadata['problem_type'] == 'image_classification':
             from example.image_classification import ImageClassifierAlgorithm
-            alg = ImageClassifierAlgorithm(problem, {},
-                        base_train_dataset,
-                        None,
-                        req["arguments"])
+            alg = ImageClassifierAlgorithm(problem, req["arguments"])
         elif problem.task_metadata['problem_type'] == 'object_detection':
             from example.object_detector import ObjectDetectorAlgorithm
-            alg = ObjectDetectorAlgorithm(problem, {},
-                        base_train_dataset,
-                        None,
-                        req["arguments"])
+            alg = ObjectDetectorAlgorithm(problem, req["arguments"])
 
         # ############# Run Train Stage Loop ##################
         #  Run the training code for the number of budget levels
-        #  Evaluate when done training with the labels
+        #  Evaluate when done training with the labelsa
         print('Train ' + problem.format_status())
         num_budgets = len(problem.get_current_status['current_label_budget_stages'])
         for budget_idx in range(num_budgets):
@@ -112,11 +111,11 @@ def execute(req):
             # ############### Run the train function for a single budget ##########
             #   This should be run until you have used up all your labeling budget
             #       and are finished training with the current labels
-            alg.execute("train")
+            alg.execute(traintoolset, "train") 
 
             # ############### Evaluate and submit the labels ################
             #    Run forward inference on the labels and submit them to JPL
-            preds, indices = alg.test(base_eval_dataset, "inference")
+            preds, indices = alg.test(evaltoolset, "inference")
             base_eval_dataset.submit_predictions(preds, indices)
 
             print(problem.format_status() + '\n')
@@ -131,7 +130,8 @@ def execute(req):
         # ############# Update the Algorithm's Datasets ##################
         # Updating the current dataset and the adapt dataset so that the algorithm
         # can use it.
-        # TODO: need a better way to do this: alg.current_dataset = adapt_train_dataset
+        traintoolset["Dataset"] = adapt_train_dataset
+        evaltoolset["Dataset"] = adapt_eval_dataset
 
         # ############# Run Adapt Stage Loop ##################
         #  Run the adapt code for the number of budget levels
@@ -144,11 +144,11 @@ def execute(req):
             # ############### Run the adapt function for a single budget ##########
             #   This should be run until you have used up all your labeling budget
             #       and are finished training with the current labels
-            alg.adapt("adapt")
+            alg.adapt(traintoolset, "adapt")
 
             # ############### Evaluate and submit the labels ################
             #    Run forward inference on the labels and submit them to JPL
-            preds, indices = alg.test(adapt_eval_dataset, "inference")
+            preds, indices = alg.test(,evaltoolset, "inference")
             adapt_eval_dataset.submit_predictions(preds, indices)
 
             print(problem.format_status(update=False) + '\n')

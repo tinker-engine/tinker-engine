@@ -12,16 +12,9 @@ import VAAL.model
 
 class ImageClassifierAlgorithm(BaseAlgorithm):
 
-    def __init__(self, problem, toolset, base_dataset, adapt_dataset, arguments ):
+    def __init__(self, problem, arguments ):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
-        BaseAlgorithm.__init__(self, problem, toolset)
-        # ############# Necessary Attributes #############
-        # This need to be the same for every algorithm to run the problem
-        self.base_dataset = base_dataset
-        self.current_dataset = base_dataset
-        self.adapt_dataset = adapt_dataset
-        self.arguments = arguments
-        # ############## End of Necessary Attributes
+        BaseAlgorithm.__init__(self, problem, arguments)
 
         # ############# Example Specific Attributes ####################
         # Here is where you can add your own attributes for your algorithm
@@ -35,7 +28,7 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         # ############## End of Specific Attributes
 
 
-    def execute(self, step_descriptor):
+    def execute(self, toolset, step_descriptor):
         # stage is a string that is passed in acording to the protocol. It identifies which
         # stage of the tets is being requested (e.g. "train", "adapt" )
         # execution does not return anything, it is purely for the sake of altering the internal model.
@@ -62,29 +55,29 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         #         dataloader to hang
 
         labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            self.current_dataset.get_labeled_indices()
+            toolset["Dataset"].get_labeled_indices()
         )
 
         labeled_dataloader = torch.utils.data.DataLoader(
-            self.current_dataset,
+            toolset["Dataset"],
             sampler=labeled_sampler,
-            batch_size=min(self.current_dataset.labeled_size,
+            batch_size=min(toolset["Dataset"].labeled_size,
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
-            collate_fn=self.current_dataset.collate_batch,
+            collate_fn=toolset["Dataset"].collate_batch,
             drop_last=True,
         )
 
         # ###################  Creating the Unlabeled DataLoader ###############
         #  Same as labeled dataaset but for unlabeled indices
         unlabeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            self.current_dataset.get_unlabeled_indices()
+            toolset["Dataset"].get_unlabeled_indices()
         )
         unlabeled_dataloader = torch.utils.data.DataLoader(
-            self.current_dataset,
+            toolset["Dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(self.current_dataset.unlabeled_size,
+            batch_size=min(toolset["Dataset"].unlabeled_size,
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
@@ -104,7 +97,7 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         #       unlabeled data (at least be able to run)
 
         # Initialize/Re-Initialize models
-        if self.current_dataset.unlabeled_size > 0:
+        if toolset["Dataset"].unlabeled_size > 0:
             vae = VAAL.model.VAE(int(self.arguments["latent_dim"]))
             discriminator = VAAL.model.Discriminator(int(self.arguments["latent_dim"]))
 
@@ -140,7 +133,7 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
              #  This function is handled by Kitware and takes the indices from the
              #  algorithm and queries for new labels. The new labels are added to
              #  the dataset and the labeled/unlabeled indices are updated
-            self.current_dataset.get_more_labels(sampled_indices)
+            toolset["Dataset"].get_more_labels(sampled_indices)
              #  Note: you don't have to request the entire budget, but
              #      you shouldn't end the function until the budget is exhausted
              #      since the budget is lost after evaluation.
@@ -152,17 +145,17 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
 
         # Update the labeled sampler and dataloader with the new data.
         labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            self.current_dataset.get_labeled_indices()
+            toolset["Dataset"].get_labeled_indices()
         )
 
         labeled_dataloader = torch.utils.data.DataLoader(
-            self.current_dataset,
+            toolset["Dataset"],
             sampler=labeled_sampler,
-            batch_size=min(self.current_dataset.labeled_size,
+            batch_size=min(toolset["Dataset"].labeled_size,
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
-            collate_fn=self.current_dataset.collate_batch,
+            collate_fn=toolset["Dataset"].collate_batch,
             drop_last=True,
         )
 
@@ -174,7 +167,7 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
 
 
 
-    def test(self, eval_dataset, step_descriptor):
+    def test(self, toolset, step_descriptor):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and
@@ -193,7 +186,7 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         """
         self.task_model.eval()
         eval_dataloader = data.DataLoader(
-            eval_dataset,
+            toolset["Dataset"],
             batch_size=int(self.arguments["batch_size"]),
             drop_last=False
         )

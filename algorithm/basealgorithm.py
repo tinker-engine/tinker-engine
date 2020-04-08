@@ -41,16 +41,16 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
         "GetPretrainedModelList"
 
     """
-    def __init__(self, problem, toolset):
+    def __init__(self, problem, arguments):
         self.problem = problem
-        self.toolset = toolset
+        self.arguments = arguments
 
     @abc.abstractmethod
-    def execute(self, step_descriptor):
+    def execute(self, toolset, step_descriptor):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def test( self, eval_dataset, step_descriptor ):
+    def test( self, toolset, step_descriptor ):
         raise NotImplementedError
 
 

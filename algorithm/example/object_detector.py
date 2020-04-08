@@ -48,7 +48,7 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
     The last four variables (after arguments) are specific to the VAAL algorithm
     so are not necessary for the overall problem.
     """
-    def __init__(self, problem, toolset, base_dataset, adapt_dataset, arguments):
+    def __init__(self, problem, arguments):
         """
         Here is where you can add in your initialization of your algorithm.
         You should also add any variables that need to persist between
@@ -69,27 +69,9 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
                 defined in the ``input.json`` file
 
         """
-        BaseAlgorithm.__init__(self, problem, toolset)
-        # ############# Necessary Attributes #############
-        # This need to be the same for every algorithm to run the problem
-        self.base_dataset = base_dataset
-        self.current_dataset = base_dataset
-        self.adapt_dataset = adapt_dataset
-        self.arguments = arguments
-        # ############## End of Necessary Attributes
+        BaseAlgorithm.__init__(self, problem, arguments)
 
-        # ############# Example Specific Attributes ####################
-        # Here is where you can add your own attributes for your algorithm
-        # self.vaal = VAAL.solver.Solver(arguments, None)
-        # self.cuda = arguments["cuda"] and torch.cuda.is_available()
-        # self.train_accuracies = []
-        # self.num_classes = self.base_dataset.num_cats
-        # model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
-        # self.task_model = CloserLookFewShot.model.BaselineTrain(
-        #     model, self.num_classes, self.arguments['cuda'])
-        # ############## End of Specific Attributes
-
-    def execute(self, step_descriptor):
+    def execute(self, toolset, step_descriptor):
         """ Method for the training in the train stage of the problem.
         Also known as the base stage.
 
@@ -133,29 +115,29 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         #         dataloader to hang
 
         labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            self.current_dataset.get_labeled_indices()
+            toolset["Dataset"].get_labeled_indices()
         )
 
         labeled_dataloader = torch.utils.data.DataLoader(
-            self.current_dataset,
+            toolset["Dataset"],
             sampler=labeled_sampler,
-            batch_size=min(len(self.current_dataset.get_labeled_indices()),
+            batch_size=min(len(toolset["Dataset"].get_labeled_indices()),
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
-            collate_fn=self.current_dataset.collate_batch,
+            collate_fn=toolset["Dataset"].collate_batch,
             drop_last=True,
         )
 
         # ###################  Creating the Unlabeled DataLoader ###############
         #  Same as labeled dataaset but for unlabeled indices
         unlabeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            self.current_dataset.get_unlabeled_indices()
+            toolset["Dataset"].get_unlabeled_indices()
         )
         unlabeled_dataloader = torch.utils.data.DataLoader(
-            self.current_dataset,
+            toolset["Dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(len(self.current_dataset.get_unlabeled_indices()),
+            batch_size=min(len(toolset["Dataset"].get_unlabeled_indices()),
                            int(self.arguments["batch_size"])
                            ),
             num_workers=int(self.arguments["num_workers"]),
@@ -200,11 +182,11 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
 #        #  the dataset and the labeled/unlabeled indices are updated
 
         sampled_indices = np.random.choice(
-                                           list(self.current_dataset.unlabeled_indices),
+                                           list(toolset["Dataset"].unlabeled_indices),
                                            budget
                                            )
 
-        self.current_dataset.get_more_labels(sampled_indices)
+        toolset["Dataset"].get_more_labels(sampled_indices)
 #        #  Note: you don't have to request the entire budget, but
 #        #      you shouldn't end the function until the budget is exhausted
 #        #      since the budget is lost after evaluation.
@@ -248,7 +230,7 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         #  elements if you want to request labels in smaller increments of data
         #  rather than requesting the entire budget here
 
-    def test(self, eval_dataset, step_descriptor):
+    def test(self, toolset, step_descriptor):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and
@@ -284,5 +266,5 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
         #     indices += inds.numpy().tolist()
 
-        preds, indices = eval_dataset.dummy_data('object_detection')
+        preds, indices = toolset["Dataset"].dummy_data('object_detection')
         return preds, indices
