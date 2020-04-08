@@ -4,7 +4,7 @@ from basealgorithm import BaseAlgorithm
  
 
 
-class Example(BaseAlgorithm):
+class Example(BaseAlgorithm): #TODO: change the name of the class.
 
     def __init__(self, problem, toolset):
         BaseAlgorithm.__init__(self, problem, toolset)
