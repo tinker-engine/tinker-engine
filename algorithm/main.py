@@ -35,7 +35,7 @@ from problem import LwLL
 from example.simple import ExampleAlgorithm
 import algorithm
 import algorithm_objdet
-from dataset import JPLDataset, JPLEvalDataset
+from dataset import JPLDataset
 
 
 def execute(req):
@@ -83,7 +83,7 @@ def execute(req):
         #  This code initials the train and eval datasets
         base_train_dataset = JPLDataset(problem)
         print(base_train_dataset)
-        base_eval_dataset = JPLEvalDataset(problem, base_train_dataset)
+        #TODO: create this properly base_eval_dataset = JPLDataset(problem, base_train_dataset)
         print(base_eval_dataset)
 
         traintoolset = {}
@@ -124,9 +124,9 @@ def execute(req):
         # Initialize the adaption dataset now we are in the adaption state
         adapt_train_dataset = JPLDataset(problem,
                                          baseDataset=False)
-        adapt_eval_dataset = JPLEvalDataset(problem,
-                                            adapt_train_dataset,
-                                            baseDataset=False)
+        #TODO: create this properly adapt_eval_dataset = JPLEvalDataset(problem,
+        #                                    adapt_train_dataset,
+        #                                    baseDataset=False)
         # ############# Update the Algorithm's Datasets ##################
         # Updating the current dataset and the adapt dataset so that the algorithm
         # can use it.
