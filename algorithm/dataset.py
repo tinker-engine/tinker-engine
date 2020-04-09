@@ -119,7 +119,6 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         image_fname_to_index (dict): lookup dict to go from filename to index
         index_to_image_fname (dict): lookup dict to go from index to filename
         categories (list): the list of categories as strings
-        num_cats (int): the number of categories
         category_to_category_index (dict): dict to go from category name to
             category index
         category_index_to_category (dict): dict to go from category index to
@@ -130,7 +129,8 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                  problem,
                  baseDataset=True,
                  transform=ub.NoParam,
-                 target_transform=None):
+                 target_transform=None,
+                 categories=None):
         """
         The initialization function for the dataset.  This initializes the
         attributes and gets the seed labels.
@@ -152,6 +152,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                 :obj:`dataset.basic_transformer`
             target_transform (callable, optional, default=None): a function/transform
                 that takes in the target and transforms it.
+
 
         Raises:
             AssertionError: if dataset size from problem doesn't match what is on
@@ -178,8 +179,8 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             self.name = self.problem.task_metadata['adaptation_dataset']
 
         super(JPLDataset, self).__init__(
-            self.root, transform=transform, target_transform=target_transform
-        )
+                self.root, transform=transform, target_transform=target_transform
+                )
 
         self.image_fnames = sorted(ensure_image_list(os.listdir(self.root)))
         # Total number of images in the dataset
@@ -192,9 +193,9 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         self.labeled_indices = set()
         self.unlabeled_indices = set(np.arange(self.num_images).tolist())
         self.index_to_image_fname = dict(zip(np.arange(self.num_images).tolist(),
-                                             self.image_fnames))
+            self.image_fnames))
         self.image_fname_to_index = dict(zip(self.image_fnames,
-                                             np.arange(self.num_images).tolist()))
+            np.arange(self.num_images).tolist()))
 
         # check to make sure number of images is consistent with problem metadata
         # psize = self.problem.status['current_dataset']['number_of_samples_train']
@@ -205,12 +206,15 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         #                          f'not match what is on disk from {self.size} from'
         #                          f' {self.root}')
 
+        self.indices = set(np.arange(self.num_images))
         self.categories = None
-        self.num_cats = None
         self.category_to_category_index = None
         self.category_index_to_category = None
 
-        self.get_seed_labels()
+        if categories = None:
+            self.get_seed_labels()
+        else:
+            self.initialize_categories(categories)
 
     def __len__(self):
         """
@@ -227,7 +231,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             index (int): Index
 
         Returns:
-            tuple(torch.Tensor, int, int): (image, target, index)
+            tuple(PIL Image, int, int): (image, target, index)
                 Image in CHW, target is the category index of the target class, and
                 index is the index of the image in the dataset
         """
@@ -286,7 +290,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
         new_data = self.problem.get_more_labels(
-            self._indices_to_fnames(unlabeled_indices))
+                self._indices_to_fnames(unlabeled_indices))
 
         if self.problem.task_metadata['problem_type'] == 'image_classification':
             columns = ['id', 'class']
@@ -426,11 +430,10 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             seed_labels (list[str]): list of seed category names
         """
         self.categories = np.unique(seed_labels)
-        self.num_cats = len(self.categories)
         self.category_to_category_index = dict(zip(
-                            self.categories, np.arange(self.num_cats)))
+                            self.categories, np.arange(len(self.categories))))
         self.category_index_to_category = dict(zip(
-                        np.arange(self.num_cats), self.categories))
+                        np.arange(len(self.categories)), self.categories))
 
     def _fnames_to_indices(self, fnames):
         """
@@ -553,113 +556,6 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         else:
             raise NotImplementedError
 
-
-class JPLEvalDataset(torchvision.datasets.VisionDataset):
-    """
-    Evaluation/testing dataset class.  Contains only unlabeled code.  Loads images
-    from file.  This should only be edited by Kitware but feel free to add a merge
-    request / issue if you want to change something.
-
-    Attributes:
-        problem (LwLL): problem class instance containing the
-            information. Check out :ref:`problem.py` for more information
-        image_fnames (list[str]): list of image filenames
-        size (int): number of images in filelist (both labeled and unlabeled)
-        indices (set): set of the indices for the images
-        image_fname_to_index (dict): lookup dict to go from filename to index
-        index_to_image_fname (dict): lookup dict to go from index to filename
-        categories (list[str]): the list of categories as strings
-        num_cats (int): the number of categories
-        category_to_category_index (dict): dict to go from category name to
-            category index
-        category_index_to_category (dict): dict to go from category index to
-            category name
-    """
-    def __init__(self, problem, trainDataset, baseDataset=True, transform=None):
-        """
-        The initialization function for the dataset.  This initializes the
-        attributes
-
-        Args:
-            problem (LwLL): problem class instance containing the
-                information check out problem.py for more information
-            trainDataset (JPLDataset): training dataset at the same stage to obtain
-                the categories from
-            baseDataset (bool, optional, default=True): if this is
-                the base dataset (as opposed to adapt dataset)
-            transform (callable, optional, default=basic_transformer()):  A
-                function/transform that takes in a sample and returns a transformed
-                version;
-                e.g, ``:class:torch.transforms.RandomCrop`` for images.
-        """
-        self.problem = problem
-        self.root = trainDataset.root
-        self.root = os.path.join('/'.join(self.root.split('/')[:-1]), 'test')
-
-        if baseDataset:
-            self.name = self.problem.task_metadata['base_dataset']
-        else:
-            self.name = self.problem.task_metadata['adaptation_dataset']
-
-        if transform is None:
-            transform = basic_transformer()
-
-        super(JPLEvalDataset, self).__init__(
-            self.root, transform=transform
-        )
-
-        self.image_fnames = sorted(ensure_image_list(os.listdir(self.root)))
-        self.size = len(self.image_fnames)  # Total number of images in the dataset
-        self.image_fname_to_index = dict(zip(
-            self.image_fnames, np.arange(self.size)))
-        self.index_to_image_fname = dict(zip(
-            np.arange(self.size), self.image_fnames))
-        self.indices = set(np.arange(self.size))
-        self.categories = None
-        self.num_cats = None
-        self.category_to_category_index = None
-        self.category_index_to_category = None
-        self.initialize_categories(trainDataset)
-
-        # check to make sure number of images is consistent with problem metadata
-        # psize = self.problem.status['current_dataset']['number_of_samples_test']
-        # assert(psize == self.size)
-
-    def __len__(self):
-        """
-        Get length of unlabeled and labeled data
-
-        Returns:
-            int: number of unlabeled and labeled data
-        """
-        return self.size
-
-    def __getitem__(self, index):
-        """
-        Args:
-            index (int): Index
-
-        Returns:
-            tuple(torch.Tensor, int): (image, index)
-                image in CHW and the index of the image in the dataset
-
-        Args:
-            index (int): Index
-
-        Returns:
-            tuple: (image, index) returns image and index of requested image
-        """
-        if isinstance(index, np.float64):
-            index = index.astype(np.int64)
-
-        img_fname = self.image_fnames[index]
-
-        img = pil_loader(os.path.join(self.root, img_fname))
-
-        img = self.transform(img)
-
-        return img, index
-
     def submit_predictions(self, predictions, indices):
         """
         Submit the prediction to JPL vial LwLL class.
@@ -699,79 +595,4 @@ class JPLEvalDataset(torchvision.datasets.VisionDataset):
 
         self.problem.submit_predictions(df.to_dict())
 
-    def show_example(self, index):
-        """
-        Given an index, show an example
-
-        Args:
-            index (int, optional, default=0): index of the image you want to show
-        """
-        out = self[index]
-        img = out[0].numpy().transpose(1, 2, 0)
-        import matplotlib.pyplot as plt
-        plt.imshow(img)
-        plt.title(f'Index: {out[1]}')
-
-    def extra_repr(self):
-        """
-        Adds extra bit when printing out dataset
-        """
-        return f'Eval Dataset Name: {self.name}\n'
-
-    def _indices_to_fnames(self, indices):
-        """
-        Given indices, return filenames
-
-        Args:
-            indices (list): indices of images
-
-        Returns:
-            list (str):  filenames
-                list corresponding to the indices.
-        """
-        return [self.index_to_image_fname[i] for i in indices]
-
-    def _category_index_to_category_name(self, category_indices):
-        """
-        Given category indices, return category names
-
-        Args:
-            category indices (list): category indices
-
-        Returns:
-            list (str):  category names
-                list corresponding to the category indices
-        """
-        return [self.category_index_to_category[i] for i in category_indices]
-
-    def initialize_categories(self, train_dataset):
-        """
-        Given the training dataset, initialize the category names and indices
-        """
-        self.categories = train_dataset.categories
-        self.num_cats = train_dataset.num_cats
-        self.category_index_to_category = train_dataset.category_index_to_category
-
-    def dummy_data(self, type):
-        """
-        Create dummy data for evaluation
-        Args:
-            type (str): either image_classification or object_detection
-            test_imgs (list[str]): list of image names to create fake data for
-
-        Returns:
-            preds, indices (same as inference)
-        """
-        classes = np.random.randint(0, len(self.categories), len(self.image_fnames))
-        if type == 'image_classification':
-            return classes, list(self.indices)
-        elif type == 'object_detection':
-            bbox = ['20, 20, 80, 80' for _ in range(len(self.image_fnames))]
-            conf = [0.95 for _ in range(len(self.image_fnames))]
-
-            preds = (bbox, conf, classes)
-
-            return preds, list(self.indices)
-        else:
-            raise NotImplementedError
 
