@@ -38,10 +38,8 @@ from dataset import JPLDataset
 
 
 def execute(req):
-    """
-    Args:
-
-    """
+    
+    #Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file",
             help="protocol python file",
@@ -54,10 +52,11 @@ def execute(req):
             help="Generate template algorithm files",
             action='store_true')
 
-    #TODO: implement the --generate functionality
-
     args = parser.parse_args()
 
+    #TODO: implement the --generate functionality
+
+    #Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
         print("given algorithm directory doesnt exist")
@@ -68,7 +67,7 @@ def execute(req):
         exit(1)
 
 
-    # deconstruct the path to the 
+    # deconstruct the path to the protocol so that we can construct the object dynamically.
     protfilename = args.protocol_file
     if not os.path.exists(protfilename):
         print("given protocol file does not exist")
@@ -79,20 +78,26 @@ def execute(req):
         sys.path.append(protpath)
     protbase, protext = os.path.splitext(protfile)
     if protext == ".py":
-        #TODO: import the file and get the object name. The object should go in the protocol local object
+        #import the file and get the object name. The object should go in the protocol local object
         protocolimport = __import__(protbase, globals(), locals(), [], 0)
         for name, obj in inspect.getmembers(protocolimport):
             if inspect.isclass(obj):
                 foo = inspect.getmodule( obj )
                 if foo == protocolimport:
+                    #construct the protocol object
                     protocol = obj(algorithmsbasepath)
     else:
         print("Invalid protocol file, must be a python3 source file")
         sys.exit(1)
 
-    protocol.runProtocol()
+    if protocol:
+        protocol.runProtocol()
+    else:
+        print("protocol invalid")
    
     sys.exit(0)
+
+
     # #### Get Secret/URL #####
     try:
         secret = os.environ['JPL_API_SECRET']

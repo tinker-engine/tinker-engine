@@ -21,9 +21,3 @@ class Example(BaseAlgorithm): #TODO: change the name of the class.
         #TODO: implement your code training code here
         pass
 
-    def test(self, toolset, step_descriptor):
-        # step_descriptor is a string that is passed in according to the protocol. It identifies which
-        # stage of the test is being requested (e.g. "train", "adapt" )
-        #TODO: Implement your inference code here.
-        pass
-
