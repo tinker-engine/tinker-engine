@@ -211,7 +211,8 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         self.category_to_category_index = None
         self.category_index_to_category = None
 
-        if categories = None:
+        #TODO: fix the following to correctly initialize
+        if self.categories:
             self.get_seed_labels()
         else:
             self.initialize_categories(categories)

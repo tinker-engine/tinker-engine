@@ -27,34 +27,72 @@ Email Kitware if you think that this needs to be changed.
 (christopher.funk@kitware.com and eran.swears@kitware.com)
 
 """
-
+import inspect
+import sys
+import argparse
 import json
 import os
 import requests
 from problem import LwLL
-from example.simple import ExampleAlgorithm
-import algorithm
-import algorithm_objdet
 from dataset import JPLDataset
 
 
 def execute(req):
     """
     Args:
-        req (dict): The input json as a dictionary in this dictionary
-            called arguments
-
-            Example: :
-
-                >>> from main import *
-                >>> req = {}
-                >>> with open('input.json') as json_file:
-                >>>     req['arguments'] = json.load(json_file)
-
-
 
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("protocol_file",
+            help="protocol python file",
+            type= str)
+    parser.add_argument("-a", "--algorithms",
+            help="root of the algorithms directory",
+            type= str,
+            default = ".")
+    parser.add_argument("-g", "--generate",
+            help="Generate template algorithm files",
+            action='store_true')
 
+    #TODO: implement the --generate functionality
+
+    args = parser.parse_args()
+
+    algorithmsbasepath = args.algorithms
+    if not os.path.exists(algorithmsbasepath):
+        print("given algorithm directory doesnt exist")
+        exit(1)
+
+    if not os.path.isdir(algorithmsbasepath):
+        print("given algorithm path isnt a directory")
+        exit(1)
+
+
+    # deconstruct the path to the 
+    protfilename = args.protocol_file
+    if not os.path.exists(protfilename):
+        print("given protocol file does not exist")
+        sys.exit(1)
+
+    protpath, protfile = os.path.split(protfilename);
+    if protpath:
+        sys.path.append(protpath)
+    protbase, protext = os.path.splitext(protfile)
+    if protext == ".py":
+        #TODO: import the file and get the object name. The object should go in the protocol local object
+        protocolimport = __import__(protbase, globals(), locals(), [], 0)
+        for name, obj in inspect.getmembers(protocolimport):
+            if inspect.isclass(obj):
+                foo = inspect.getmodule( obj )
+                if foo == protocolimport:
+                    protocol = obj(algorithmsbasepath)
+    else:
+        print("Invalid protocol file, must be a python3 source file")
+        sys.exit(1)
+
+    protocol.runProtocol()
+   
+    sys.exit(0)
     # #### Get Secret/URL #####
     try:
         secret = os.environ['JPL_API_SECRET']
@@ -148,7 +186,7 @@ def execute(req):
 
             # ############### Evaluate and submit the labels ################
             #    Run forward inference on the labels and submit them to JPL
-            preds, indices = alg.test(,evaltoolset, "inference")
+            preds, indices = alg.test(evaltoolset, "inference")
             adapt_eval_dataset.submit_predictions(preds, indices)
 
             print(problem.format_status(update=False) + '\n')
