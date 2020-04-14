@@ -7,7 +7,7 @@ class SAILON(JPLProtocol):
     def runProtocol(self):
         testIDs = self.getTestIDs()
         sessionID = self.initializeSession()
-        algo = self.getAlgorithm(self.problem, None)
+        algo = self.getAlgorithm(None)
         for test in test_ids:
             algo.execute(toolset, "Initialize")
             dataset = self.getDataset(test)

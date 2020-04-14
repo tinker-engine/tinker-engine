@@ -7,7 +7,7 @@ class Learn(JPLProtocol):
    def runProtocol(self):
       testIDs = self.getTestIDs()
       sessionID = self.initializeSession()
-      domainalgo = self.getAlgorithm(self.problem, "Domain")
+      domainalgo = self.getAlgorithm("image_classification.py")
       domainalgo.execute(toolset, "Initialize")
       for test in test_ids:
           toolset["Whitelist"] = self.getWhitelistsets(test)
@@ -23,7 +23,7 @@ class Learn(JPLProtocol):
               toolset["Dataset"] = queryalgo.execute(toolset, "SelectAndLabelData")
               #call the estimatoralgo to update the model to incorporate the new labels
               estimatoralgo.execute(toolset, "DomainAdaptTraining" )
-              toolset["TestDataSet"] = self.getitEvaluationDataSet(test)
+              toolset["TestDataSet"] = self.getEvaluationDataSet(test)
               results = estimatoralgo.execute(toolset, "EvaluateOnTestDataSet")
               self.postResults(test, results)
       self.terminateSession()
