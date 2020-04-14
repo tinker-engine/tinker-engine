@@ -1,6 +1,8 @@
 import abc
 import os
 import sys
+import requests
+import json
 
 class JPLProtocol(metaclass=abc.ABCMeta):
 
@@ -9,6 +11,15 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         toolset = {}
         #TODO: define how the problem is passed in
         self.problem = None
+        #TODO: define the data_type
+        self.datatype = "full"
+        #TODO: laod the apikey
+        self.apikey = "abcd123"
+        self.headers = {'user_secret': self.apikey}
+        #TODO laod the url
+        self.url
+        #TODO find the problem_id
+        self.problem_id = 0
 
     @abc.abstractmethod
     def runProtocol(self):
@@ -61,9 +72,23 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         pass
 
     def initializeSession(self):
-        #TODO: start a new session with the JPL server
-        print("initializeSession")
-        pass
+        """
+        Get the session token from JPL's server.  This should only be run once
+        per task. The session token defines the instance of the problem being run.
+
+        Returns:
+            none
+
+        """
+        r = requests.get(
+            f"{self.url}/auth/get_session_token/{self.datatype}/{self.problem_id}",
+            headers=self.headers)
+        r.raise_for_status()
+
+        self.sessiontoken = r.json()['session_token']
+
+        #prep the headers for easier use in the future.
+        self.headers['session_token'] = self.sessiontoken
 
     def getWhitelistsets(self, test_id):
         #TODO: get the whitelist datasets for this test id from the JPL server
