@@ -32,8 +32,7 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
         "GetPretrainedModelList"
 
     """
-    def __init__(self, problem, arguments):
-        self.problem = problem
+    def __init__(self, arguments):
         self.arguments = arguments
 
     @abc.abstractmethod

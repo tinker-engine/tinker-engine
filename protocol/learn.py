@@ -2,7 +2,7 @@ from protocols import JPLProtocol
 
 class Learn(JPLProtocol):
    def __init__(self, algorithmsdirectory):
-      JPLProtocol.__init__(self, algorithmsdirectory)
+       JPLProtocol.__init__(self, algorithmsdirectory, apikey = "abc1234", url = "https://foo.bar/baz")
 
    def runProtocol(self):
       testIDs = self.getTestIDs()
@@ -10,7 +10,7 @@ class Learn(JPLProtocol):
       domainalgo = self.getAlgorithm("image_classification.py")
       domainalgo.execute(toolset, "Initialize")
       for test in test_ids:
-          toolset["Whitelist"] = self.getWhitelistsets(test)
+          toolset["Whitelist"] = self.getWhitelistsets()
           queryalgo, estimatoralgo, network, dataset = domainalgo.execute(toolset, "SelectNetworkAndDataset")
           toolset["Dataset"] = dataset
           toolset["Network"] = network
@@ -23,8 +23,8 @@ class Learn(JPLProtocol):
               toolset["Dataset"] = queryalgo.execute(toolset, "SelectAndLabelData")
               #call the estimatoralgo to update the model to incorporate the new labels
               estimatoralgo.execute(toolset, "DomainAdaptTraining" )
-              toolset["TestDataSet"] = self.getEvaluationDataSet(test)
+              toolset["TestDataSet"] = self.getEvaluationDataSet()
               results = estimatoralgo.execute(toolset, "EvaluateOnTestDataSet")
-              self.postResults(test, results)
+              self.postResults(results)
       self.terminateSession()
 

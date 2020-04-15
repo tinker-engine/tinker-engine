@@ -6,18 +6,17 @@ import json
 
 class JPLProtocol(metaclass=abc.ABCMeta):
 
-    def __init__(self, algodirectory):
+    def __init__(self, algodirectory, apikey = "", url = ""):
         self.algorithmsbase = algodirectory
         toolset = {}
-        #TODO: define how the problem is passed in
-        self.problem = None
+        
         #TODO: define the data_type
         self.datatype = "full"
-        #TODO: load the apikey
-        self.apikey = "abcd123"
+        
+        self.apikey = apikey
         self.headers = {'user_secret': self.apikey}
-        #TODO laod the url
-        self.url
+        self.url = url
+
         #TODO find the problem_id
         self.problem_id = ""
 
@@ -58,7 +57,7 @@ class JPLProtocol(metaclass=abc.ABCMeta):
                     foo = inspect.getmodule( obj )
                     if foo == protocolimport:
                         #construct the algorithm object
-                        algorithm = obj(self.problem, "")
+                        algorithm = obj("")
 
         else:
             print("Given algorithm is not a python file")
@@ -95,7 +94,7 @@ class JPLProtocol(metaclass=abc.ABCMeta):
 
         self.metadata = self.get_problem_metadata()
 
-    def getWhitelistsets(self, test_id):
+    def getWhitelistsets(self):
         #TODO: get the whitelist datasets for this test id from the JPL server
         print("getWhitelistsets")
         pass
@@ -107,15 +106,26 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         print("getBudgetCheckpoints")
         pass
 
-    def getEvaluationDataSet(self, test_id):
+    def getEvaluationDataSet(self):
         #TODO: return the dataset to be used for evaluating the run
         print("getEvaluationDataSet")
         pass
 
-    def postResults(self, test_id, results):
-        #TODO: post the results to the JPL server for this dataset
-        print("postResults")
-        pass
+    def postResults(self, results):
+        """
+        Submit prediction back to JPL for evaluation
+
+        Args:
+            predictions (dict): predictions to submit in a dictionary format
+
+        """
+        r = requests.post(f"{self.url}/submit_predictions",
+                          json={'predictions': predictions},
+                          headers=self.headers)
+        r.raise_for_status()
+        self.status = r.json()['Session_Status']
+
+        return self.status
 
     def terminateSession(self):
         # end the current session with the JPL server

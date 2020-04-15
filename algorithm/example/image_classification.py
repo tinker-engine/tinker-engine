@@ -12,9 +12,9 @@ import VAAL.model
 
 class ImageClassifierAlgorithm(BaseAlgorithm):
 
-    def __init__(self, problem, arguments ):
+    def __init__(self, arguments ):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
-        BaseAlgorithm.__init__(self, problem, arguments)
+        BaseAlgorithm.__init__(self, arguments)
 
         # ############# Example Specific Attributes ####################
         # Here is where you can add your own attributes for your algorithm
