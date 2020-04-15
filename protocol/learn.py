@@ -1,30 +1,62 @@
 from protocols import JPLProtocol
+import ipdb
 
 class Learn(JPLProtocol):
-   def __init__(self, algorithmsdirectory):
-       JPLProtocol.__init__(self, algorithmsdirectory, apikey = "abc1234", url = "https://foo.bar/baz")
+    def __init__(self, algorithmsdirectory):
+        JPLProtocol.__init__(self,
+                             algorithmsdirectory,
+                             apikey="adab5090-39a9-47f3-9fc2-3d65e0fee9a2",
+                             url="http://myserviceloadbalancer-679310346.us-east-1.elb.amazonaws.com")
 
-   def runProtocol(self):
-      testIDs = self.getTestIDs()
-      sessionID = self.initializeSession()
-      domainalgo = self.getAlgorithm("image_classification.py")
-      domainalgo.execute(toolset, "Initialize")
-      for test in test_ids:
-          toolset["Whitelist"] = self.getWhitelistsets()
-          queryalgo, estimatoralgo, network, dataset = domainalgo.execute(toolset, "SelectNetworkAndDataset")
-          toolset["Dataset"] = dataset
-          toolset["Network"] = network
-          queryalgo.execute(toolset, "Initialize")
-          estimatoralgo.execute(toolset, "Initialize")
-          checkpoints = self.getBudgetCheckpoints()
-          for checkpoint in checkpoints:
-              toolset["Budget"] = checkpoint
-              # call the queryalgo to update the dataset with new labels
-              toolset["Dataset"] = queryalgo.execute(toolset, "SelectAndLabelData")
-              #call the estimatoralgo to update the model to incorporate the new labels
-              estimatoralgo.execute(toolset, "DomainAdaptTraining" )
-              toolset["TestDataSet"] = self.getEvaluationDataSet()
-              results = estimatoralgo.execute(toolset, "EvaluateOnTestDataSet")
-              self.postResults(results)
-      self.terminateSession()
+    def runProtocol(self):
+        taskIDs = self.getTaskIDs()
+        # for task in taskIDs:
+        self.runTask("problem_test_image_classification")
+
+
+    def runTask(self, task_id):
+
+        self.initializeSession(task_id)
+
+        self.toolset["Whitelist_Datasets"] = self.getWhitelistsets()
+
+        domain_select_algo = self.getAlgorithm("domainNetworkSelection.py")
+        algo_select_algo = self.getAlgorithm("algoSelection.py")
+        for stage in ['base', 'adapt']:
+            self.stage_id = stage
+            self.toolset["target_dataset"] = self.getTargetDataset()
+
+            source_network, source_dataset = domain_select_algo.execute(
+                self.toolset,
+                "SelectNetworkAndDataset")
+
+            self.toolset["source_dataset"] = source_dataset
+            self.toolset["source_network"] = source_network
+
+            query_algo_id, adapt_algo_id = algo_select_algo.execute(
+                self.toolset,
+                "SelectAlgorithms")
+
+            query_algo = self.getAlgorithm(query_algo_id)
+            adapt_algo = self.getAlgorithm(adapt_algo_id)
+            query_algo.execute(self.toolset, "Initialize")
+            adapt_algo.execute(self.toolset, "Initialize")
+
+            checkpoints = self.getBudgetCheckpoints()
+
+            for checkpoint in checkpoints:
+                self.toolset["Budget"] = checkpoint
+                # call the queryalgo to update the dataset with new labels
+                self.toolset["Dataset"] = query_algo.execute(self.toolset,
+                                                            "SelectAndLabelData")
+
+                #call the estimatoralgo to update the model to incorporate the new labels
+                adapt_algo.execute(self.toolset,
+                                      "DomainAdaptTraining")
+                self.toolset["TestDataSet"] = self.getEvaluationDataSet()
+                results = adapt_algo.execute(self.toolset,
+                                             "EvaluateOnTestDataSet")
+                self.postResults(results)
+
+        self.terminateSession()
 

@@ -3,28 +3,28 @@ sys.path.append("..")
 from basealgorithm import BaseAlgorithm
 import torch
 import torch.utils.data as data
-import CloserLookFewShot.model
-import CloserLookFewShot.solver
-import VAAL.sampler
-import VAAL.solver
-import VAAL.model
+# import CloserLookFewShot.model
+# import CloserLookFewShot.solver
+# import VAAL.sampler
+# import VAAL.solver
+# import VAAL.model
 
 
 class ImageClassifierAlgorithm(BaseAlgorithm):
 
-    def __init__(self, arguments ):
+    def __init__(self, arguments):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
         BaseAlgorithm.__init__(self, arguments)
 
         # ############# Example Specific Attributes ####################
         # Here is where you can add your own attributes for your algorithm
-        self.vaal = VAAL.solver.Solver(arguments, None)
-        self.cuda = arguments["cuda"] and torch.cuda.is_available()
-        self.train_accuracies = []
-        self.num_classes = self.base_dataset.num_cats
-        model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
-        self.task_model = CloserLookFewShot.model.BaselineTrain(
-        model, self.num_classes, self.arguments['cuda'])
+        # self.vaal = VAAL.solver.Solver(arguments, None)
+        # self.cuda = arguments["cuda"] and torch.cuda.is_available()
+        # self.train_accuracies = []
+        # self.num_classes = self.base_dataset.num_cats
+        # model = CloserLookFewShot.solver.get_model(self.arguments["backbone"])
+        # self.task_model = CloserLookFewShot.model.BaselineTrain(
+        # model, self.num_classes, self.arguments['cuda'])
         # ############## End of Specific Attributes
 
 
@@ -97,77 +97,77 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         #       unlabeled data (at least be able to run)
 
         # Initialize/Re-Initialize models
-        if toolset["Dataset"].unlabeled_size > 0:
-            vae = VAAL.model.VAE(int(self.arguments["latent_dim"]))
-            discriminator = VAAL.model.Discriminator(int(self.arguments["latent_dim"]))
+        # if toolset["Dataset"].unlabeled_size > 0:
+        #     vae = VAAL.model.VAE(int(self.arguments["latent_dim"]))
+        #     discriminator = VAAL.model.Discriminator(int(self.arguments["latent_dim"]))
+        #
+        #     # train the models on the current data
+        #
+        #     acc, task_model, vae, discriminator = self.vaal.train(
+        #         labeled_dataloader,
+        #         None,  # Setting task model to None so it doesn't train
+        #         vae,
+        #         discriminator,
+        #         unlabeled_dataloader,
+        #     )
+        #
+        #     #
+        #     # ###################  End of Label Selection Your Approach ###############
+        #
+        #     # ##################  ACTIVE LEARNING... Finally. #####################
+        #     #  Figure out the current budget left before checkpoint/evaluation from
+        #     #  the status
+        #     budget = self.problem.get_current_status['budget_left_until_checkpoint']
+        #
+        #     #  This approach sets the budget for how many images that they want
+        #     #  labeled.
+        #     self.vaal.sampler = VAAL.sampler.AdversarySampler(budget)
+        #
+        #      # You pick which indices that you want labeled.  Here, it is using
+        #      # dataset to ensure the correct indices and tracking inside their
+        #      # function (the dataset getitem returns the index)
+        #     sampled_indices = self.vaal.sample_for_labeling(
+        #         vae, discriminator, unlabeled_dataloader)
+        #
+        #      #  ########### Query for labels -- Kitware managed ################
+        #      #  This function is handled by Kitware and takes the indices from the
+        #      #  algorithm and queries for new labels. The new labels are added to
+        #      #  the dataset and the labeled/unlabeled indices are updated
+        #     toolset["Dataset"].get_more_labels(sampled_indices)
+        #      #  Note: you don't have to request the entire budget, but
+        #      #      you shouldn't end the function until the budget is exhausted
+        #      #      since the budget is lost after evaluation.
+        #
+        #     #
+        #     # ##################  End of ACTIVE LEARNING #####################
+        #
+        # # ##################  Training on all labels... #####################
+        #
+        # # Update the labeled sampler and dataloader with the new data.
+        # labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+        #     toolset["Dataset"].get_labeled_indices()
+        # )
+        #
+        # labeled_dataloader = torch.utils.data.DataLoader(
+        #     toolset["Dataset"],
+        #     sampler=labeled_sampler,
+        #     batch_size=min(toolset["Dataset"].labeled_size,
+        #                    int(self.arguments["batch_size"])
+        #                    ),
+        #     num_workers=int(self.arguments["num_workers"]),
+        #     collate_fn=toolset["Dataset"].collate_batch,
+        #     drop_last=True,
+        # )
+        #
+        # # train the models on the current data
+        # acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
+        #                                                       labeled_dataloader,
+        #                                                       self.task_model)
+        # self.train_accuracies.append(acc)
 
-            # train the models on the current data
-
-            acc, task_model, vae, discriminator = self.vaal.train(
-                labeled_dataloader,
-                None,  # Setting task model to None so it doesn't train
-                vae,
-                discriminator,
-                unlabeled_dataloader,
-            )
-
-            #
-            # ###################  End of Label Selection Your Approach ###############
-
-            # ##################  ACTIVE LEARNING... Finally. #####################
-            #  Figure out the current budget left before checkpoint/evaluation from
-            #  the status
-            budget = self.problem.get_current_status['budget_left_until_checkpoint']
-
-            #  This approach sets the budget for how many images that they want
-            #  labeled.
-            self.vaal.sampler = VAAL.sampler.AdversarySampler(budget)
-
-             # You pick which indices that you want labeled.  Here, it is using
-             # dataset to ensure the correct indices and tracking inside their
-             # function (the dataset getitem returns the index)
-            sampled_indices = self.vaal.sample_for_labeling(
-                vae, discriminator, unlabeled_dataloader)
-
-             #  ########### Query for labels -- Kitware managed ################
-             #  This function is handled by Kitware and takes the indices from the
-             #  algorithm and queries for new labels. The new labels are added to
-             #  the dataset and the labeled/unlabeled indices are updated
-            toolset["Dataset"].get_more_labels(sampled_indices)
-             #  Note: you don't have to request the entire budget, but
-             #      you shouldn't end the function until the budget is exhausted
-             #      since the budget is lost after evaluation.
-
-            #
-            # ##################  End of ACTIVE LEARNING #####################
-
-        # ##################  Training on all labels... #####################
-
-        # Update the labeled sampler and dataloader with the new data.
-        labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            toolset["Dataset"].get_labeled_indices()
-        )
-
-        labeled_dataloader = torch.utils.data.DataLoader(
-            toolset["Dataset"],
-            sampler=labeled_sampler,
-            batch_size=min(toolset["Dataset"].labeled_size,
-                           int(self.arguments["batch_size"])
-                           ),
-            num_workers=int(self.arguments["num_workers"]),
-            collate_fn=toolset["Dataset"].collate_batch,
-            drop_last=True,
-        )
-
-        # train the models on the current data
-        acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
-                                                              labeled_dataloader,
-                                                              self.task_model)
-        self.train_accuracies.append(acc)
 
 
-
-    def test(self, toolset, step_descriptor):
+    def inference(self, toolset, step_descriptor):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and

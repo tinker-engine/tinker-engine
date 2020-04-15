@@ -213,9 +213,9 @@ class JPLDataset(torchvision.datasets.VisionDataset):
 
         #TODO: fix the following to correctly initialize
         if self.categories:
-            self.get_seed_labels()
-        else:
             self.initialize_categories(categories)
+        else:
+            self.get_seed_labels()
 
     def __len__(self):
         """
