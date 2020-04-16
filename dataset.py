@@ -127,6 +127,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
     """
     def __init__(self,
                  problem,
+                 dataset_root,
                  baseDataset=True,
                  transform=ub.NoParam,
                  target_transform=None,
@@ -161,20 +162,12 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         """
         self.problem = problem
 
-        # TODO: Remove this logic once JPL can take dynamic directory specifications
-        broken_dataset_dname = problem.status['current_dataset']['data_url']
-        broken_dataset_dname = broken_dataset_dname.replace('\\', '/').split('/')
-        broken_dataset_dname = broken_dataset_dname[1:]
-        broken_dataset_dname[0] = ''
-        broken_dataset_dname[1] = problem.dataset_dir
-        self.root = '/'.join(broken_dataset_dname)
+        self.root = dataset_root
 
         if transform is ub.NoParam:
             transform = basic_transformer()
 
         # If working with base dataset
-        import ipdb
-        ipdb.set_trace()
         if baseDataset:
             self.name = self.problem.metadata['base_dataset']
         else:

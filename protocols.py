@@ -25,6 +25,9 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         #TODO: make this a parameter
         self.dataset_dir = "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
 
+        # Change during evaluation on DMC servers (changes paths to eval datasets)
+        self.evalute = False
+
     @abc.abstractmethod
     def runProtocol(self):
         raise NotImplementedError
@@ -256,8 +259,37 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         return metadata
 
     def getTargetDataset(self):
+
+        # # TODO: Remove this logic once JPL can take dynamic directory specifications
+        # broken_dataset_dname = self.status['current_dataset']['data_url']
+        # broken_dataset_dname = broken_dataset_dname.replace('\\', '/').split('/')
+        # broken_dataset_dname = broken_dataset_dname[1:]
+        # broken_dataset_dname[0] = ''
+        # broken_dataset_dname[1] = self.dataset_dir
+        current_dataset = self.status['current_dataset']['name']
+        if self.evalute:
+            dataset_root = f'{self.dataset_dir}/evaluate/{current_dataset}/{current_dataset}_{self.data_type}/train'
+        else:
+            dataset_root = f'{self.dataset_dir}/development/{current_dataset}/{current_dataset}_{self.data_type}/train'
+
         return JPLDataset(self,
+                          dataset_root=dataset_root,
                           baseDataset=self.stage_id == 'base')
+
+    def get_seed_labels(self):
+        """
+        Get the seed labels for the dataset from JPL's server.
+
+        Returns:
+            list[tuple[str, str]]: the initial seed labels
+                a list of [filename, label] elements
+        """
+        import ipdb
+        ipdb.set_trace()
+        r = requests.get(f"{self.url}/seed_labels", headers=self.headers)
+        r.raise_for_status()
+        seed_labels = r.json()
+        return seed_labels['Labels']
 
 
 class LocalProtocol(metaclass=abc.ABCMeta):
