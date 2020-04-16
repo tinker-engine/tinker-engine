@@ -4,6 +4,7 @@ import sys
 import requests
 import json
 import inspect
+from dataset import JPLDataset
 
 
 class JPLProtocol(metaclass=abc.ABCMeta):
@@ -20,6 +21,9 @@ class JPLProtocol(metaclass=abc.ABCMeta):
 
         self.task_id = ""
         self.stage_id = ""
+
+        #TODO: make this a parameter
+        self.dataset_dir = "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
 
     @abc.abstractmethod
     def runProtocol(self):
@@ -84,11 +88,11 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         _json = {'session_name': 'testing',
                 'data_type': self.data_type,
                 'task_id': task_id}
-
-        r = requests.get(
+        r = requests.post(
             f"{self.url}/auth/create_session",
             headers=self.headers,
-            json=_json)
+            json=_json
+        )
         r.raise_for_status()
 
         self.sessiontoken = r.json()['session_token']
@@ -248,8 +252,12 @@ class JPLProtocol(metaclass=abc.ABCMeta):
             f"{self.url}/task_metadata/{self.task_id}",
             headers=self.headers)
         r.raise_for_status()
-        metadata = r.json()
+        metadata = r.json()['task_metadata']
         return metadata
+
+    def getTargetDataset(self):
+        return JPLDataset(self,
+                          baseDataset=self.stage_id == 'base')
 
 
 class LocalProtocol(metaclass=abc.ABCMeta):
@@ -496,3 +504,8 @@ class LocalProtocol(metaclass=abc.ABCMeta):
         r.raise_for_status()
         metadata = r.json()
         return metadata
+
+
+
+
+

@@ -173,10 +173,12 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             transform = basic_transformer()
 
         # If working with base dataset
+        import ipdb
+        ipdb.set_trace()
         if baseDataset:
-            self.name = self.problem.task_metadata['base_dataset']
+            self.name = self.problem.metadata['base_dataset']
         else:
-            self.name = self.problem.task_metadata['adaptation_dataset']
+            self.name = self.problem.metadata['adaptation_dataset']
 
         super(JPLDataset, self).__init__(
                 self.root, transform=transform, target_transform=target_transform

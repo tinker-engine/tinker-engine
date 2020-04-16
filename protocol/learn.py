@@ -10,9 +10,8 @@ class Learn(JPLProtocol):
 
     def runProtocol(self):
         taskIDs = self.getTaskIDs()
-        # for task in taskIDs:
-        self.runTask("problem_test_image_classification")
-
+        for task in taskIDs:
+            self.runTask("problem_test_image_classification")
 
     def runTask(self, task_id):
 
