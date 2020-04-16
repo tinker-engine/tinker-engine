@@ -291,6 +291,46 @@ class JPLProtocol(metaclass=abc.ABCMeta):
         seed_labels = r.json()
         return seed_labels['Labels']
 
+    def get_more_labels(self, fnames):
+        """
+        Query JPL's API for more labels (the active learning component).
+
+        Danger:
+            Neither JPL nor this function protects against
+            relabeling images that are already labeled.
+            These relabeling requests count against your budget.
+
+        Args:
+            fnames (list[str]): filenames for which you want the labels
+
+        Return:
+            list: (list[tuple(str,str)]): newly labeled image filenames and classes
+        """
+        r = requests.post(f"{self.url}/query_labels",
+                          json={'example_ids': fnames},
+                          headers=self.headers)
+        r.raise_for_status()
+        new_data = r.json()
+
+        self.status = new_data['Session_Status']
+        return new_data['Labels']
+
+    def submit_predictions(self, predictions):
+        """
+        Submit prediction back to JPL for evaluation
+
+        Args:
+            predictions (dict): predictions to submit in a dictionary format
+
+        """
+        r = requests.post(f"{self.url}/submit_predictions",
+                          json={'predictions': predictions},
+                          headers=self.headers)
+        r.raise_for_status()
+        self.status = r.json()['Session_Status']
+
+        return self.status
+
 
 class LocalProtocol(metaclass=abc.ABCMeta):
     def __init__(self, algodirectory, apikey="", url=""):
