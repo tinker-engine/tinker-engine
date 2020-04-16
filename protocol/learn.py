@@ -1,10 +1,11 @@
-from protocols import JPLProtocol
+from jplinterface import JPLInterface
+from baseprotocol import BaseProtocol
 import ipdb
 
-class Learn(JPLProtocol):
+class Learn(JPLInterface, BaseProtocol):
     def __init__(self, algorithmsdirectory):
-        JPLProtocol.__init__(self,
-                             algorithmsdirectory,
+        BaseProtocol.__init__(self, algorithmsdirectory)
+        JPLInterface.__init__(self,
                              apikey="adab5090-39a9-47f3-9fc2-3d65e0fee9a2",
                              url="http://myserviceloadbalancer-679310346.us-east-1.elb.amazonaws.com")
 

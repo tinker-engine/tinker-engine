@@ -1,8 +1,13 @@
-from protocols import JPLProtocol
+from jplinterface import JPLInterface
+from baseprotocol import BaseProtocol
 
-class SAILON(JPLProtocol):
+class SAILON(JPLInterface, BaseProtocol)
+:
     def __init__(self, algorithmsdirectory):
-        JPLProtocol.__init__(self, algorithmsdirectory, apikey = "abc1234", url = "https://foo.bar/baz")
+        BaseProtocol.__init__(self, algorithmsdirectory)
+        JPLInterface.__init__(self,
+                             apikey="abc12334",
+                             url="http://foo.bar/baz")
 
     def runProtocol(self):
         testIDs = self.getTestIDs()
