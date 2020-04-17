@@ -1,8 +1,6 @@
 import abc
 import os
 import sys
-import requests
-import json
 import inspect
 
 
@@ -31,7 +29,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
 
         '''
         # load the algorithm from the self.algorithmsbase/algotype
-        #TODO: implement the mechanism to override the normal behavior of this function and use it to create
+        # TODO: implement the mechanism to override the normal behavior of this function and use it to create
         #       template algorithm files and adapters instead.
 
         #validate that the file exists
@@ -40,7 +38,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             print("given algorithm file", algotype, "doesn't exist")
             exit(1)
 
-        #TODO: support handling a directory in the future. The idea would be that the directory
+        # TODO: support handling a directory in the future. The idea would be that the directory
         # would contain only the one algorithm file, and that the protocol wouldn't care what the
         # name of the file was.
         if os.path.isdir(algofile):

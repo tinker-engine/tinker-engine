@@ -67,13 +67,13 @@ class JPLInterface:
         self.metadata = self.get_problem_metadata()
 
     def get_whitelist_datasets(self):
-        #TODO: get the whitelist datasets for this test id from the JPL server
+        # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
         from pathlib import Path
         import pandas as pd
         external_dataset_root = f'{self.dataset_dir}/external/'
         p = Path(external_dataset_root)
-        #TODO: load both train and test into same dataset
+        # TODO: load both train and test into same dataset
         external_datasets = dict()
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
