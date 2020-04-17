@@ -23,7 +23,7 @@ class DomainNetworkSelectionAdapter(BaseAlgorithm):
         Returns: the information returned by the subfunction
         '''
         self.target_dataset = toolset["target_dataset"]
-        self.Whitelist_Datasets = toolset["whitelist_datasets"]
+        self.whitelist_datasets = toolset["whitelist_datasets"]
         if step_descriptor == "SelectNetworkAndDataset":
             return self.SelectNetworkAndDataset()
         else:

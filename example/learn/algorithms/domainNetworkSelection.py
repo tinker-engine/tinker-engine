@@ -1,3 +1,5 @@
+from domainNetworkSelectionAdapter import DomainNetworkSelectionAdapter
+import torchvision.models as models
 
 class DomainNetworkSelection(DomainNetworkSelectionAdapter):
     def __init__(self, arguments):
