@@ -16,5 +16,5 @@ class DomainNetworkSelection(DomainNetworkSelectionAdapter):
 
         '''
         pretrained_network = models.resnet18(pretrained=True)
-        dataset =  self.whitelist_datasets['imagenet_1k_train']
+        dataset = self.whitelist_datasets['imagenet_1k_train']
         return pretrained_network, dataset

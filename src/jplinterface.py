@@ -67,13 +67,13 @@ class JPLInterface:
         self.metadata = self.get_problem_metadata()
 
     def get_whitelist_datasets(self):
-        #TODO: get the whitelist datasets for this test id from the JPL server
+        # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
         from pathlib import Path
         import pandas as pd
         external_dataset_root = f'{self.dataset_dir}/external/'
         p = Path(external_dataset_root)
-        #TODO: load both train and test into same dataset
+        # TODO: load both train and test into same dataset
         external_datasets = dict()
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
@@ -95,7 +95,7 @@ class JPLInterface:
 
     def get_budget_checkpoints(self):
         """
-        Find and returnn the budget checkpoints from the previously loaded metadata
+        Find and return the budget checkpoints from the previously loaded metadata
         """
         if self.stage_id == 'base':
             para = 'base_label_budget'
@@ -192,7 +192,7 @@ class JPLInterface:
 
         return status
 
-    def get_problem_metadata(self):
+    def get_problem_metadata(self, problem_type=None):
         """
         Get the task metadata from JPL's server.
         An example: ::
@@ -223,8 +223,10 @@ class JPLInterface:
             }
 
         """
+        if problem_type is None:
+            problem_type = self.problem_type
         r = requests.get(
-            f"{self.url}/task_metadata/{self.task_id}",
+            f"{self.url}/task_metadata/{problem_type}",
             headers=self.headers)
         r.raise_for_status()
         metadata = r.json()['task_metadata']
