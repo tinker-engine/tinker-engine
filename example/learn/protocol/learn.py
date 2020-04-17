@@ -2,7 +2,7 @@ from framework.jplinterface import JPLInterface
 from framework.baseprotocol import BaseProtocol
 
 class Learn(JPLInterface, BaseProtocol):
-    ''' The protocol class should derrive from two source classes. The first is the BaseProtocol. This
+    ''' The protocol class should derive from two source classes. The first is the BaseProtocol. This
         provides the self.get_algorithm function for locating and creating an algorithm object for you
         given only the filename of the file containing the algorithm. To use the functions of that
         algorithm, call the execute() function. This call performs two critical actions that are not
