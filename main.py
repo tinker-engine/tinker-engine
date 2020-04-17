@@ -59,7 +59,7 @@ def execute(req):
     #Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
-        print("given algorithm directory doesnt exist")
+        print("given algorithm directory doesni't exist")
         exit(1)
 
     if not os.path.isdir(algorithmsbasepath):
@@ -73,14 +73,21 @@ def execute(req):
         print("given protocol file does not exist")
         sys.exit(1)
 
+    # split out the path to the protocol file from the filename so that we can add the protocol directory
+    # to the system path.
     protpath, protfile = os.path.split(protfilename);
     if protpath:
         sys.path.append(protpath)
     protbase, protext = os.path.splitext(protfile)
+
+    # make sure the protocol file is a python file
     if protext == ".py":
         #import the file and get the object name. The object should go in the protocol local object
         protocolimport = __import__(protbase, globals(), locals(), [], 0)
         for name, obj in inspect.getmembers(protocolimport):
+            # This will get every class that is referenced within the file, including base classes
+            # to ensure we get the right one, check for only classes that are within the module
+            # defined by the protocol file.
             if inspect.isclass(obj):
                 foo = inspect.getmodule( obj )
                 if foo == protocolimport:

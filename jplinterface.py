@@ -94,6 +94,9 @@ class JPLInterface:
         return external_datasets
 
     def get_budget_checkpoints(self):
+        """
+        Find and returnn the budget checkpoints from the previously loaded metadata
+        """
         if self.stage_id == 'base':
             para = 'base_label_budget'
         elif self.stage_id == 'adapt':
@@ -105,11 +108,9 @@ class JPLInterface:
     def get_budget_until_checkpoints(self):
         # TODO: return info from session status
         # this can be loaded from self.metadata
-        print("getBudgetCheckpoints")
         pass
 
     def get_evaluation_dataset(self):
-        print("getEvaluationDataSet")
         categories = self.toolset['target_dataset'].categories
         return self.get_target_dataset(dset='test', categories=categories)
 
@@ -134,7 +135,6 @@ class JPLInterface:
         except KeyError:
             pass
         
-        print("terminateSession")
         pass
 
     def get_current_status(self):

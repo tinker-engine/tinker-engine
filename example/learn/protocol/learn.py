@@ -1,8 +1,24 @@
 from jplinterface import JPLInterface
 from baseprotocol import BaseProtocol
-import ipdb
 
 class Learn(JPLInterface, BaseProtocol):
+    ''' The protocol class should derrive from two source classes. The first is the BaseProtocol. This
+        provides the self.get_algorithm function for locating and creating an algorithm object for you
+        given only the filename of the file containing the algorithm. To use the functions of that
+        algorithm, call the execute() function. This call performs two critical actions that are not
+        available by directly calling the algorithms functions. First, it establishes an indirect
+        call path that allows the automated tools to generate and annotate the adapter and template
+        files for use when creating brand new algoritms. Second, it allows the deconstruction of the
+        toolset dict(), and automatically stores the toolset for local use within the algorithm itself.
+
+        The second class that the protocol class should derive from is the desired back-end data and
+        reporting structure. One such back-end is the JPLInterface which provides access to the JPL
+        TA-1 server for the larn project (and hopefully asil-on as well). Another useful back-end is
+        the LocalInterface which provides similar access as the JPLInterface using local data only.
+        The interface mimics the JPLInterface, but works entirely within the framework, and requires
+        no external server to function.
+
+    '''
     def __init__(self, algorithmsdirectory):
         BaseProtocol.__init__(self, algorithmsdirectory)
         JPLInterface.__init__(self,
@@ -11,6 +27,9 @@ class Learn(JPLInterface, BaseProtocol):
                               # url="http://myserviceloadbalancer-679310346.us-east-1.elb.amazonaws.com")
 
     def run_protocol(self):
+        ''' run_protocol is called from the framework and represents that initial exeuction point
+            of the protocol.
+        '''
         taskIDs = self.get_task_ids()
         for task in taskIDs:
             self.run_task("problem_test_image_classification")

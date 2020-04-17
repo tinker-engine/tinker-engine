@@ -7,6 +7,9 @@ import inspect
 
 
 class BaseProtocol(metaclass=abc.ABCMeta):
+    """ The BaseProtocol class provides a generic toolset storage and a mechanism to
+        retreive algorithms given their filename.
+    """
     def __init__(self,algodirectory):
         self.algorithmsbase = algodirectory
         self.toolset = dict()
@@ -16,12 +19,25 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def get_algorithm(self, algotype):
+        ''' get_algorithm loads a single algorithm file from the filesystem and instantiates a single
+            object of the relevant type from that file.
+
+            Arguments:
+                algotype: This is a string that contains either an absolute or relative path to the
+                            desired algorithm file. If the path is relative, then the location of
+                            the file is determined using the self.algorithmsbase directory and
+                            appending the algotype string to it to generate the absolute file path.
+
+
+        '''
         # load the algorithm from the self.algorithmsbase/algotype
+        #TODO: implement the mechanism to override the normal behavior of this function and use it to create
+        #       template algorithm files and adapters instead.
 
         #validate that the file exists
         algofile = os.path.join(self.algorithmsbase, algotype)
         if not os.path.exists(algofile):
-            print("given algorithm", algotype, "doesnt exist")
+            print("given algorithm file", algotype, "doesn't exist")
             exit(1)
 
         #TODO: support handling a directory in the future. The idea would be that the directory
@@ -50,7 +66,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
                         #construct the algorithm object
                         algorithm = obj("")
         else:
-            print("Given algorithm is not a python file")
+            print("Given algorithm is not a python file, other types not supported")
             exit(1)
 
         return algorithm

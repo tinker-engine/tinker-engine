@@ -48,33 +48,12 @@ The flow is run from the :ref:`main.py` file generally and calls the :ref:`algor
 
 ## Running the code
 
-First step is sourcing the secrets. In order to do that copy the example secrets file and fill the values with your 
-secret.
+to execute the code, run the main.py file with python 3 and two arguments giving the location and name of the
+protocol file to use and the location of the algorithms directory: `python3 main.py <protocol file> -a <path to algorothms>`
 
 ```bash
-cp secrets.example secrets
+python3 main.py example/learn/protocol/learn.py -a example/learn/algorithms
 ```
-
-Then modify the values with the real URI for the api and the secret that you have retrieved.
-
-After that source the secrets file so that the environment variables are set.
-
-```bash
-source secrets
-```
-
-Currently there are two ways to run the implemented algorithm local execution and dockerized execution.
-
-Local execution is great for: 
-- Rapidly prototyping your algorithm
-- Debugging
-- Figuring out your system and python dependencies
- 
-Docker execution is great for:
-- Packaging up all the requirements and run time for your algorithm
-- Sharing it with different groups
-- Reproducability of your algorithm/research by different people
-
 
 ### Local Execution
 
