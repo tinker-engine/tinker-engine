@@ -1,17 +1,16 @@
 # Learn Framework
 
 ## Setting up your algorithm
-The learn framework has two parts. The `algorithm` folder contains all the code for you to run
-your code and interface with the JPL API and the `learn_framework` contains the code to dockerize the files and download
-the datasets.  
-
-The `algorithm` folder contains all the code for you to run your algorithm.  This is a standalone folder and everything 
-can be run from this directory.  Take a look at the :ref:`main.py` file to start the code.  You can run the example 
-using the following command from the `algorithm` folder (either after installing the framework or having the datasets 
-already downloaded):  
+The framework has three parts. The frameowrk itself is installed such that it can be executed from any desired location
+on the system. The second part is the protocol. The protocol is written by the project team to meet the requirements of
+the entire project. This is a python script that exercises all parts of the system in the desired fashion. The third 
+part are the algorithms. The three parts of the system do not need to be in the same location. The only requirement
+for the algorithms is that they all reside under the same root folder. Either the framework should be execued from this
+base folder, or this base folder can be given as an argument to the framework. The location of the protocol script is
+given to the framework as the only required argument.
 
 ```python
-python main.py
+python3 main.py <protocol file>
 ```
 
 There are five main files to look at here.  The only two files from listed below that you should be editing are the 
@@ -49,33 +48,12 @@ The flow is run from the :ref:`main.py` file generally and calls the :ref:`algor
 
 ## Running the code
 
-First step is sourcing the secrets. In order to do that copy the example secrets file and fill the values with your 
-secret.
+to execute the code, run the main.py file with python 3 and two arguments giving the location and name of the
+protocol file to use and the location of the algorithms directory: `python3 main.py <protocol file> -a <path to algorothms>`
 
 ```bash
-cp secrets.example secrets
+python3 main.py example/learn/protocol/learn.py -a example/learn/algorithms
 ```
-
-Then modify the values with the real URI for the api and the secret that you have retrieved.
-
-After that source the secrets file so that the environment variables are set.
-
-```bash
-source secrets
-```
-
-Currently there are two ways to run the implemented algorithm local execution and dockerized execution.
-
-Local execution is great for: 
-- Rapidly prototyping your algorithm
-- Debugging
-- Figuring out your system and python dependencies
- 
-Docker execution is great for:
-- Packaging up all the requirements and run time for your algorithm
-- Sharing it with different groups
-- Reproducability of your algorithm/research by different people
-
 
 ### Local Execution
 
