@@ -91,7 +91,7 @@ def execute(req):
         sys.exit(1)
 
     if protocol:
-        protocol.runProtocol()
+        protocol.run_protocol()
     else:
         print("protocol invalid")
    

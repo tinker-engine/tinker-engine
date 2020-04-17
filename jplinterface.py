@@ -5,11 +5,12 @@ import requests
 import json
 import inspect
 from dataset import JPLDataset
+import ipdb
 
 
 class JPLInterface:
     def __init__(self, apikey = "", url = ""):
-        #TODO: define the data_type
+        # TODO: define the data_type
         self.data_type = "full"
         
         self.apikey = apikey
@@ -18,20 +19,24 @@ class JPLInterface:
 
         self.task_id = ""
         self.stage_id = ""
+        self.sessiontoken = ""
+        self.status = dict()
+        self.metadata = dict()
 
-        #TODO: make this a parameter
-        self.dataset_dir = "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
+        # TODO: make this a parameter
+        self.dataset_dir = \
+            "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
 
         # Change during evaluation on DMC servers (changes paths to eval datasets)
-        self.evalute = False
+        self.evaluate = False
 
-    def getTaskIDs(self):
+    def get_task_ids(self):
         print ("getTestIDs")
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
         r.raise_for_status()
         return r.json()['tasks']
 
-    def initializeSession(self, task_id):
+    def initialize_session(self, task_id):
         """
         Get the session token from JPL's server.  This should only be run once
         per task. The session token defines the instance of the problem being run.
@@ -61,12 +66,34 @@ class JPLInterface:
 
         self.metadata = self.get_problem_metadata()
 
-    def getWhitelistsets(self):
+    def get_whitelist_datasets(self):
         #TODO: get the whitelist datasets for this test id from the JPL server
-        print("getWhitelistsets")
-        pass
+        print("get whitelist datasets")
+        from pathlib import Path
+        import pandas as pd
+        external_dataset_root = f'{self.dataset_dir}/external/'
+        p = Path(external_dataset_root)
+        #TODO: load both train and test into same dataset
+        external_datasets = dict()
+        for e in [x for x in p.iterdir() if x.is_dir()]:
+            name = e.parts[-1]
+            print(f'Loading {name}')
+            for dset in ['train', 'test']:
+                labels = pd.read_feather(e / 'labels_full' / f'labels_{dset}.feather')
+                if 'bbox' in labels.columns:
+                    dataset_type = 'object_detection'
+                else:
+                    dataset_type = 'image_classification'
+                e_root = e / f'{name}_full' / dset
+                external_datasets[f'{name}_{dset}'] = JPLDataset(self,
+                          dataset_root=e_root,
+                          dataset_id=f'{name}_{dset}',
+                          dataset_type=dataset_type,
+                          seed_labels=labels)
 
-    def getBudgetCheckpoints(self):
+        return external_datasets
+
+    def get_budget_checkpoints(self):
         if self.stage_id == 'base':
             para = 'base_label_budget'
         elif self.stage_id == 'adapt':
@@ -75,19 +102,18 @@ class JPLInterface:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
         return self.metadata[para]
 
-    def getBudgetUntilCheckpoints(self):
+    def get_budget_until_checkpoints(self):
         # TODO: return info from session status
         # this can be loaded from self.metadata
         print("getBudgetCheckpoints")
-
         pass
 
-    def getEvaluationDataSet(self):
-        #TODO: return the dataset to be used for evaluating the run
+    def get_evaluation_dataset(self):
         print("getEvaluationDataSet")
-        pass
+        categories = self.toolset['target_dataset'].categories
+        return self.get_target_dataset(dset='test', categories=categories)
 
-    def postResults(self, predictions):
+    def post_results(self, predictions):
         """
         Submit prediction back to JPL for evaluation
 
@@ -95,15 +121,9 @@ class JPLInterface:
             predictions (dict): predictions to submit in a dictionary format
 
         """
-        r = requests.post(f"{self.url}/submit_predictions",
-                          json={'predictions': predictions},
-                          headers=self.headers)
-        r.raise_for_status()
-        self.status = r.json()['Session_Status']
+        return self.submit_predictions(predictions)
 
-        return self.status
-
-    def terminateSession(self):
+    def terminate_session(self):
         # end the current session with the JPL server
         # no formal communication with the JPL server is needed to end the session.
         # wipe the session id so that it can't be inadvertently used again
@@ -116,7 +136,6 @@ class JPLInterface:
         
         print("terminateSession")
         pass
-        
 
     def get_current_status(self):
         """
@@ -211,23 +230,20 @@ class JPLInterface:
         metadata = r.json()['task_metadata']
         return metadata
 
-    def getTargetDataset(self):
-
-        # # TODO: Remove this logic once JPL can take dynamic directory specifications
-        # broken_dataset_dname = self.status['current_dataset']['data_url']
-        # broken_dataset_dname = broken_dataset_dname.replace('\\', '/').split('/')
-        # broken_dataset_dname = broken_dataset_dname[1:]
-        # broken_dataset_dname[0] = ''
-        # broken_dataset_dname[1] = self.dataset_dir
+    def get_target_dataset(self, dset='train', categories=None):
         current_dataset = self.status['current_dataset']['name']
-        if self.evalute:
-            dataset_root = f'{self.dataset_dir}/evaluate/{current_dataset}/{current_dataset}_{self.data_type}/train'
+        if self.evaluate:
+            dataset_root = (f'{self.dataset_dir}/evaluate/{current_dataset}/' 
+                            f'{current_dataset}_{self.data_type}/{dset}')
         else:
-            dataset_root = f'{self.dataset_dir}/development/{current_dataset}/{current_dataset}_{self.data_type}/train'
+            dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/' 
+                            f'{current_dataset}_{self.data_type}/{dset}')
 
         return JPLDataset(self,
                           dataset_root=dataset_root,
-                          baseDataset=self.stage_id == 'base')
+                          dataset_id=current_dataset,
+                          dataset_type=self.metadata['problem_type'],
+                          categories=categories)
 
     def get_seed_labels(self):
         """
@@ -237,8 +253,6 @@ class JPLInterface:
             list[tuple[str, str]]: the initial seed labels
                 a list of [filename, label] elements
         """
-        import ipdb
-        ipdb.set_trace()
         r = requests.get(f"{self.url}/seed_labels", headers=self.headers)
         r.raise_for_status()
         seed_labels = r.json()
@@ -276,6 +290,9 @@ class JPLInterface:
             predictions (dict): predictions to submit in a dictionary format
 
         """
+
+        predictions = self.toolset['eval_dataset'].format_predictions(
+            predictions[0], predictions[1])
         r = requests.post(f"{self.url}/submit_predictions",
                           json={'predictions': predictions},
                           headers=self.headers)
@@ -284,5 +301,38 @@ class JPLInterface:
 
         return self.status
 
+    def format_status(self, update=False):
+        """
+        Update and return formatted string with the current status
+        of the problem/task
 
+        Args:
+            update (bool): should the status be updated
 
+        Returns:
+              str: Formatted String of Status
+        """
+        if update:
+            info = json.dumps(self.get_current_status, indent=4)
+        else:
+            info = json.dumps(self.status, indent=4)
+        return '\n'.join(['Problem/Task Status:', info, ''])
+
+    def format_task_metadata(self):
+        """
+        Returns formatted string of the task/problem metadata
+
+        Returns:
+              str: Formatted String of Metadata
+        """
+        info = json.dumps(self.task_metadata, indent=4)
+        return '\n'.join(['Problem/Task Metadata:', info, ''])
+
+    def __repr__(self):
+        """
+
+        Returns:
+            str: Formatted String of metadata and status
+        """
+
+        return self.format_task_metadata() + '\n' + self.format_status()

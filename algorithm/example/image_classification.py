@@ -16,6 +16,9 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
         BaseAlgorithm.__init__(self, arguments)
 
+        self.toolset = dict()
+        self.batch_size = 32
+        self.num_workers = 0
         # ############# Example Specific Attributes ####################
         # Here is where you can add your own attributes for your algorithm
         # self.vaal = VAAL.solver.Solver(arguments, None)
@@ -34,6 +37,18 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         # execution does not return anything, it is purely for the sake of altering the internal model.
         # Available reources for training can be retreived using the BaseAlgorithm functions.
 
+        self.toolset = toolset
+
+        if step_descriptor == 'Initialize':
+            pass
+        elif step_descriptor == 'DomainAdaptTraining':
+            return self.domain_adapt_training()
+        elif step_descriptor == 'EvaluateOnTestDataSet':
+            return self.inference()
+        else:
+            raise NotImplementedError(f'Step {step_descriptor} not implemented')
+
+    def domain_adapt_training(self):
         # ###################  Creating the Labeled DataLoader ###############
         # Create Dataloaders for labeled data by getting the labeled indices and
         # creating a random sub-sampler.  Then create the dataloader using this
@@ -55,34 +70,35 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         #         dataloader to hang
 
         labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            toolset["Dataset"].get_labeled_indices()
+            self.toolset["target_dataset"].get_labeled_indices()
         )
 
         labeled_dataloader = torch.utils.data.DataLoader(
-            toolset["Dataset"],
+            self.toolset["target_dataset"],
             sampler=labeled_sampler,
-            batch_size=min(toolset["Dataset"].labeled_size,
-                           int(self.arguments["batch_size"])
+            batch_size=min(self.toolset["target_dataset"].labeled_size,
+                           int(self.batch_size)
                            ),
-            num_workers=int(self.arguments["num_workers"]),
-            collate_fn=toolset["Dataset"].collate_batch,
+            num_workers=int(self.num_workers),
+            collate_fn=self.toolset["target_dataset"].collate_batch,
             drop_last=True,
         )
 
         # ###################  Creating the Unlabeled DataLoader ###############
         #  Same as labeled dataaset but for unlabeled indices
         unlabeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            toolset["Dataset"].get_unlabeled_indices()
+            self.toolset["target_dataset"].get_unlabeled_indices()
         )
         unlabeled_dataloader = torch.utils.data.DataLoader(
-            toolset["Dataset"],
+            self.toolset["target_dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(toolset["Dataset"].unlabeled_size,
-                           int(self.arguments["batch_size"])
+            batch_size=min(self.toolset["target_dataset"].unlabeled_size,
+                           int(self.batch_size)
                            ),
-            num_workers=int(self.arguments["num_workers"]),
+            num_workers=int(self.num_workers),
             drop_last=False,
         )
+
         #
         # ###################  End of the Creating DataLoaders ###############
 
@@ -165,9 +181,7 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         #                                                       self.task_model)
         # self.train_accuracies.append(acc)
 
-
-
-    def inference(self, toolset, step_descriptor):
+    def inference(self):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and
@@ -184,25 +198,26 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
                 predicted category indices and image indices
 
         """
-        self.task_model.eval()
-        eval_dataloader = data.DataLoader(
-            toolset["Dataset"],
-            batch_size=int(self.arguments["batch_size"]),
-            drop_last=False
-        )
-        preds = []
-        indices = []
+        # self.task_model.eval()
+        # eval_dataloader = data.DataLoader(
+        #     toolset["Dataset"],
+        #     batch_size=int(self.arguments["batch_size"]),
+        #     drop_last=False
+        # )
+        # preds = []
+        # indices = []
+        #
+        # for imgs, inds in eval_dataloader:
+        #     if self.cuda:
+        #         imgs = imgs.cuda()
+        #
+        #     with torch.no_grad():
+        #         preds_ = self.task_model(imgs)
+        #
+        #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
+        #     indices += inds.numpy().tolist()
 
-        for imgs, inds in eval_dataloader:
-            if self.cuda:
-                imgs = imgs.cuda()
-
-            with torch.no_grad():
-                preds_ = self.task_model(imgs)
-
-            preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
-            indices += inds.numpy().tolist()
-
+        preds, indices = self.toolset["eval_dataset"].dummy_data('image_classification')
         return preds, indices
 
 

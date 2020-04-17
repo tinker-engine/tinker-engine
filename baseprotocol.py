@@ -5,34 +5,35 @@ import requests
 import json
 import inspect
 
+
 class BaseProtocol(metaclass=abc.ABCMeta):
     def __init__(self,algodirectory):
         self.algorithmsbase = algodirectory
         self.toolset = dict()
 
     @abc.abstractmethod
-    def runProtocol(self):
+    def run_protocol(self):
         raise NotImplementedError
 
-    def getAlgorithm(self, algotype):
+    def get_algorithm(self, algotype):
         # load the algorithm from the self.algorithmsbase/algotype
 
         #validate that the file exists
         algofile = os.path.join(self.algorithmsbase, algotype)
-        if not os.path.exists( algofile ):
+        if not os.path.exists(algofile):
             print("given algorithm", algotype, "doesnt exist")
             exit(1)
 
         #TODO: support handling a directory in the future. The idea would be that the directory
         # would contain only the one algorithm file, and that the protocol wouldn't care what the
         # name of the file was.
-        if os.path.isdir( algofile ):
+        if os.path.isdir(algofile):
             print("algorithm not yet supported on a directory, use a specific file instead")
             raise NotImplementedError
 
         # get the path to the algo file so that we can append it to the system path
         # this makes the import easier
-        argpath, argfile = os.path.split( algofile )
+        argpath, argfile = os.path.split(algofile)
         if argpath:
             sys.path.append(argpath)
 
@@ -53,5 +54,3 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             exit(1)
 
         return algorithm
-
-        

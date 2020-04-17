@@ -128,10 +128,12 @@ class JPLDataset(torchvision.datasets.VisionDataset):
     def __init__(self,
                  problem,
                  dataset_root,
-                 baseDataset=True,
+                 dataset_id='True',
+                 dataset_type='',
                  transform=ub.NoParam,
                  target_transform=None,
-                 categories=None):
+                 categories=None,
+                 seed_labels=None):
         """
         The initialization function for the dataset.  This initializes the
         attributes and gets the seed labels.
@@ -168,10 +170,8 @@ class JPLDataset(torchvision.datasets.VisionDataset):
             transform = basic_transformer()
 
         # If working with base dataset
-        if baseDataset:
-            self.name = self.problem.metadata['base_dataset']
-        else:
-            self.name = self.problem.metadata['adaptation_dataset']
+        self.name = dataset_id
+        self.type = dataset_type
 
         super(JPLDataset, self).__init__(
                 self.root, transform=transform, target_transform=target_transform
@@ -207,10 +207,10 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         self.category_index_to_category = None
 
         #TODO: fix the following to correctly initialize
-        if self.categories:
-            self.initialize_categories(categories)
+        if categories is None:
+            self.get_seed_labels(seed_labels)
         else:
-            self.get_seed_labels()
+            self.initialize_categories(categories)
 
     def __len__(self):
         """
@@ -288,10 +288,10 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         new_data = self.problem.get_more_labels(
                 self._indices_to_fnames(unlabeled_indices))
 
-        if self.problem.task_metadata['problem_type'] == 'image_classification':
-            columns = ['id', 'class']
+        if self.type == 'image_classification':
+            columns = ['class', 'id']
 
-        elif self.problem.task_metadata['problem_type'] == 'object_detection':
+        elif self.type == 'object_detection':
             columns = ['id', 'bbox', 'class']
 
         else:
@@ -302,15 +302,20 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         n = self.update_targets(new_data, requested=unlabeled_indices)
         print(f'Added {n} more labels to the dataset')
 
-    def get_seed_labels(self):
+    def get_seed_labels(self, seed_labels=None):
         """
         Get the seed labels from JPL (via the LwLL class) and add them to
         the dataset
 
+        Args:
+            seed_labels,
+
         This also initializes the Categories based on the seed labels.
 
         """
-        seed_labels = pd.DataFrame(self.problem.get_seed_labels())
+        if seed_labels is None:
+            seed_labels = pd.DataFrame(self.problem.get_seed_labels())
+
         cat_labels = seed_labels['class'].tolist()
 
         self.initialize_categories(cat_labels)
@@ -344,7 +349,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         """
         return [self.category_index_to_category[i] for i in category_indices]
 
-    def update_targets(self, new_labels, requested=[]):
+    def update_targets(self, new_labels, requested=[], check_redundant=False):
         """
         Update with new labels for targets
 
@@ -361,12 +366,12 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         cat_labels = new_labels['class'].tolist()
         cat_labels = self._category_name_to_category_index(cat_labels)
 
-        if self.problem.task_metadata['problem_type'] == 'image_classification':
+        if self.type == 'image_classification':
             bbox_labels = None
-        elif self.problem.task_metadata['problem_type'] == 'object_detection':
+        elif self.type == 'object_detection':
             bbox_labels = new_labels['bbox'].tolist()
         else:
-            print(f'Problem type {self.problem.task_metadata["dataset_type"]}'
+            print(f'Problem type {self.problem.metadata["dataset_type"]}'
                   f'not implemented')
             raise NotImplementedError
 
@@ -374,17 +379,17 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         unique_images = set(indices + requested)
         num_labeled = 0
 
-        if self.problem.task_metadata['problem_type'] == 'image_classification':
+        if self.type == 'image_classification':
             for it, ind in enumerate(indices):
                 self.targets[ind] = cat_labels[it]
                 num_labeled += 1
 
-        elif self.problem.task_metadata['problem_type'] == 'object_detection':
+        elif self.type == 'object_detection':
             # Either create a new list if no labels, or add it to the previous list
             for it, ind in enumerate(indices):
                 new_lab = {'category': cat_labels[it],
                            'bbox': torch.tensor(
-                               list(map(int, bbox_labels[it].split(', ')))
+                               list(map(float, bbox_labels[it].split(', ')))
                            )}
                 if self.targets[ind] is None:
                     self.targets[ind] = [new_lab]
@@ -392,16 +397,17 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                 else:
                     # Check if redundant, don't if it so don't add
                     unique = True
-                    for t in self.targets[ind]:
-                        if new_lab['category'] == t['category'] \
-                                and all(new_lab['bbox'] == t['bbox']):
-                            unique = False
+                    if check_redundant:
+                        for t in self.targets[ind]:
+                            if new_lab['category'] == t['category'] \
+                                    and all(new_lab['bbox'] == t['bbox']):
+                                unique = False
                     if unique:
                         self.targets[ind].append(new_lab)
                         num_labeled += 1
 
         else:
-            print(f'Problem type {self.problem.task_metadata["dataset_type"]}'
+            print(f'Problem type {self.problem.metadata["dataset_type"]}'
                   f'not implemented')
             raise NotImplementedError
 
@@ -552,7 +558,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         else:
             raise NotImplementedError
 
-    def submit_predictions(self, predictions, indices):
+    def format_predictions(self, predictions, indices):
         """
         Submit the prediction to JPL vial LwLL class.
 
@@ -564,7 +570,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                 predictions.
         """
         fnames = self._indices_to_fnames(indices)
-        if self.problem.task_metadata['problem_type'] == 'object_detection':
+        if self.type == 'object_detection':
             if not isinstance(predictions, tuple):
                 raise TypeError('Prediction needs to be tuple for object detection')
             bbox = predictions[0]
@@ -577,18 +583,18 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                                'confidence': confidence,
                                'class': classes
                                })
-        elif self.problem.task_metadata['problem_type'] == 'image_classification':
+        elif self.type == 'image_classification':
             preds = self._category_index_to_category_name(predictions)
             df = pd.DataFrame({'id': fnames, 'class': predictions})
 
         else:
             print(f'Cannot handle problem type '
-                  f'{self.problem.task_metadata["dataset_type"]}')
+                  f'{self.problem.metadata["dataset_type"]}')
             raise NotImplementedError
 
         # Enforce that the labels are strings
         df['class'] = df['class'].astype(str)
 
-        self.problem.submit_predictions(df.to_dict())
+        return df.to_dict()
 
 

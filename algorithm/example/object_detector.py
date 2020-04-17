@@ -71,7 +71,23 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         """
         BaseAlgorithm.__init__(self, arguments)
 
+        self.toolset = dict()
+        self.batch_size = 32
+        self.num_workers = 0
+
     def execute(self, toolset, step_descriptor):
+
+        self.toolset = toolset
+        if step_descriptor == 'Initialize':
+            pass
+        elif step_descriptor == 'DomainAdaptTraining':
+            return self.domain_adapt_training()
+        elif step_descriptor == 'EvaluateOnTestDataSet':
+            return self.inference()
+        else:
+            raise NotImplementedError(f'Step {step_descriptor} not implemented')
+
+    def domain_adapt_training(self):
         """ Method for the training in the train stage of the problem.
         Also known as the base stage.
 
@@ -115,32 +131,32 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         #         dataloader to hang
 
         labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            toolset["Dataset"].get_labeled_indices()
+            self.toolset["target_dataset"].get_labeled_indices()
         )
 
         labeled_dataloader = torch.utils.data.DataLoader(
-            toolset["Dataset"],
+            self.toolset["target_dataset"],
             sampler=labeled_sampler,
-            batch_size=min(len(toolset["Dataset"].get_labeled_indices()),
-                           int(self.arguments["batch_size"])
+            batch_size=min(self.toolset["target_dataset"].labeled_size,
+                           int(self.batch_size)
                            ),
-            num_workers=int(self.arguments["num_workers"]),
-            collate_fn=toolset["Dataset"].collate_batch,
+            num_workers=int(self.num_workers),
+            collate_fn=self.toolset["target_dataset"].collate_batch,
             drop_last=True,
         )
 
         # ###################  Creating the Unlabeled DataLoader ###############
         #  Same as labeled dataaset but for unlabeled indices
         unlabeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-            toolset["Dataset"].get_unlabeled_indices()
+            self.toolset["target_dataset"].get_unlabeled_indices()
         )
         unlabeled_dataloader = torch.utils.data.DataLoader(
-            toolset["Dataset"],
+            self.toolset["target_dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(len(toolset["Dataset"].get_unlabeled_indices()),
-                           int(self.arguments["batch_size"])
+            batch_size=min(self.toolset["target_dataset"].unlabeled_size,
+                           int(self.batch_size)
                            ),
-            num_workers=int(self.arguments["num_workers"]),
+            num_workers=int(self.num_workers),
             drop_last=False,
         )
         #
@@ -164,7 +180,7 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         # ##################  ACTIVE LEARNING... Finally. #####################
         #  Figure out the current budget left before checkpoint/evaluation from
         #  the status
-        budget = self.problem.get_current_status['budget_left_until_checkpoint']
+        budget = self.toolset['budget']
 
         #  This approach sets the budget for how many images that they want
         #  labeled.
@@ -182,11 +198,11 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
 #        #  the dataset and the labeled/unlabeled indices are updated
 
         sampled_indices = np.random.choice(
-                                           list(toolset["Dataset"].unlabeled_indices),
+                                           list(self.toolset["Dataset"].unlabeled_indices),
                                            budget
                                            )
 
-        toolset["Dataset"].get_more_labels(sampled_indices)
+        self.toolset["Dataset"].get_more_labels(sampled_indices)
 #        #  Note: you don't have to request the entire budget, but
 #        #      you shouldn't end the function until the budget is exhausted
 #        #      since the budget is lost after evaluation.
@@ -230,7 +246,7 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         #  elements if you want to request labels in smaller increments of data
         #  rather than requesting the entire budget here
 
-    def test(self, toolset, step_descriptor):
+    def inference(self):
         """
         Inference is during the evaluation stage.  For this example, the
         task_network is trained in the train and adapt stage's code and
@@ -266,5 +282,5 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
         #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
         #     indices += inds.numpy().tolist()
 
-        preds, indices = toolset["Dataset"].dummy_data('object_detection')
+        preds, indices = toolset["eval_dataset"].dummy_data('object_detection')
         return preds, indices
