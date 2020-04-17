@@ -31,8 +31,6 @@ class Learn(JPLInterface, BaseProtocol):
             of the protocol.
         '''
         taskIDs = self.get_task_ids()
-        import ipdb
-        ipdb.set_trace()
         for task in taskIDs:
             if self.get_problem_metadata(task)['problem_type'] == 'machine_translation':
                 continue

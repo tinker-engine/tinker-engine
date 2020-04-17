@@ -106,8 +106,7 @@ def main():
     """ Main to run the algorithm locally.  Just loads the input.json file and calls
     the :meth:`main.execute` function.
     """
-    with open('../input.json') as json_file:
-        execute({'arguments': json.load(json_file)})
+    execute({})
 
 
 if __name__ == "__main__":
