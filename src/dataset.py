@@ -585,7 +585,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                                })
         elif self.type == 'image_classification':
             preds = self._category_index_to_category_name(predictions)
-            df = pd.DataFrame({'id': fnames, 'class': predictions})
+            df = pd.DataFrame({'id': fnames, 'class': preds})
 
         else:
             print(f'Cannot handle problem type '
