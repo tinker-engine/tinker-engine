@@ -1,4 +1,4 @@
-from basealgorithm import BaseAlgorithm
+from framework.basealgorithm import BaseAlgorithm
 
 
 class AlgorithmSelection(BaseAlgorithm):

@@ -1,5 +1,5 @@
 import abc
-from basealgorithm import BaseAlgorithm
+from framework.basealgorithm import BaseAlgorithm
 
 class DomainNetworkSelectionAdapter(BaseAlgorithm):
     ''' Adapt the DomainNetworkSelection class for use with the

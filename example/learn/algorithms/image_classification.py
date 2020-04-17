@@ -1,5 +1,5 @@
 import sys
-from basealgorithm import BaseAlgorithm
+from framework.basealgorithm import BaseAlgorithm
 import torch
 import torch.utils.data as data
 # import CloserLookFewShot.model

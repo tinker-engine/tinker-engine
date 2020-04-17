@@ -4,7 +4,7 @@ import sys
 import requests
 import json
 import inspect
-from dataset import JPLDataset
+from framework.dataset import JPLDataset
 
 
 class JPLInterface:

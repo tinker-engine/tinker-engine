@@ -1,5 +1,5 @@
 import sys
-from basealgorithm import BaseAlgorithm
+from framework.basealgorithm import BaseAlgorithm
 import numpy as np
 
 

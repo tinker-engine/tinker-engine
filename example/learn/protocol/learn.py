@@ -1,5 +1,5 @@
-from jplinterface import JPLInterface
-from baseprotocol import BaseProtocol
+from framework.jplinterface import JPLInterface
+from framework.baseprotocol import BaseProtocol
 
 class Learn(JPLInterface, BaseProtocol):
     ''' The protocol class should derrive from two source classes. The first is the BaseProtocol. This

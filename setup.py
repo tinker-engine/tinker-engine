@@ -31,7 +31,7 @@ setup(
     description="Framework for evaluating active learning algorithms.",
     entry_points={
         'console_scripts': [
-            'framework=framework.main:__main__',
+            'framework=framework.main:main',
         ],
     },
     install_requires=requirements,
