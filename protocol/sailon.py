@@ -11,12 +11,12 @@ class SAILON(JPLInterface, BaseProtocol)
 
     def runProtocol(self):
         testIDs = self.getTestIDs()
-        sessionID = self.initializeSession()
-        algo = self.getAlgorithm("feature_extractor.py")
+        sessionID = self.initialize_session()
+        algo = self.get_algorithm("feature_extractor.py")
         for test in test_ids:
             algo.execute(toolset, "Initialize")
-            toolset["Dataset"] = self.getEvaluationDataSet()
+            toolset["Dataset"] = self.get_evaluation_dataset()
             results = algo.execute(toolset, "FeatureExtractor")
-            self.postResults(results)
+            self.post_results(results)
 
-        self.terminateSession()
+        self.terminate_session()
