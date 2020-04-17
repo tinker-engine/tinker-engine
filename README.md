@@ -1,17 +1,16 @@
 # Learn Framework
 
 ## Setting up your algorithm
-The learn framework has two parts. The `algorithm` folder contains all the code for you to run
-your code and interface with the JPL API and the `learn_framework` contains the code to dockerize the files and download
-the datasets.  
-
-The `algorithm` folder contains all the code for you to run your algorithm.  This is a standalone folder and everything 
-can be run from this directory.  Take a look at the :ref:`main.py` file to start the code.  You can run the example 
-using the following command from the `algorithm` folder (either after installing the framework or having the datasets 
-already downloaded):  
+The framework has three parts. The frameowrk itself is installed such that it can be executed from any desired location
+on the system. The second part is the protocol. The protocol is written by the project team to meet the requirements of
+the entire project. This is a python script that exercises all parts of the system in the desired fashion. The third 
+part are the algorithms. The three parts of the system do not need to be in the same location. The only requirement
+for the algorithms is that they all reside under the same root folder. Either the framework should be execued from this
+base folder, or this base folder can be given as an argument to the framework. The location of the protocol script is
+given to the framework as the only required argument.
 
 ```python
-python main.py
+python3 main.py <protocol file>
 ```
 
 There are five main files to look at here.  The only two files from listed below that you should be editing are the 

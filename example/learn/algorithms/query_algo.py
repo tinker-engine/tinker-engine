@@ -1,6 +1,5 @@
 import sys
-sys.path.append("..")
-from basealgorithm import BaseAlgorithm
+FROM BASEalgorithm import BaseAlgorithm
 import numpy as np
 
 

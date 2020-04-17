@@ -1,5 +1,4 @@
 import sys
-sys.path.append("..")
 from basealgorithm import BaseAlgorithm
 import torch
 import torch.utils.data as data
