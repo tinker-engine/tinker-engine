@@ -66,6 +66,8 @@ class JPLInterface:
 
         self.metadata = self.get_problem_metadata()
 
+        self.problem_type = self.metadata['problem_type']
+
     def get_whitelist_datasets(self):
         # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
@@ -192,7 +194,7 @@ class JPLInterface:
 
         return status
 
-    def get_problem_metadata(self, problem_type=None):
+    def get_problem_metadata(self, task_id=None):
         """
         Get the task metadata from JPL's server.
         An example: ::
@@ -223,10 +225,10 @@ class JPLInterface:
             }
 
         """
-        if problem_type is None:
-            problem_type = self.problem_type
+        if task_id is None:
+            task_id = self.task_id
         r = requests.get(
-            f"{self.url}/task_metadata/{problem_type}",
+            f"{self.url}/task_metadata/{task_id}",
             headers=self.headers)
         r.raise_for_status()
         metadata = r.json()['task_metadata']
