@@ -297,6 +297,7 @@ class JPLInterface:
 
         predictions = self.toolset['eval_dataset'].format_predictions(
             predictions[0], predictions[1])
+
         r = requests.post(f"{self.url}/submit_predictions",
                           json={'predictions': predictions},
                           headers=self.headers)
@@ -329,7 +330,7 @@ class JPLInterface:
         Returns:
               str: Formatted String of Metadata
         """
-        info = json.dumps(self.task_metadata, indent=4)
+        info = json.dumps(self.metadata, indent=4)
         return '\n'.join(['Problem/Task Metadata:', info, ''])
 
     def __repr__(self):

@@ -77,6 +77,7 @@ class Learn(JPLInterface, BaseProtocol):
                 self.toolset["eval_dataset"] = self.get_evaluation_dataset()
                 results = adapt_algo.execute(self.toolset, "EvaluateOnTestDataSet")
                 self.post_results(results)
+        print(self)
 
         self.terminate_session()
 
