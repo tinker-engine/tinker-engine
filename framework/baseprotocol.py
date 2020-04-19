@@ -16,7 +16,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
     def run_protocol(self):
         raise NotImplementedError
 
-    def get_algorithm(self, algotype):
+    def get_algorithm(self, algotype, toolset):
         ''' get_algorithm loads a single algorithm file from the filesystem and instantiates a single
             object of the relevant type from that file.
 
@@ -32,6 +32,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         # TODO: implement the mechanism to override the normal behavior of this function and use it to create
         #       template algorithm files and adapters instead.
 
+
         #validate that the file exists
         algofile = os.path.join(self.algorithmsbase, algotype)
         if not os.path.exists(algofile):
@@ -44,6 +45,12 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         if os.path.isdir(algofile):
             print("algorithm not yet supported on a directory, use a specific file instead")
             raise NotImplementedError
+
+        # Validate the toolset is a dictionary or None
+        if toolset:
+            if not isinstance( toolset, dict):
+                print( "toolset must be a dictionary")
+                exit(1)
 
         # get the path to the algo file so that we can append it to the system path
         # this makes the import easier
@@ -62,7 +69,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
                     foo = inspect.getmodule(obj)
                     if foo == algoimport:
                         #construct the algorithm object
-                        algorithm = obj("")
+                        algorithm = obj(toolset)
         else:
             print("Given algorithm is not a python file, other types not supported")
             exit(1)

@@ -31,8 +31,14 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
         "GetPretrainedModelList"
 
     """
-    def __init__(self, arguments):
-        self.arguments = arguments
+    def __init__(self, toolset):
+        if isinstance(toolset, dict):
+            self.toolset= toolset
+        elif toolset:
+            print( "Algorithms must be constructed with dictionary toolset" )
+            exit(1)
+        else:
+            toolset = dict()
 
     @abc.abstractmethod
     def execute(self, toolset, step_descriptor):

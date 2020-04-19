@@ -42,8 +42,8 @@ class Learn(JPLInterface, BaseProtocol):
 
         self.toolset["whitelist_datasets"] = self.get_whitelist_datasets()
 
-        domain_select_algo = self.get_algorithm("domainNetworkSelection.py")
-        algo_select_algo = self.get_algorithm("algoSelection.py")
+        domain_select_algo = self.get_algorithm("domainNetworkSelection.py", self.toolset)
+        algo_select_algo = self.get_algorithm("algoSelection.py", self.toolset)
 
         for stage in ['base', 'adapt']:
             self.stage_id = stage
@@ -58,8 +58,8 @@ class Learn(JPLInterface, BaseProtocol):
             query_algo_id, adapt_algo_id = algo_select_algo.execute(
                 self.toolset, "SelectAlgorithms")
 
-            query_algo = self.get_algorithm(query_algo_id)
-            adapt_algo = self.get_algorithm(adapt_algo_id)
+            query_algo = self.get_algorithm(query_algo_id, self.toolset)
+            adapt_algo = self.get_algorithm(adapt_algo_id, self.toolset)
             query_algo.execute(self.toolset, "Initialize")
             adapt_algo.execute(self.toolset, "Initialize")
 

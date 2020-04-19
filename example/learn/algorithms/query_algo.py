@@ -4,8 +4,8 @@ import numpy as np
 
 
 class DomainNetworkSelection(BaseAlgorithm):
-    def __init__(self, arguments):
-        BaseAlgorithm.__init__(self, arguments)
+    def __init__(self, toolset):
+        BaseAlgorithm.__init__(self, toolset)
 
     def execute(self, toolset, step_descriptor):
         # stage is a string that is passed in acording to the protocol. It identifies which

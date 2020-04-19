@@ -47,7 +47,7 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
     The last four variables (after arguments) are specific to the VAAL algorithm
     so are not necessary for the overall problem.
     """
-    def __init__(self, arguments):
+    def __init__(self, toolset):
         """
         Here is where you can add in your initialization of your algorithm.
         You should also add any variables that need to persist between
@@ -68,9 +68,8 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
                 defined in the ``input.json`` file
 
         """
-        BaseAlgorithm.__init__(self, arguments)
+        BaseAlgorithm.__init__(self, toolset)
 
-        self.toolset = dict()
         self.batch_size = 32
         self.num_workers = 0
 

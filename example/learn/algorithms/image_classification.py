@@ -11,11 +11,10 @@ import torch.utils.data as data
 
 class ImageClassifierAlgorithm(BaseAlgorithm):
 
-    def __init__(self, arguments):
+    def __init__(self, toolset):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
-        BaseAlgorithm.__init__(self, arguments)
+        BaseAlgorithm.__init__(self, toolset)
 
-        self.toolset = dict()
         self.batch_size = 32
         self.num_workers = 0
         # ############# Example Specific Attributes ####################

@@ -6,8 +6,8 @@ class DomainNetworkSelectionAdapter(BaseAlgorithm):
         framework
     '''
 
-    def __init__(self, arguments):
-        BaseAlgorithm.__init__(self, arguments)
+    def __init__(self, toolset):
+        BaseAlgorithm.__init__(self, toolset)
 
 
     def execute(self, toolset, step_descriptor):
