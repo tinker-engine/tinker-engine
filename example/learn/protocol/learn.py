@@ -80,11 +80,20 @@ class Learn(JPLInterface, BaseProtocol):
 
             query_algo_id, adapt_algo_id = algo_select_algo.execute(
                 self.toolset, "SelectAlgorithms")
-
+        
+            # The following line incorrectly uses the self.CloserLookFewShot_config to
+            # demonstrate passing configuration toolsets to get_algorithm()
+            # query_algo = self.get_algorithm(query_algo_id, self.CloserLookFewShot_config)
             query_algo = self.get_algorithm(query_algo_id, self.toolset)
-            adapt_algo = self.get_algorithm(adapt_algo_id, self.toolset)
             query_algo.execute(self.toolset, "Initialize")
-            adapt_algo.execute(self.toolset, "Initialize")
+
+            # check if we are supposed to use the same source for both
+            # query and adapt. if not, then init the adapt separately.
+            if adapt_algo_id == query_algo_id:
+                adapt_algo = query_algo
+            else:
+                adapt_algo = self.get_algorithm(adapt_algo_id, self.toolset)
+                adapt_algo.execute(self.toolset, "Initialize")
 
             checkpoints = self.get_budget_checkpoints()
 
