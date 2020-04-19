@@ -1,6 +1,6 @@
 import sys
-from framework.basealgorithm import BaseAlgorithm
 import torch
+from imageClassificationAdapter import ImageClassifierAdapter
 import torch.utils.data as data
 # import CloserLookFewShot.model
 # import CloserLookFewShot.solver
@@ -9,11 +9,11 @@ import torch.utils.data as data
 # import VAAL.model
 
 
-class ImageClassifierAlgorithm(BaseAlgorithm):
+class ImageClassifierAlgorithm(ImageClassifierAdapter):
 
     def __init__(self, toolset):
         #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
-        BaseAlgorithm.__init__(self, toolset)
+        ImageClassifierAdapter.__init__(self, toolset)
 
         self.batch_size = 32
         self.num_workers = 0
@@ -28,23 +28,10 @@ class ImageClassifierAlgorithm(BaseAlgorithm):
         # model, self.num_classes, self.arguments['cuda'])
         # ############## End of Specific Attributes
 
+    def initialize(self):
+        # ############## initialize the algorithm *************
+        pass
 
-    def execute(self, toolset, step_descriptor):
-        # stage is a string that is passed in acording to the protocol. It identifies which
-        # stage of the tets is being requested (e.g. "train", "adapt" )
-        # execution does not return anything, it is purely for the sake of altering the internal model.
-        # Available reources for training can be retreived using the BaseAlgorithm functions.
-
-        self.toolset = toolset
-
-        if step_descriptor == 'Initialize':
-            pass
-        elif step_descriptor == 'DomainAdaptTraining':
-            return self.domain_adapt_training()
-        elif step_descriptor == 'EvaluateOnTestDataSet':
-            return self.inference()
-        else:
-            raise NotImplementedError(f'Step {step_descriptor} not implemented')
 
     def domain_adapt_training(self):
         # ###################  Creating the Labeled DataLoader ###############

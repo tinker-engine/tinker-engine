@@ -1,5 +1,8 @@
 *pb2.py
 *pb2_grpc.py
+#.swp
+*.swo
+*~
 data/
 output/
 

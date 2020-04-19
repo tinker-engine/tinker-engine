@@ -1,5 +1,5 @@
 import sys
-from framework.basealgorithm import BaseAlgorithm
+from objectDetectorAdapter import ObjectDetectorAdapter
 
 import torch
 import torch.utils.data as data
@@ -11,7 +11,7 @@ import VAAL.model
 import numpy as np
 
 
-class ObjectDetectorAlgorithm(BaseAlgorithm):
+class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
     """
     Class which runs the algorithm consisting of at least four
     methods: :meth:`__init__`, :meth:`train`, :meth:`adapt`,
@@ -68,22 +68,15 @@ class ObjectDetectorAlgorithm(BaseAlgorithm):
                 defined in the ``input.json`` file
 
         """
-        BaseAlgorithm.__init__(self, toolset)
+        ObjectDetectorAdapter.__init__(self, toolset)
 
         self.batch_size = 32
         self.num_workers = 0
 
-    def execute(self, toolset, step_descriptor):
 
-        self.toolset = toolset
-        if step_descriptor == 'Initialize':
-            pass
-        elif step_descriptor == 'DomainAdaptTraining':
-            return self.domain_adapt_training()
-        elif step_descriptor == 'EvaluateOnTestDataSet':
-            return self.inference()
-        else:
-            raise NotImplementedError(f'Step {step_descriptor} not implemented')
+    def initialize(self):
+        pass
+
 
     def domain_adapt_training(self):
         """ Method for the training in the train stage of the problem.
