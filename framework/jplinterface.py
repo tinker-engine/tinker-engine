@@ -30,7 +30,7 @@ class JPLInterface:
         self.evaluate = False
 
     def get_task_ids(self):
-        print ("getTestIDs")
+        print("getTestIDs")
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
         r.raise_for_status()
         return r.json()['tasks']

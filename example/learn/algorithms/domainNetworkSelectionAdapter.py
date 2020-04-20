@@ -2,16 +2,16 @@ import abc
 from framework.basealgorithm import BaseAlgorithm
 
 class DomainNetworkSelectionAdapter(BaseAlgorithm):
-    ''' Adapt the DomainNetworkSelection class for use with the
+    """ Adapt the DomainNetworkSelection class for use with the
         framework
-    '''
+    """
 
     def __init__(self, toolset):
         BaseAlgorithm.__init__(self, toolset)
 
 
     def execute(self, toolset, step_descriptor):
-        ''' Redirect the execute call to the correct subfunction name
+        """ Redirect the execute call to the correct subfunction name
             and break out the toolset for simpler use
 
         Arguments:
@@ -21,7 +21,7 @@ class DomainNetworkSelectionAdapter(BaseAlgorithm):
                 processing should be done
 
         Returns: the information returned by the subfunction
-        '''
+        """
         self.target_dataset = toolset["target_dataset"]
         self.whitelist_datasets = toolset["whitelist_datasets"]
         if step_descriptor == "SelectNetworkAndDataset":
@@ -31,9 +31,9 @@ class DomainNetworkSelectionAdapter(BaseAlgorithm):
 
     @abc.abstractmethod
     def SelectNetworkAndDataset(self):
-        ''' a subfunction dispatched by execute. This function must
+        """ a subfunction dispatched by execute. This function must
             implement a part of the algorithm itself.
-        '''
+        """
         raise NotImplementedError
 
     

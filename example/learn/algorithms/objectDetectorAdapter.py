@@ -11,7 +11,6 @@ class ObjectDetectorAdapter(BaseAlgorithm):
         self.toolset = toolset
         if step_descriptor == 'Initialize':
             return self.initialize()
-            pass
         elif step_descriptor == 'DomainAdaptTraining':
             return self.domain_adapt_training()
         elif step_descriptor == 'EvaluateOnTestDataSet':
