@@ -1,6 +1,7 @@
 import abc
 from framework.basealgorithm import BaseAlgorithm
 
+
 class ObjectDetectorAdapter(BaseAlgorithm):
 
     def __init__(self, toolset):
@@ -25,7 +26,6 @@ class ObjectDetectorAdapter(BaseAlgorithm):
     @abc.abstractmethod
     def domain_adapt_training(self):
         raise NotImplementedError
-
 
     @abc.abstractmethod
     def inference(self):

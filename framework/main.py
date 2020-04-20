@@ -37,8 +37,7 @@ from framework.dataset import JPLDataset
 
 
 def execute(req):
-    
-    #Setup the argument parsing, and generate help information.
+    # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file",
             help="protocol python file",
@@ -53,9 +52,9 @@ def execute(req):
 
     args = parser.parse_args()
 
-    #TODO: implement the --generate functionality
+    # TODO: implement the --generate functionality
 
-    #Check the algorithms path is minimally acceptable.
+    # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
         print("given algorithm directory doesni't exist")
@@ -65,14 +64,15 @@ def execute(req):
         print("given algorithm path isnt a directory")
         exit(1)
 
-
-    # deconstruct the path to the protocol so that we can construct the object dynamically.
+    # deconstruct the path to the protocol so that we can construct the
+    # object dynamically.
     protfilename = args.protocol_file
     if not os.path.exists(protfilename):
         print("given protocol file does not exist")
         sys.exit(1)
 
-    # split out the path to the protocol file from the filename so that we can add the protocol directory
+    # split out the path to the protocol file from the filename so that we can add
+    # the protocol directory
     # to the system path.
     protpath, protfile = os.path.split(protfilename);
     if protpath:
@@ -81,12 +81,13 @@ def execute(req):
 
     # make sure the protocol file is a python file
     if protext == ".py":
-        #import the file and get the object name. The object should go in the protocol local object
+        # import the file and get the object name. The object should go in the
+        # protocol local object
         protocolimport = __import__(protbase, globals(), locals(), [], 0)
         for name, obj in inspect.getmembers(protocolimport):
-            # This will get every class that is referenced within the file, including base classes
-            # to ensure we get the right one, check for only classes that are within the module
-            # defined by the protocol file.
+            # This will get every class that is referenced within the file,
+            # including base classes to ensure we get the right one, check for only
+            # classes that are within the module defined by the protocol file.
             if inspect.isclass(obj):
                 foo = inspect.getmodule( obj )
                 if foo == protocolimport:

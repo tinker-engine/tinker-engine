@@ -12,7 +12,7 @@ import torch.utils.data as data
 class ImageClassifierAlgorithm(ImageClassifierAdapter):
 
     def __init__(self, toolset):
-        #def __init__(self, problem, base_dataset, adapt_dataset, arguments):
+        # def __init__(self, problem, base_dataset, adapt_dataset, arguments):
         ImageClassifierAdapter.__init__(self, toolset)
 
         self.batch_size = 32
@@ -31,7 +31,6 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
     def initialize(self):
         # ############## initialize the algorithm *************
         pass
-
 
     def domain_adapt_training(self):
         # ###################  Creating the Labeled DataLoader ###############

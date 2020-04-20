@@ -56,8 +56,8 @@ class Learn(JPLInterface, BaseProtocol):
         """ run_protocol is called from the framework and represents that initial
             execution point of the protocol.
         """
-        taskIDs = self.get_task_ids()
-        for task in taskIDs:
+        task_ids = self.get_task_ids()
+        for task in task_ids:
             if self.get_problem_metadata(task)['problem_type'] \
                     == 'machine_translation':
                 continue
