@@ -1,6 +1,7 @@
 import abc
 from framework.basealgorithm import BaseAlgorithm
 
+
 class DomainNetworkSelectionAdapter(BaseAlgorithm):
     """ Adapt the DomainNetworkSelection class for use with the
         framework
@@ -8,7 +9,6 @@ class DomainNetworkSelectionAdapter(BaseAlgorithm):
 
     def __init__(self, toolset):
         BaseAlgorithm.__init__(self, toolset)
-
 
     def execute(self, toolset, step_descriptor):
         """ Redirect the execute call to the correct subfunction name
