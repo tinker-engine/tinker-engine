@@ -28,7 +28,7 @@ Once these are installed, please update the dataset directory in
 `example/learn/protocol/learn.py`.  You can change parameters there.
 
 
-For example, to run learn, please run:
+To run learn, please run (from root of code):
 ```bash
 framework example/learn/protocol/learn.py -a example/learn/algorithms/
 ```
