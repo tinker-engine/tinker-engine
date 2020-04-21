@@ -21,8 +21,8 @@ framework protocol_file -a alogorithms_path
 # Running Learn
 
 First, install framework (instructions above).  Then you will need 
-to you need to download the dataset and follow instructions from:
-https://gitlab.lollllz.com/lwll/dataset_prep
+to you need to download all of the datasets and follow instructions from:
+https://gitlab.lollllz.com/lwll/dataset_prep.
 
 Once these are installed, please update the dataset directory in 
 `example/learn/protocol/learn.py`.  You can change parameters there.
