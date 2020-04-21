@@ -105,7 +105,7 @@ class Learn(JPLInterface, BaseProtocol):
 
             checkpoints = self.get_budget_checkpoints()
 
-            for checkpoint in checkpoints:
+            for _ in checkpoints:
                 self.toolset["budget"] = self.status['budget_left_until_checkpoint']
                 # call the query_algo to update the dataset with new labels
                 query_algo.execute(self.toolset, "SelectAndLabelData")
@@ -116,7 +116,10 @@ class Learn(JPLInterface, BaseProtocol):
                 self.toolset["eval_dataset"] = self.get_evaluation_dataset()
                 results = adapt_algo.execute(self.toolset, "EvaluateOnTestDataSet")
                 self.post_results(results)
+
+            # Add base dataset to the list
+            self.toolset["whitelist_datasets"].append(self.toolset["target_dataset"])
+
         print(self)
 
         self.terminate_session()
-

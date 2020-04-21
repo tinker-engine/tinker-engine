@@ -1,4 +1,3 @@
-import sys
 from framework.basealgorithm import BaseAlgorithm
 import numpy as np
 
@@ -8,10 +7,11 @@ class DomainNetworkSelection(BaseAlgorithm):
         BaseAlgorithm.__init__(self, toolset)
 
     def execute(self, toolset, step_descriptor):
-        # stage is a string that is passed in acording to the protocol. It identifies which
-        # stage of the tets is being requested (e.g. "train", "adapt" )
-        # execution does not return anything, it is purely for the sake of altering the internal model.
-        # Available reources for training can be retreived using the BaseAlgorithm functions.
+        # stage is a string that is passed in according to the protocol. It
+        # identifies which stage of the task is being requested (e.g. "adapt",
+        # "Evaluate" ) execution does not return anything, it is purely for the sake
+        # of altering the internal model. Available resources for training can be
+        # retrieved using the BaseAlgorithm functions.
         self.toolset = toolset
         if step_descriptor == 'SelectAndLabelData':
             self.select_and_label_data()
