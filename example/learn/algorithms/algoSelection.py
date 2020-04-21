@@ -13,7 +13,7 @@ class AlgorithmSelection(BaseAlgorithm):
             if 'image_classification' == toolset['target_dataset'].type:
                 return 'query_algo.py', 'image_classification.py'
             elif 'object_detection' == toolset['target_dataset'].type:
-                return 'query_algo.py', 'object_detection.py'
+                return 'query_algo.py', 'object_detector.py'
             else:
                 raise NotImplementedError()
 

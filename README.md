@@ -18,8 +18,23 @@ If the framework needs to be run from somewhere other than the algorithms direco
 framework protocol_file -a alogorithms_path
 ```
 
+# Running Learn
+
+First, install framework (instructions above).  Then you will need 
+to you need to download the dataset and follow instructions from:
+https://gitlab.lollllz.com/lwll/dataset_prep
+
+Once these are installed, please update the dataset directory in 
+`example/learn/protocol/learn.py`.  You can change parameters there.
+
+
+For example, to run learn, please run:
+```bash
+framework example/learn/protocol/learn.py -a example/learn/algorithms/
+```
+
 ## System design
-The framework has three parts. The frameowrk itself is installed such that it can be executed from any desired location
+The framework has three parts. The framework itself is installed such that it can be executed from any desired location
 on the system. The second part is the protocol. The protocol is written by the project team to meet the requirements of
 the entire project. This is a python script that exercises all parts of the system in the desired fashion. The project team may wish to also include simpler protocols that excercise just one algorithm at a time. This is useful for researchers when developing algorithms. The third part are the algorithms. The three parts of the system do not need to be in the same location. The only requirement for the algorithms is that they all reside under the same root folder.
 

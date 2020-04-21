@@ -189,11 +189,11 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
 #        #  the dataset and the labeled/unlabeled indices are updated
 
         sampled_indices = np.random.choice(
-                                           list(self.toolset["Dataset"].unlabeled_indices),
+                                           list(self.toolset["target_dataset"].unlabeled_indices),
                                            budget
                                            )
 
-        self.toolset["Dataset"].get_more_labels(sampled_indices)
+        self.toolset["target_dataset"].get_more_labels(sampled_indices)
 #        #  Note: you don't have to request the entire budget, but
 #        #      you shouldn't end the function until the budget is exhausted
 #        #      since the budget is lost after evaluation.
@@ -273,5 +273,5 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
         #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
         #     indices += inds.numpy().tolist()
 
-        preds, indices = toolset["eval_dataset"].dummy_data('object_detection')
+        preds, indices = self.toolset["eval_dataset"].dummy_data('object_detection')
         return preds, indices

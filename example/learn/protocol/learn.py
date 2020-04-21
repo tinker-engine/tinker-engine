@@ -30,6 +30,10 @@ class Learn(JPLInterface, BaseProtocol):
                               apikey="adab5090-39a9-47f3-9fc2-3d65e0fee9a2",
                               url='https://api-dev.lollllz.com/')
 
+        # Location of the dataset
+        self.dataset_dir = \
+            "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
+
         # set the CloserLookFewShot configuration options
         self.CloserLookFewShot_config = dict()
         self.CloserLookFewShot_config["batch_size"] = 128
@@ -57,11 +61,15 @@ class Learn(JPLInterface, BaseProtocol):
             execution point of the protocol.
         """
         task_ids = self.get_task_ids()
+
         for task in task_ids:
             if self.get_problem_metadata(task)['problem_type'] \
                     == 'machine_translation':
                 continue
-            self.run_task(task)
+            try:
+                self.run_task(task)
+            except:
+                print(f'error on {self.get_problem_metadata(task)}')
 
     def run_task(self, task_id):
 
@@ -87,7 +95,7 @@ class Learn(JPLInterface, BaseProtocol):
             query_algo_id, adapt_algo_id = algo_select_algo.execute(
                 self.toolset, "SelectAlgorithms")
 
-            # TODO: So how to do it correctly???
+            # TODO: Move config to inits of algorithms
             # The following line incorrectly uses the self.CloserLookFewShot_config
             # to demonstrate passing configuration toolsets to get_algorithm()
             # query_algo = self.get_algorithm(query_algo_id,
@@ -118,7 +126,7 @@ class Learn(JPLInterface, BaseProtocol):
                 self.post_results(results)
 
             # Add base dataset to the list
-            self.toolset["whitelist_datasets"].append(self.toolset["target_dataset"])
+            self.update_external_datasets()
 
         print(self)
 

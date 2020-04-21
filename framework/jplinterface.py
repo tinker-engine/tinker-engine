@@ -23,8 +23,7 @@ class JPLInterface:
         self.metadata = dict()
 
         # TODO: make this a parameter
-        self.dataset_dir = \
-            "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
+        self.dataset_dir = ""
 
         # Change during evaluation on DMC servers (changes paths to eval datasets)
         self.evaluate = False
@@ -304,6 +303,13 @@ class JPLInterface:
         self.status = r.json()['Session_Status']
 
         return self.status
+
+    def update_external_datasets(self):
+        target_name = self.toolset["target_dataset"].name
+        train_id = f'{target_name}_train'
+        test_id = f'{target_name}_test'
+        self.toolset["whitelist_datasets"][train_id] = self.toolset["target_dataset"]
+        self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
 
     def format_status(self, update=False):
         """
