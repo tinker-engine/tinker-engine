@@ -18,7 +18,7 @@ If the framework needs to be run from somewhere other than the algorithms direco
 framework protocol_file -a alogorithms_path
 ```
 
-# Running Learn
+## Running Learn
 
 First, install framework (instructions above).  Then you will need 
 to you need to download all of the datasets and follow instructions from:
