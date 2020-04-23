@@ -34,28 +34,6 @@ class Learn(JPLInterface, BaseProtocol):
         self.dataset_dir = \
             "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
 
-        # set the CloserLookFewShot configuration options
-        self.CloserLookFewShot_config = dict()
-        self.CloserLookFewShot_config["batch_size"] = 128
-        self.CloserLookFewShot_config["num_workers"] = 8
-        self.CloserLookFewShot_config["cuda"] = True
-        self.CloserLookFewShot_config["backbone"] = "Conf4S"
-        self.CloserLookFewShot_config["start_epoch"] = 0
-        self.CloserLookFewShot_config["end_epoch"] = 25
-        self.CloserLookFewShot_config["checkpoint_dir"] = "./checkpoints"
-
-        # set the VAAL configuration options
-        self.VAAL_config = dict()
-        self.VAAL_config["batch_size"] = 128
-        self.VAAL_config["num_workers"] = 8
-        self.VAAL_config["latent_dim"] = 32
-        self.VAAL_config["cuda"] = True
-        self.VAAL_config["train_iterations"] = 25
-        self.VAAL_config["num_vae_steps"] = 2
-        self.VAAL_config["num_adv_steps"] = 1
-        self.VAAL_config["adversary_param"] = 1
-        self.VAAL_config["beta"] = 1
-
     def run_protocol(self):
         """ run_protocol is called from the framework and represents that initial
             execution point of the protocol.

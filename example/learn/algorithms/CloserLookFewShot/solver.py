@@ -1,5 +1,5 @@
 import torch
-from CloserLookFewShot import backbone
+import backbone
 import ubelt as ub
 
 def get_model(model_name):
