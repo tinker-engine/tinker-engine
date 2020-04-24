@@ -171,7 +171,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         # If working with base dataset
         self.name = dataset_id
 
-        super(JPLDataset, self).__init__(
+        super(ImageClassificationDataset, self).__init__(
                 self.root, transform=transform, target_transform=target_transform
                 )
 
@@ -597,31 +597,31 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         unique_images = set(indices + requested)
         num_labeled = 0
 
-       # Either create a new list if no labels, or add it to the previous list
-       for it, ind in enumerate(indices):
-           new_lab = {'category': cat_labels[it],
-                      'bbox': torch.tensor(
-                          list(map(float, bbox_labels[it].split(', ')))
-                      )}
-           if self.targets[ind] is None:
-               self.targets[ind] = [new_lab]
-               num_labeled += 1
-           else:
-               # Check if redundant, don't if it so don't add
-               unique = True
-               if check_redundant:
-                   for t in self.targets[ind]:
-                       if new_lab['category'] == t['category'] \
-                               and all(new_lab['bbox'] == t['bbox']):
-                           unique = False
-               if unique:
-                   self.targets[ind].append(new_lab)
-                   num_labeled += 1
-
+        # Either create a new list if no labels, or add it to the previous list
+        for it, ind in enumerate(indices):
+            new_lab = {'category': cat_labels[it],
+                       'bbox': torch.tensor(
+                           list(map(float, bbox_labels[it].split(', ')))
+                       )}
+            if self.targets[ind] is None:
+                self.targets[ind] = [new_lab]
+                num_labeled += 1
+            else:
+                # Check if redundant, don't if it so don't add
+                unique = True
+                if check_redundant:
+                    for t in self.targets[ind]:
+                        if new_lab['category'] == t['category'] \
+                                and all(new_lab['bbox'] == t['bbox']):
+                            unique = False
+                if unique:
+                    self.targets[ind].append(new_lab)
+                    num_labeled += 1
+ 
         # Update Ids
         self.labeled_indices.update(unique_images)
         self.unlabeled_indices -= unique_images
-
+ 
         self.labeled_size = len(self.labeled_indices)
         self.unlabeled_size = len(self.unlabeled_indices)
 
