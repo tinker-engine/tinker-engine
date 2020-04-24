@@ -248,11 +248,15 @@ class JPLInterface:
             dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/' 
                             f'{current_dataset}_{self.data_type}/{dset}')
 
-
-        return JPLDataset(self,
+            if self.metadata['problem_type'] == "image_classification":
+                return ImageClassificationDataset(self,
                           dataset_root=dataset_root,
                           dataset_id=current_dataset,
-                          dataset_type=self.metadata['problem_type'],
+                          categories=categories)
+            else:
+                return ObjectDetectionDataset(self,
+                          dataset_root=dataset_root,
+                          dataset_id=current_dataset,
                           categories=categories)
 
     def get_seed_labels(self):
