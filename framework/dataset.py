@@ -94,7 +94,7 @@ def ensure_image_list(filelist):
     return filter(has_file_allowed_extension, filelist)
 
 
-class JPLDataset(torchvision.datasets.VisionDataset):
+class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     """
     Training dataset class.  Contains both labeled and unlabeled images.  Loads
     images from file. This should only be edited by Kitware but feel free to add
@@ -129,7 +129,6 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                  problem,
                  dataset_root,
                  dataset_id='True',
-                 dataset_type='',
                  transform=ub.NoParam,
                  target_transform=None,
                  categories=None,
@@ -171,7 +170,6 @@ class JPLDataset(torchvision.datasets.VisionDataset):
 
         # If working with base dataset
         self.name = dataset_id
-        self.type = dataset_type
 
         super(JPLDataset, self).__init__(
                 self.root, transform=transform, target_transform=target_transform
@@ -288,14 +286,7 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         new_data = self.problem.get_more_labels(
                 self._indices_to_fnames(unlabeled_indices))
 
-        if self.type == 'image_classification':
-            columns = ['class', 'id']
-
-        elif self.type == 'object_detection':
-            columns = ['id', 'bbox', 'class']
-
-        else:
-            raise NotImplementedError
+        columns = ['class', 'id']
 
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
@@ -366,50 +357,13 @@ class JPLDataset(torchvision.datasets.VisionDataset):
         cat_labels = new_labels['class'].tolist()
         cat_labels = self._category_name_to_category_index(cat_labels)
 
-        if self.type == 'image_classification':
-            bbox_labels = None
-        elif self.type == 'object_detection':
-            bbox_labels = new_labels['bbox'].tolist()
-        else:
-            print(f'Problem type {self.problem.metadata["dataset_type"]}'
-                  f'not implemented')
-            raise NotImplementedError
-
         # Update labels on images
         unique_images = set(indices + requested)
         num_labeled = 0
 
-        if self.type == 'image_classification':
-            for it, ind in enumerate(indices):
-                self.targets[ind] = cat_labels[it]
-                num_labeled += 1
-
-        elif self.type == 'object_detection':
-            # Either create a new list if no labels, or add it to the previous list
-            for it, ind in enumerate(indices):
-                new_lab = {'category': cat_labels[it],
-                           'bbox': torch.tensor(
-                               list(map(float, bbox_labels[it].split(', ')))
-                           )}
-                if self.targets[ind] is None:
-                    self.targets[ind] = [new_lab]
-                    num_labeled += 1
-                else:
-                    # Check if redundant, don't if it so don't add
-                    unique = True
-                    if check_redundant:
-                        for t in self.targets[ind]:
-                            if new_lab['category'] == t['category'] \
-                                    and all(new_lab['bbox'] == t['bbox']):
-                                unique = False
-                    if unique:
-                        self.targets[ind].append(new_lab)
-                        num_labeled += 1
-
-        else:
-            print(f'Problem type {self.problem.metadata["dataset_type"]}'
-                  f'not implemented')
-            raise NotImplementedError
+        for it, ind in enumerate(indices):
+            self.targets[ind] = cat_labels[it]
+            num_labeled += 1
 
         # Update Ids
         self.labeled_indices.update(unique_images)
@@ -570,31 +524,141 @@ class JPLDataset(torchvision.datasets.VisionDataset):
                 predictions.
         """
         fnames = self._indices_to_fnames(indices)
-        if self.type == 'object_detection':
-            if not isinstance(predictions, tuple):
-                raise TypeError('Prediction needs to be tuple for object detection')
-            bbox = predictions[0]
-            confidence = predictions[1]
-            classes = predictions[2]
-
-            classes = self._category_index_to_category_name(classes)
-            df = pd.DataFrame({'id': fnames,
-                               'bbox': bbox,
-                               'confidence': confidence,
-                               'class': classes
-                               })
-        elif self.type == 'image_classification':
-            preds = self._category_index_to_category_name(predictions)
-            df = pd.DataFrame({'id': fnames, 'class': preds})
-
-        else:
-            print(f'Cannot handle problem type '
-                  f'{self.problem.metadata["dataset_type"]}')
-            raise NotImplementedError
+        preds = self._category_index_to_category_name(predictions)
+        df = pd.DataFrame({'id': fnames, 'class': preds})
 
         # Enforce that the labels are strings
         df['class'] = df['class'].astype(str)
 
         return df.to_dict()
 
+class ObjectDetectionDataset(ImageClassificationDataset):
+
+
+    def __init__(self,
+                 problem,
+                 dataset_root,
+                 dataset_id='True',
+                 transform=ub.NoParam,
+                 target_transform=None,
+                 categories=None,
+                 seed_labels=None):
+
+        super(ObjectDetectionDataset, self).__init__( problem,dataset_root,dataset_id,transform,target_transform,categories,seed_labels)
+
+
+    def get_more_labels(self, indices):
+        """
+        Active learning step which calls on the LwLL class to interface with
+        JPL server to query for indices
+
+        This function will check to make sure all requested images are unlabeled and
+        will only query for unlabeled indices.
+
+        Args:
+            indices (list): list of ints that are indices
+
+        TODO:
+            make generalizable when bounding boxes added to api
+        """
+        # Check to make sure not already labeled
+        unlabeled_indices = list(self.unlabeled_indices & set(indices))
+        # Ask for new labels
+        new_data = self.problem.get_more_labels(
+                self._indices_to_fnames(unlabeled_indices))
+
+        columns = ['id', 'bbox', 'class']
+
+        new_data = pd.DataFrame(new_data, columns=columns)
+        # Parse labels and filenames
+        n = self.update_targets(new_data, requested=unlabeled_indices)
+        print(f'Added {n} more labels to the dataset')
+
+    def update_targets(self, new_labels, requested=[], check_redundant=False):
+        """
+        Update with new labels for targets
+
+        Args:
+            new_labels (pandas.DataFrame): new labels to add
+            requested (list[int]): list of requested labels
+        """
+
+        n = len(new_labels)
+
+        fnames = new_labels['id'].tolist()
+        indices = self._fnames_to_indices(fnames)
+
+        cat_labels = new_labels['class'].tolist()
+        cat_labels = self._category_name_to_category_index(cat_labels)
+
+        bbox_labels = new_labels['bbox'].tolist()
+
+        # Update labels on images
+        unique_images = set(indices + requested)
+        num_labeled = 0
+
+       # Either create a new list if no labels, or add it to the previous list
+       for it, ind in enumerate(indices):
+           new_lab = {'category': cat_labels[it],
+                      'bbox': torch.tensor(
+                          list(map(float, bbox_labels[it].split(', ')))
+                      )}
+           if self.targets[ind] is None:
+               self.targets[ind] = [new_lab]
+               num_labeled += 1
+           else:
+               # Check if redundant, don't if it so don't add
+               unique = True
+               if check_redundant:
+                   for t in self.targets[ind]:
+                       if new_lab['category'] == t['category'] \
+                               and all(new_lab['bbox'] == t['bbox']):
+                           unique = False
+               if unique:
+                   self.targets[ind].append(new_lab)
+                   num_labeled += 1
+
+        # Update Ids
+        self.labeled_indices.update(unique_images)
+        self.unlabeled_indices -= unique_images
+
+        self.labeled_size = len(self.labeled_indices)
+        self.unlabeled_size = len(self.unlabeled_indices)
+
+        if num_labeled != n:
+            warnings.warn(f'{num_labeled}/{n} labels added!  Some already labeled',
+                          UserWarning)
+
+        return num_labeled
+
+
+    def format_predictions(self, predictions, indices):
+        """
+        Submit the prediction to JPL vial LwLL class.
+
+        Args:
+            predictions (tuple(list,list,list)|list):
+                list of prediction as int of class or
+                tuple for object detection (bbox, confidence, class)
+            indices (list[int]): list of integer indices corresponding to the
+                predictions.
+        """
+        fnames = self._indices_to_fnames(indices)
+        if not isinstance(predictions, tuple):
+            raise TypeError('Prediction needs to be tuple for object detection')
+        bbox = predictions[0]
+        confidence = predictions[1]
+        classes = predictions[2]
+
+        classes = self._category_index_to_category_name(classes)
+        df = pd.DataFrame({'id': fnames,
+                           'bbox': bbox,
+                           'confidence': confidence,
+                           'class': classes
+                           })
+
+        # Enforce that the labels are strings
+        df['class'] = df['class'].astype(str)
+
+        return df.to_dict()
 

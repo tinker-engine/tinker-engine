@@ -4,7 +4,8 @@ import sys
 import requests
 import json
 import inspect
-from framework.dataset import JPLDataset
+from framework.dataset import ImageClassificationDataset
+from framework.dataset import ObjectDetectionDataset
 
 
 class JPLInterface:
@@ -63,6 +64,11 @@ class JPLInterface:
         self.status = self.get_current_status()
 
         self.metadata = self.get_problem_metadata()
+        
+        out_obj = json.dumps(self.metadata, indent=4)
+
+        with open("/home/eric/foo.json", "w") as outfile:
+            outfile.write(out_obj)
 
         self.problem_type = self.metadata['problem_type']
 
@@ -80,15 +86,16 @@ class JPLInterface:
             print(f'Loading {name}')
             for dset in ['train', 'test']:
                 labels = pd.read_feather(e / 'labels_full' / f'labels_{dset}.feather')
-                if 'bbox' in labels.columns:
-                    dataset_type = 'object_detection'
-                else:
-                    dataset_type = 'image_classification'
                 e_root = e / f'{name}_full' / dset
-                external_datasets[f'{name}_{dset}'] = JPLDataset(self,
+                if 'bbox' in labels.columns:
+                    external_datasets[f'{name}_{dset}'] = ObjectDetectionDataset(self,
                           dataset_root=e_root,
                           dataset_id=f'{name}_{dset}',
-                          dataset_type=dataset_type,
+                          seed_labels=labels)
+                else:
+                    external_datasets[f'{name}_{dset}'] = ImageClassificationDataset(self,
+                          dataset_root=e_root,
+                          dataset_id=f'{name}_{dset}',
                           seed_labels=labels)
 
         return external_datasets
@@ -240,6 +247,7 @@ class JPLInterface:
         else:
             dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/' 
                             f'{current_dataset}_{self.data_type}/{dset}')
+
 
         return JPLDataset(self,
                           dataset_root=dataset_root,

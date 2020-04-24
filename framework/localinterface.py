@@ -7,47 +7,67 @@ import inspect
 
 
 class LocalInterface:
-    def __init__(self, apikey="", url=""):
+    def __init__(self, json_configuration_file):
 
-        # TODO: define the data_type
-        self.data_type = "full"
+        with open(json_configuration_file) as json_file:
+            self.configuration_data = json.load(json_file)
 
-        self.apikey = apikey
-        self.headers = {'user_secret': self.apikey}
-        self.url = url
+    def get_task_ids(self):
+        return self.configuration_data.keys()
 
-        self.task_id = ""
-        self.stage_id = ""
+    def initialize_session(self, task_id):
+        self.metadata = self.configuration_data[task_id]
 
-    def getTaskIDs(self):
+    def get_whitelist_datasets(self):
+        #TODO:
+
+        pass
+
+    def get_budget_checkpoints(self):
+        """
+        Find and return the budget checkpoints from the previously loaded metadata
+        """
+        if self.stage_id == 'base':
+            para = 'base_label_budget'
+        elif self.stage_id == 'adapt':
+            para = 'adaptation_label_budget'
+        else:
+            raise NotImplementedError('{} not implemented'.format(self.stage_id))
+        return self.metadata[para]
+
+    def get_budget_until_checkpoints(self):
         #TODO:
         pass
 
-    def initializeSession(self, task_id):
-        #TODO:
-        pass
-
-    def getWhitelistsets(self):
-        #TODO:
-        pass
-
-    def getBudgetCheckpoints(self):
-        #TODO:
-        pass
-
-    def getBudgetUntilCheckpoints(self):
-        #TODO:
-        pass
-
-    def getEvaluationDataSet(self):
+    def get_evaluation_dataset(self):
         # TODO: return the dataset to be used for evaluating the run
         pass
 
-    def postResults(self, predictions):
+    def update_external_datasets(self):
+        # TODO:
+        pass
+
+    def get_target_dataset(self, dset='train', categories=None):
+        # TODO:
+        pass
+
+    def get_more_labels(self, fnames):
+        # TODO:
+        pass
+
+    def get_seed_labels(self):
+        # TODO:
+        pass
+
+    def post_results(self, predictions):
         #TODO:
         pass
 
-    def terminateSession(self):
+    def get_problem_metadata(self, task_id=None):
+        #TODO:
+        pass
+
+    def terminate_session(self):
         #TODO:
         pass
 
