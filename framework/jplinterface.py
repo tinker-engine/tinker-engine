@@ -90,12 +90,10 @@ class JPLInterface:
                 if 'bbox' in labels.columns:
                     external_datasets[f'{name}_{dset}'] = ObjectDetectionDataset(self,
                           dataset_root=e_root,
-                          dataset_id=f'{name}_{dset}',
                           seed_labels=labels)
                 else:
                     external_datasets[f'{name}_{dset}'] = ImageClassificationDataset(self,
                           dataset_root=e_root,
-                          dataset_id=f'{name}_{dset}',
                           seed_labels=labels)
 
         return external_datasets
@@ -240,7 +238,6 @@ class JPLInterface:
         return metadata
 
     def get_target_dataset(self, dset='train', categories=None):
-        current_dataset = self.status['current_dataset']['name']
         if self.evaluate:
             dataset_root = (f'{self.dataset_dir}/evaluate/{current_dataset}/' 
                             f'{current_dataset}_{self.data_type}/{dset}')
@@ -251,12 +248,10 @@ class JPLInterface:
             if self.metadata['problem_type'] == "image_classification":
                 return ImageClassificationDataset(self,
                           dataset_root=dataset_root,
-                          dataset_id=current_dataset,
                           categories=categories)
             else:
                 return ObjectDetectionDataset(self,
                           dataset_root=dataset_root,
-                          dataset_id=current_dataset,
                           categories=categories)
 
     def get_seed_labels(self):

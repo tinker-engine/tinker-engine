@@ -128,7 +128,6 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     def __init__(self,
                  problem,
                  dataset_root,
-                 dataset_id='True',
                  transform=ub.NoParam,
                  target_transform=None,
                  categories=None,
@@ -167,9 +166,6 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         if transform is ub.NoParam:
             transform = basic_transformer()
-
-        # If working with base dataset
-        self.name = dataset_id
 
         super(ImageClassificationDataset, self).__init__(
                 self.root, transform=transform, target_transform=target_transform
@@ -424,8 +420,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         Returns:
             str: Extra Info of Dataset
         """
-        return (f'Dataset Name {self.name}\n'
-                f'Number of Unlabeled Datapoints {self.unlabeled_size}\n'
+        return (f'Number of Unlabeled Datapoints {self.unlabeled_size}\n'
                 f'Number of Labeled Datapoints {self.labeled_size}')
 
     def show_example(self, index=0):
@@ -538,13 +533,12 @@ class ObjectDetectionDataset(ImageClassificationDataset):
     def __init__(self,
                  problem,
                  dataset_root,
-                 dataset_id='True',
                  transform=ub.NoParam,
                  target_transform=None,
                  categories=None,
                  seed_labels=None):
 
-        super(ObjectDetectionDataset, self).__init__( problem,dataset_root,dataset_id,transform,target_transform,categories,seed_labels)
+        super(ObjectDetectionDataset, self).__init__( problem,dataset_root,transform,target_transform,categories,seed_labels)
 
 
     def get_more_labels(self, indices):

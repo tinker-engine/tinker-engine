@@ -63,10 +63,6 @@ class LocalInterface:
         #TODO:
         pass
 
-    def get_evaluation_dataset(self):
-        # TODO: return the dataset to be used for evaluating the run
-        pass
-
     def update_external_datasets(self):
         target_name = self.toolset["target_dataset"].name
         train_id = f'{target_name}_train'
@@ -74,9 +70,16 @@ class LocalInterface:
         self.toolset["whitelist_datasets"][train_id] = self.toolset["target_dataset"]
         self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
 
-    def get_target_dataset(self, dset='train', categories=None):
-        # TODO:
-        pass
+    def get_dataset(self, stage_name, dataset_name categories=None):
+        dataset_path = self.metadata["stages"][stage_name]["datasets"][dataset_name]
+        if self.metadata['problem_type'] == "image_classification":
+            return ImageClassificationDataset(self,
+                    dataset_root=dataset_path,
+                    categories=categories)
+        else:
+            return ObjectDetectionDataset(self,
+                    dataset_root=dataset_path,
+                    categories=categories)
 
     def get_more_labels(self, fnames):
         # TODO:
@@ -100,4 +103,7 @@ class LocalInterface:
     def terminate_session(self):
         self.toolset = dict()
         self.metadata = None
+
+    def get_stages(self):
+        return self.metadata["stages"].keys()
 
