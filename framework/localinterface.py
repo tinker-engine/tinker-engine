@@ -47,17 +47,16 @@ class LocalInterface:
         return external_datasets
 
 
-    def get_budget_checkpoints(self):
+    def get_budget_checkpoints(self, stage):
         """
         Find and return the budget checkpoints from the previously loaded metadata
         """
-        if self.stage_id == 'base':
-            para = 'base_label_budget'
-        elif self.stage_id == 'adapt':
-            para = 'adaptation_label_budget'
+        stage_metadata = self.get_stage_metadata(stage)
+        if stage_metadata:
+            return stage_metadata['label_budget']
         else:
-            raise NotImplementedError('{} not implemented'.format(self.stage_id))
-        return self.metadata[para]
+            #TODO: raise an error here
+            return None
 
     def get_budget_until_checkpoints(self):
         #TODO:
@@ -105,5 +104,13 @@ class LocalInterface:
         self.metadata = None
 
     def get_stages(self):
-        return self.metadata["stages"].keys()
+        stagenames = []
+        for stage in self.metadata["stages"]:
+            stagenames.append(stage['name'])
+        return stagenames
 
+    def get_stage_metadata(self, stage):
+        for stage in self.metadata["stages"]:
+            if stage['name'] == stage:
+                return stage
+        return None

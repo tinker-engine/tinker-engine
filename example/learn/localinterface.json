@@ -2,10 +2,10 @@
   "problem_test_image_classification": {
     "problem_type": "image_classification",
     "external_dataset_location": "example/dataset",
-    "base_can_use_pretrained_model": true,
     "results_file": "image_classification_results.json",
-    "stages": {
-      "base": {
+    "stages": [
+      {
+        "name": "base",
         "label_budget": [
           3000,
           6000,
@@ -16,7 +16,8 @@
           "eval": "example/dataset/mnist/test"
         }
       },
-      "adapt": {
+      {
+        "name": "adapt",
         "label_budget": [
           1000,
           2000,
@@ -27,6 +28,6 @@
           "eval": "example/dataset/mnist/test"
         }
       }
-    }
+    ]
   }
 }

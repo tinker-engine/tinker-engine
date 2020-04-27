@@ -98,13 +98,16 @@ class JPLInterface:
 
         return external_datasets
 
-    def get_budget_checkpoints(self):
+    def get_stages(self):
+        return ['base', 'adapt']
+
+    def get_budget_checkpoints(self, stage):
         """
         Find and return the budget checkpoints from the previously loaded metadata
         """
-        if self.stage_id == 'base':
+        if stage == 'base':
             para = 'base_label_budget'
-        elif self.stage_id == 'adapt':
+        elif stage == 'adapt':
             para = 'adaptation_label_budget'
         else:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
@@ -114,10 +117,6 @@ class JPLInterface:
         # TODO: return info from session status
         # this can be loaded from self.metadata
         pass
-
-    def get_evaluation_dataset(self):
-        categories = self.toolset['target_dataset'].categories
-        return self.get_target_dataset(dset='test', categories=categories)
 
     def post_results(self, predictions):
         """
@@ -237,22 +236,23 @@ class JPLInterface:
         metadata = r.json()['task_metadata']
         return metadata
 
-    def get_target_dataset(self, dset='train', categories=None):
+    def get_dataset(self, stage_name, dataset_name, categories=None):
+        current_dataset = self.status['current_dataset']['name']
         if self.evaluate:
-            dataset_root = (f'{self.dataset_dir}/evaluate/{current_dataset}/' 
-                            f'{current_dataset}_{self.data_type}/{dset}')
+            dataset_root = (f'{self.dataset_dir}/evaluate/{current_dataset}/'
+                    f'{current_dataset}_{self.data_type}/{dataset_name}')
         else:
-            dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/' 
-                            f'{current_dataset}_{self.data_type}/{dset}')
+            dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/'
+                    f'{current_dataset}_{self.data_type}/{dataset_name}')
 
-            if self.metadata['problem_type'] == "image_classification":
-                return ImageClassificationDataset(self,
-                          dataset_root=dataset_root,
-                          categories=categories)
-            else:
-                return ObjectDetectionDataset(self,
-                          dataset_root=dataset_root,
-                          categories=categories)
+        if self.metadata['problem_type'] == "image_classification":
+            return ImageClassificationDataset(self,
+                    dataset_root=dataset_root,
+                    categories=categories)
+        else:
+            return ObjectDetectionDataset(self,
+                    dataset_root=dataset_root,
+                    categories=categories)
 
     def get_seed_labels(self):
         """
@@ -312,7 +312,7 @@ class JPLInterface:
         return self.status
 
     def update_external_datasets(self):
-        target_name = self.toolset["target_dataset"].name
+        target_name = self.status['current_dataset']['name']
         train_id = f'{target_name}_train'
         test_id = f'{target_name}_test'
         self.toolset["whitelist_datasets"][train_id] = self.toolset["target_dataset"]
