@@ -4,12 +4,19 @@ import sys
 import requests
 import json
 import inspect
+from framework.main import protocol_file_path
 
 
 class LocalInterface:
     def __init__(self, json_configuration_file):
 
-        with open(json_configuration_file) as json_file:
+        json_full_path = os.path.join(protocol_file_path, json_configuration_file)
+        print( "Protocol path", json_full_path )
+        if not os.path.exists(json_full_path):
+            print("Given LocalInterface configuration file does not exist")
+            exit(1)
+
+        with open(json_full_path) as json_file:
             self.configuration_data = json.load(json_file)
         self.metadata = None
         self.toolset = dict()
@@ -69,7 +76,7 @@ class LocalInterface:
         self.toolset["whitelist_datasets"][train_id] = self.toolset["target_dataset"]
         self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
 
-    def get_dataset(self, stage_name, dataset_name categories=None):
+    def get_dataset(self, stage_name, dataset_name, categories=None):
         dataset_path = self.metadata["stages"][stage_name]["datasets"][dataset_name]
         if self.metadata['problem_type'] == "image_classification":
             return ImageClassificationDataset(self,
@@ -96,7 +103,8 @@ class LocalInterface:
         with open(predicitons_filename, "w") as json_file:
             json_file.write(json_obj)
 
-    def get_problem_metadata(self, task_id=None):
+    def get_problem_metadata(self, task_id):
+        self.metadata = self.configuration_data[task_id]
         return self.metadata
 
     def terminate_session(self):

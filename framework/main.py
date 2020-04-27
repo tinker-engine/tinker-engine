@@ -34,9 +34,11 @@ import json
 import os
 import requests
 
+protocol_file_path = ""
 
 def execute(req):
     # Setup the argument parsing, and generate help information.
+    global protocol_file_path
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file",
             help="protocol python file",
@@ -73,9 +75,10 @@ def execute(req):
     # split out the path to the protocol file from the filename so that we can add
     # the protocol directory
     # to the system path.
-    protpath, protfile = os.path.split(protfilename);
-    if protpath:
-        sys.path.append(protpath)
+    protocol_file_path, protfile = os.path.split(protfilename);
+
+    if protocol_file_path:
+        sys.path.append(protocol_file_path)
     protbase, protext = os.path.splitext(protfile)
 
     # make sure the protocol file is a python file
