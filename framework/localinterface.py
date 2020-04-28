@@ -5,6 +5,9 @@ import requests
 import json
 import inspect
 from framework.main import protocol_file_path
+from framework.dataset import ImageClassificationDataset
+from framework.dataset import ObjectDetectionDataset
+
 
 
 class LocalInterface:
@@ -36,20 +39,16 @@ class LocalInterface:
         external_datasets = dict()
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
-            print(f'Loading {name}')
-            for dset in ['train', 'test']:
-                labels = pd.read_feather(e / 'labels' / f'labels_{dset}.feather')
-                e_root = e / f'{name}' / dset
-                if 'bbox' in labels.columns:
-                    external_datasets[f'{name}_{dset}'] = ObjectDetectionDataset(self,
-                          dataset_root=e_root,
-                          dataset_id=f'{name}_{dset}',
-                          seed_labels=labels)
-                else:
-                    external_datasets[f'{name}_{dset}'] = ImageClassificationDataset(self,
-                          dataset_root=e_root,
-                          dataset_id=f'{name}_{dset}',
-                          seed_labels=labels)
+            print("Loading external dataset", name)
+            labels = pd.read_feather(e / 'labels' / 'labels.feather')
+            if 'bbox' in labels.columns:
+                 external_datasets[name] = ObjectDetectionDataset(self,
+                         dataset_root=e,
+                         seed_labels=labels)
+            else:
+                external_datasets[name] = ImageClassificationDataset(self,
+                        dataset_root=e,
+                        seed_labels=labels)
 
         return external_datasets
 
@@ -62,8 +61,8 @@ class LocalInterface:
         if stage_metadata:
             return stage_metadata['label_budget']
         else:
-            #TODO: raise an error here
-            return None
+            print( "Missing stage metadata for", stage )
+            exit(1)
 
     def get_budget_until_checkpoints(self):
         #TODO:
@@ -77,7 +76,13 @@ class LocalInterface:
         self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
 
     def get_dataset(self, stage_name, dataset_name, categories=None):
-        dataset_path = self.metadata["stages"][stage_name]["datasets"][dataset_name]
+        stage_metadata = self.get_stage_metadata( stage_name )
+        if stage_metadata:
+            dataset_path = stage_metadata["datasets"][dataset_name]
+        else:
+            print( "Missing stage metadata for", stage_name )
+            exit(1)
+
         if self.metadata['problem_type'] == "image_classification":
             return ImageClassificationDataset(self,
                     dataset_root=dataset_path,
@@ -92,6 +97,7 @@ class LocalInterface:
         pass
 
     def get_seed_labels(self):
+        print("get_seed_labels")
         # TODO:
         pass
 
@@ -117,8 +123,8 @@ class LocalInterface:
             stagenames.append(stage['name'])
         return stagenames
 
-    def get_stage_metadata(self, stage):
+    def get_stage_metadata(self, stagename):
         for stage in self.metadata["stages"]:
-            if stage['name'] == stage:
+            if stage['name'] == stagename:
                 return stage
         return None
