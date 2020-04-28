@@ -280,7 +280,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
         new_data = self.problem.get_more_labels(
-                self._indices_to_fnames(unlabeled_indices))
+                self._indices_to_fnames(unlabeled_indices), self.root )
 
         columns = ['class', 'id']
 
@@ -559,7 +559,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
         new_data = self.problem.get_more_labels(
-                self._indices_to_fnames(unlabeled_indices))
+                self._indices_to_fnames(unlabeled_indices), self.root)
 
         columns = ['id', 'bbox', 'class']
 

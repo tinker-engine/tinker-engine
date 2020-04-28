@@ -9,6 +9,7 @@ import pandas as pd
 from framework.main import protocol_file_path
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
+import bisect
 
 
 
@@ -25,7 +26,6 @@ class LocalInterface:
             self.configuration_data = json.load(json_file)
         self.metadata = None
         self.toolset = dict()
-        self.label_sets = {}
 
     def get_task_ids(self):
         # each top level in the configuration_data represents a single
@@ -37,6 +37,8 @@ class LocalInterface:
         self.metadata = self.configuration_data[task_id]
         self.stagenames = self.get_stages()
         self.current_stage = None
+        self.seed_labels = dict()
+        self.label_sets = dict()
 
 
     def get_whitelist_datasets(self):
@@ -124,6 +126,23 @@ class LocalInterface:
 
         e = Path(dataset_path)
         labels = pd.read_feather(e / 'labels' / 'labels.feather')
+        # translate the labels provided by pandas into a dict keyed on the filename
+        # while we are at it, build the seed labels as well.
+        self.label_sets[dataset_path] = dict()
+        classes = []
+        self.seed_labels[dataset_path] = dict()
+        for label in labels.values:
+            # add every label to the self.label_sets for this dataset
+            self.label_sets[dataset_path][label[1]] = label[0]
+            # return one label for each class.
+            # TODO: make the method of determining which labes are seed labels configurable.
+            i = bisect.bisect_left( classes, label[0] )
+            if i == len( classes ) or classes[i] != label[0]:
+                # this label class is not in the labels, insert it in classes and
+                # add it to the self.seed_labels for this dataset
+                classes.insert( i, label[0] )
+                self.seed_labels[dataset_path][label[1]] = label[0]
+
         self.label_sets[dataset_path] = labels
         if 'bbox' in labels.columns:
             return ObjectDetectionDataset(self,
@@ -134,20 +153,25 @@ class LocalInterface:
                     dataset_root=dataset_path,
                     categories=categories)
 
-    def get_more_labels(self, fnames):
+    def get_more_labels(self, fnames, dataset_root):
         if not self.current_budget:
             print("Cen't get labels before checkpoint is started")
             exit(1)
-        # TODO: implement
-        print("get_more_labels")
-        exit(0)
+
+        if len(fnames) > self.current_budget:
+            # the request is for too many labels
+            print( "Too many labels requested, not enough budget." )
+            exit(1)
+
+        output_list = []
+        for filename in fnames:
+            output_list.append( [filename, self.label_sets[dataset_root][filename] ] )
+        return output_list
+
 
     def get_seed_labels(self, dataset_root):
         # seed labels do not count against the budgets
-        print("get_seed_labels")
-
-        # TODO: pare this down to a smaller list.
-        return self.label_sets[dataset_root]
+        return self.seed_labels[dataset_root]
 
     def post_results(self, predictions):
         #TODO: Currently this simply writes the results to the results_file

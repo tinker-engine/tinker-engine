@@ -270,7 +270,7 @@ class JPLInterface:
         seed_labels = r.json()
         return seed_labels['Labels']
 
-    def get_more_labels(self, fnames):
+    def get_more_labels(self, fnames, dataset_root):
         """
         Query JPL's API for more labels (the active learning component).
 
