@@ -28,15 +28,21 @@ class LocalInterface:
         self.label_sets = {}
 
     def get_task_ids(self):
+        # each top level in the configuration_data represents a single
+        # task. The keys of this dict are the names of the tasks.
         return self.configuration_data.keys()
 
     def initialize_session(self, task_id):
+        # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
         self.stagenames = self.get_stages()
         self.current_stage = None
 
 
     def get_whitelist_datasets(self):
+        # TODO: This function currently goes through the entire external_dataset_location
+        # and returns every dataset it finds. This should be modified to
+        # accept a configuration option to define the datasets that are whitelisted
         external_dataset_root = self.metadata["external_dataset_location"]
         p = Path(external_dataset_root)
         # load both train and test into same dataset
@@ -107,6 +113,8 @@ class LocalInterface:
         self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
 
     def get_dataset(self, stage_name, dataset_name, categories=None):
+        # lookup the path to the dataset in the configuration infromation
+        # and use that path to construct and return the correct dataset object
         stage_metadata = self.get_stage_metadata( stage_name )
         if stage_metadata:
             dataset_path = stage_metadata["datasets"][dataset_name]
@@ -130,7 +138,7 @@ class LocalInterface:
         if not self.current_budget:
             print("Cen't get labels before checkpoint is started")
             exit(1)
-        # TODO:
+        # TODO: implement
         print("get_more_labels")
         exit(0)
 
@@ -142,6 +150,8 @@ class LocalInterface:
         return self.label_sets[dataset_root]
 
     def post_results(self, predictions):
+        #TODO: Currently this simply writes the results to the results_file
+        # this will need to do more processing in the future.
         self.current_budget = None
         eval_dataset = self.get_evaluation_dataset()
         predictions = eval_dataset.format_predictions(predictions[0], predictions[1])
@@ -159,12 +169,13 @@ class LocalInterface:
         self.metadata = None
 
     def get_stages(self):
-        stagenames
+        stagenames = []
         for stage in self.metadata["stages"]:
             stagenames.append(stage['name'])
         return stagenames
 
     def get_stage_metadata(self, stagename):
+        # search through the list of stages for one that has a matching name.
         for stage in self.metadata["stages"]:
             if stage['name'] == stagename:
                 return stage
