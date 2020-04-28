@@ -301,7 +301,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         """
         if seed_labels is None:
-            seed_labels = pd.DataFrame(self.problem.get_seed_labels())
+            seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.root))
 
         cat_labels = seed_labels['class'].tolist()
 

@@ -4,6 +4,8 @@ import sys
 import requests
 import json
 import inspect
+from pathlib import Path
+import pandas as pd
 from framework.main import protocol_file_path
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
@@ -23,16 +25,18 @@ class LocalInterface:
             self.configuration_data = json.load(json_file)
         self.metadata = None
         self.toolset = dict()
+        self.label_sets = {}
 
     def get_task_ids(self):
         return self.configuration_data.keys()
 
     def initialize_session(self, task_id):
         self.metadata = self.configuration_data[task_id]
+        self.stagenames = self.get_stages()
+        self.current_stage = None
+
 
     def get_whitelist_datasets(self):
-        from pathlib import Path
-        import pandas as pd
         external_dataset_root = self.metadata["external_dataset_location"]
         p = Path(external_dataset_root)
         # load both train and test into same dataset
@@ -64,9 +68,36 @@ class LocalInterface:
             print( "Missing stage metadata for", stage )
             exit(1)
 
-    def get_budget_until_checkpoints(self):
-        #TODO:
-        pass
+    def start_next_checkpoint(self, stage_name):
+        # cycle thorugh the checkpoints for all stages in order.
+        # report an error if we try to start a checkpoint after the last
+        # stage is complete. A checkpoint is ended when post_results is callled.
+
+        if not self.stagenames:
+            print("Can't start a checkpoint without initializing a sesssion")
+            exit(1)
+
+        if not self.current_stage == stage_name:
+            # this is a new stage, so reset to use the budgets for the new stage
+            self.current_checkpoint_index = -1 #this will increment to be the 0th item automatically
+            self.current_stage = stage_name
+
+        # move to the next checkpoint and moive its budget into the current budget.
+        stage_metadata = self.get_stage_metadata(stage)
+        self.current_checkpoint_index += 1
+        if self.current_checkpoint_index >= len( stage_metadata['label_budget'] ):
+            print("Out of checkpoints, cant start a new checkpoint")
+            exit(1)
+
+        self.current_budget = stage_metadata['label_budget'][self.current_checkpoint_index]
+
+    def get_remaining_budget(self):
+        if self.current_budget:
+            return self.current_buget
+        else:
+            print("Must start a checkpoint before requesting a budget")
+            exit(1)
+
 
     def update_external_datasets(self):
         target_name = self.toolset["target_dataset"].name
@@ -83,25 +114,35 @@ class LocalInterface:
             print( "Missing stage metadata for", stage_name )
             exit(1)
 
-        if self.metadata['problem_type'] == "image_classification":
-            return ImageClassificationDataset(self,
+        e = Path(dataset_path)
+        labels = pd.read_feather(e / 'labels' / 'labels.feather')
+        self.label_sets[dataset_path] = labels
+        if 'bbox' in labels.columns:
+            return ObjectDetectionDataset(self,
                     dataset_root=dataset_path,
                     categories=categories)
         else:
-            return ObjectDetectionDataset(self,
+            return ImageClassificationDataset(self,
                     dataset_root=dataset_path,
                     categories=categories)
 
     def get_more_labels(self, fnames):
+        if not self.current_budget:
+            print("Cen't get labels before checkpoint is started")
+            exit(1)
         # TODO:
-        pass
+        print("get_more_labels")
+        exit(0)
 
-    def get_seed_labels(self):
+    def get_seed_labels(self, dataset_root):
+        # seed labels do not count against the budgets
         print("get_seed_labels")
-        # TODO:
-        pass
+
+        # TODO: pare this down to a smaller list.
+        return self.label_sets[dataset_root]
 
     def post_results(self, predictions):
+        self.current_budget = None
         eval_dataset = self.get_evaluation_dataset()
         predictions = eval_dataset.format_predictions(predictions[0], predictions[1])
         predicitons_filename = self.metadata['results_file']
@@ -118,7 +159,7 @@ class LocalInterface:
         self.metadata = None
 
     def get_stages(self):
-        stagenames = []
+        stagenames
         for stage in self.metadata["stages"]:
             stagenames.append(stage['name'])
         return stagenames

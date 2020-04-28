@@ -113,10 +113,13 @@ class JPLInterface:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
         return self.metadata[para]
 
-    def get_budget_until_checkpoints(self):
-        # TODO: return info from session status
-        # this can be loaded from self.metadata
+    def start_next_checkpoint(self, stage):
+        #the JPL server tracks this information, so there is nothing to do here
         pass
+
+    def get_remaining_budget(self):
+        return self.status['budget_left_until_checkpoint']
+
 
     def post_results(self, predictions):
         """
@@ -254,7 +257,7 @@ class JPLInterface:
                     dataset_root=dataset_root,
                     categories=categories)
 
-    def get_seed_labels(self):
+    def get_seed_labels(self, dataset_root):
         """
         Get the seed labels for the dataset from JPL's server.
 
