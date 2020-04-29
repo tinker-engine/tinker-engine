@@ -121,7 +121,7 @@ class JPLInterface:
         return self.status['budget_left_until_checkpoint']
 
 
-    def post_results(self, predictions):
+    def post_results(self, dataset, predictions):
         """
         Submit prediction back to JPL for evaluation
 

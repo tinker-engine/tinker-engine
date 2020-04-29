@@ -283,7 +283,6 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
                 self._indices_to_fnames(unlabeled_indices), self.root )
 
         columns = ['class', 'id']
-
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)

@@ -91,7 +91,7 @@ class LocalInterface:
             self.current_stage = stage_name
 
         # move to the next checkpoint and moive its budget into the current budget.
-        stage_metadata = self.get_stage_metadata(stage)
+        stage_metadata = self.get_stage_metadata(stage_name)
         self.current_checkpoint_index += 1
         if self.current_checkpoint_index >= len( stage_metadata['label_budget'] ):
             print("Out of checkpoints, cant start a new checkpoint")
@@ -101,7 +101,7 @@ class LocalInterface:
 
     def get_remaining_budget(self):
         if self.current_budget:
-            return self.current_buget
+            return self.current_budget
         else:
             print("Must start a checkpoint before requesting a budget")
             exit(1)
@@ -130,20 +130,18 @@ class LocalInterface:
         # while we are at it, build the seed labels as well.
         self.label_sets[dataset_path] = dict()
         classes = []
-        self.seed_labels[dataset_path] = dict()
+
+        # select one label for each class, using the first label we find for that class.
+        # TODO: make the method of determining which labes are seed labels configurable.
+        self.seed_labels[dataset_path] = labels.drop_duplicates( subset = 'class' )
+
         for label in labels.values:
             # add every label to the self.label_sets for this dataset
+            # this is the labels that are searchable by filename
+            # this will be needed by get_more_labels later.
             self.label_sets[dataset_path][label[1]] = label[0]
-            # return one label for each class.
-            # TODO: make the method of determining which labes are seed labels configurable.
-            i = bisect.bisect_left( classes, label[0] )
-            if i == len( classes ) or classes[i] != label[0]:
-                # this label class is not in the labels, insert it in classes and
-                # add it to the self.seed_labels for this dataset
-                classes.insert( i, label[0] )
-                self.seed_labels[dataset_path][label[1]] = label[0]
 
-        self.label_sets[dataset_path] = labels
+        #self.label_sets[dataset_path] = labels
         if 'bbox' in labels.columns:
             return ObjectDetectionDataset(self,
                     dataset_root=dataset_path,
@@ -165,7 +163,7 @@ class LocalInterface:
 
         output_list = []
         for filename in fnames:
-            output_list.append( [filename, self.label_sets[dataset_root][filename] ] )
+            output_list.append( [self.label_sets[dataset_root][filename], filename ] )
         return output_list
 
 
@@ -173,12 +171,11 @@ class LocalInterface:
         # seed labels do not count against the budgets
         return self.seed_labels[dataset_root]
 
-    def post_results(self, predictions):
+    def post_results(self, dataset, predictions):
         #TODO: Currently this simply writes the results to the results_file
         # this will need to do more processing in the future.
         self.current_budget = None
-        eval_dataset = self.get_evaluation_dataset()
-        predictions = eval_dataset.format_predictions(predictions[0], predictions[1])
+        predictions = dataset.format_predictions(predictions[0], predictions[1])
         predicitons_filename = self.metadata['results_file']
         json_obj = json.dumps(predictions, indent = 4)
         with open(predicitons_filename, "w") as json_file:
