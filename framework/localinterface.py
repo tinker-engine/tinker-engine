@@ -107,13 +107,6 @@ class LocalInterface:
             exit(1)
 
 
-    def update_external_datasets(self):
-        target_name = self.toolset["target_dataset"].name
-        train_id = f'{target_name}_train'
-        test_id = f'{target_name}_test'
-        self.toolset["whitelist_datasets"][train_id] = self.toolset["target_dataset"]
-        self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
-
     def get_dataset(self, stage_name, dataset_name, categories=None):
         # lookup the path to the dataset in the configuration infromation
         # and use that path to construct and return the correct dataset object

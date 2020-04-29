@@ -314,13 +314,6 @@ class JPLInterface:
 
         return self.status
 
-    def update_external_datasets(self):
-        target_name = self.status['current_dataset']['name']
-        train_id = f'{target_name}_train'
-        test_id = f'{target_name}_test'
-        self.toolset["whitelist_datasets"][train_id] = self.toolset["target_dataset"]
-        self.toolset["whitelist_datasets"][test_id] = self.toolset["eval_dataset"]
-
     def format_status(self, update=False):
         """
         Update and return formatted string with the current status

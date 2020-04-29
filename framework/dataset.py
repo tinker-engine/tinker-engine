@@ -286,6 +286,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
+        print( "unlabed", self.unlabeled_size)
         print(f'Added {n} more labels to the dataset')
 
     def get_seed_labels(self, seed_labels=None):
@@ -306,6 +307,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
+        print("unlabed", self.unlabeled_size)
 
         print(f'Added {n} seed labels to the dataset')
 
