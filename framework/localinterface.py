@@ -1,7 +1,6 @@
 import abc
 import os
 import sys
-import requests
 import json
 import inspect
 from pathlib import Path
@@ -76,7 +75,7 @@ class LocalInterface:
             print( "Missing stage metadata for", stage )
             exit(1)
 
-    def start_next_checkpoint(self, stage_name):
+    def start_next_checkpoint(self, stage_name, target_dataset):
         # cycle thorugh the checkpoints for all stages in order.
         # report an error if we try to start a checkpoint after the last
         # stage is complete. A checkpoint is ended when post_results is callled.
@@ -97,7 +96,10 @@ class LocalInterface:
             print("Out of checkpoints, cant start a new checkpoint")
             exit(1)
 
+        
         self.current_budget = stage_metadata['label_budget'][self.current_checkpoint_index]
+        if target_dataset.unlabeled_size < self.current_budget:
+            self.current_budget = target_dataset.unlabeled_size
 
     def get_remaining_budget(self):
         if self.current_budget:

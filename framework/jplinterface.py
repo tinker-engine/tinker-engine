@@ -113,7 +113,7 @@ class JPLInterface:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
         return self.metadata[para]
 
-    def start_next_checkpoint(self, stage):
+    def start_next_checkpoint(self, stage, target_dataset):
         #the JPL server tracks this information, so there is nothing to do here
         pass
 
