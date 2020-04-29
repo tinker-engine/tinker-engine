@@ -64,13 +64,22 @@ class LocalInterface:
         return external_datasets
 
 
-    def get_budget_checkpoints(self, stage):
+    def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata
         """
         stage_metadata = self.get_stage_metadata(stage)
         if stage_metadata:
+            # check the dataset to make sure that the budgets dont exceed the available
+            # labels
+            total_avaialble_labels = target_dataset.unlabeled_size
+            for index, budget in enumerate(stage_metadata['label_budget']):
+                if budget > total_avaialble_labels:
+                    stage_metadata['label_budget'][index] = total_avaialble_labels
+                total_avaialble_labels -= stage_metadata['label_budget'][index]
+
             return stage_metadata['label_budget']
+            
         else:
             print( "Missing stage metadata for", stage )
             exit(1)
@@ -102,7 +111,7 @@ class LocalInterface:
             self.current_budget = target_dataset.unlabeled_size
 
     def get_remaining_budget(self):
-        if self.current_budget:
+        if not self.current_budget == None:
             return self.current_budget
         else:
             print("Must start a checkpoint before requesting a budget")
@@ -147,7 +156,7 @@ class LocalInterface:
                     categories=categories)
 
     def get_more_labels(self, fnames, dataset_root):
-        if not self.current_budget:
+        if self.current_budget == None:
             print("Cen't get labels before checkpoint is started")
             exit(1)
 

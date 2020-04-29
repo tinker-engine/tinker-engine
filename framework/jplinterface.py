@@ -101,7 +101,7 @@ class JPLInterface:
     def get_stages(self):
         return ['base', 'adapt']
 
-    def get_budget_checkpoints(self, stage):
+    def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata
         """
@@ -111,6 +111,13 @@ class JPLInterface:
             para = 'adaptation_label_budget'
         else:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
+
+        total_avaialble_labels = target_dataset.unlabeled_size
+        for index, budget in enumerate(self.metadata[para]):
+            if budget > total_avaialble_labels:
+                self.metadata[para][index] = total_avaialble_labels
+            total_avaialble_labels -= self.metadata[para][index]
+
         return self.metadata[para]
 
     def start_next_checkpoint(self, stage, target_dataset):
