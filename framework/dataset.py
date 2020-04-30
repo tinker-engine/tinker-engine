@@ -108,6 +108,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     Attributes:
         problem (LwLL): problem class instance containing the
             information, see :ref:`problem.py` for more information
+        name (str): Name of dataset
         image_fnames (list): list of image filenames
         num_images (int): number of images in filelist (both labeled and unlabeled)
         labeled_size (int): number of labeled images in filelist
@@ -127,6 +128,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     """
     def __init__(self,
                  problem,
+                 dataset_name,
                  dataset_root,
                  transform=ub.NoParam,
                  target_transform=None,
@@ -161,7 +163,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         """
         self.problem = problem
-
+        self.name = dataset_name
         self.root = dataset_root
 
         if transform is ub.NoParam:
@@ -280,7 +282,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
         new_data = self.problem.get_more_labels(
-                self._indices_to_fnames(unlabeled_indices), self.root )
+                self._indices_to_fnames(unlabeled_indices), self.name )
 
         columns = ['class', 'id']
         new_data = pd.DataFrame(new_data, columns=columns)
@@ -300,7 +302,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         """
         if seed_labels is None:
-            seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.root))
+            seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.name))
 
         cat_labels = seed_labels['class'].tolist()
 
@@ -532,14 +534,21 @@ class ObjectDetectionDataset(ImageClassificationDataset):
 
     def __init__(self,
                  problem,
+                 dataset_name,
                  dataset_root,
                  transform=ub.NoParam,
                  target_transform=None,
                  categories=None,
                  seed_labels=None):
 
-        super(ObjectDetectionDataset, self).__init__( problem,dataset_root,transform,target_transform,categories,seed_labels)
-
+        super(ObjectDetectionDataset, self).__init__(
+            problem,
+            dataset_name,
+            dataset_root,
+            transform,
+            target_transform,
+            categories,
+            seed_labels)
 
     def get_more_labels(self, indices):
         """

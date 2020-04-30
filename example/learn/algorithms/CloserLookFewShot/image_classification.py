@@ -46,7 +46,6 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         self.task_model = model.BaselineTrain(model, self.num_classes,
                                               self.arguments['cuda'])
 
-
     def domain_adapt_training(self):
         # ###################  Creating the Labeled DataLoader ###############
         # Create Dataloaders for labeled data by getting the labeled indices and

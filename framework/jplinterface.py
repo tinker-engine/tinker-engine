@@ -9,10 +9,10 @@ from framework.dataset import ObjectDetectionDataset
 
 
 class JPLInterface:
-    def __init__(self, apikey = "", url = ""):
+    def __init__(self, apikey="", url=""):
         # TODO: define the data_type
         self.data_type = "full"
-        
+
         self.apikey = apikey
         self.headers = {'user_secret': self.apikey}
         self.url = url
@@ -46,8 +46,8 @@ class JPLInterface:
         """
         self.task_id = task_id
         _json = {'session_name': 'testing',
-                'data_type': self.data_type,
-                'task_id': task_id}
+                 'data_type': self.data_type,
+                 'task_id': task_id}
         r = requests.post(
             f"{self.url}/auth/create_session",
             headers=self.headers,
@@ -57,14 +57,14 @@ class JPLInterface:
 
         self.sessiontoken = r.json()['session_token']
 
-        #prep the headers for easier use in the future.
+        # prep the headers for easier use in the future.
         self.headers['session_token'] = self.sessiontoken
 
         # load and store the session status and metadata.
         self.status = self.get_current_status()
 
         self.metadata = self.get_problem_metadata()
-        
+
         out_obj = json.dumps(self.metadata, indent=4)
 
         with open("/home/eric/foo.json", "w") as outfile:
@@ -72,7 +72,7 @@ class JPLInterface:
 
         self.problem_type = self.metadata['problem_type']
 
-    def get_whitelist_datasets(self):
+    def get_whitelist_datasets_jpl(self):
         # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
         from pathlib import Path
@@ -85,16 +85,21 @@ class JPLInterface:
             name = e.parts[-1]
             print(f'Loading {name}')
             for dset in ['train', 'test']:
-                labels = pd.read_feather(e / 'labels_full' / f'labels_{dset}.feather')
+                labels = pd.read_feather(
+                    e / 'labels_full' / f'labels_{dset}.feather')
                 e_root = e / f'{name}_full' / dset
                 if 'bbox' in labels.columns:
-                    external_datasets[f'{name}_{dset}'] = ObjectDetectionDataset(self,
-                          dataset_root=e_root,
-                          seed_labels=labels)
+                    external_datasets[f'{name}_{dset}'] = ObjectDetectionDataset(
+                        self,
+                        dataset_name=name,
+                        dataset_root=e_root,
+                        seed_labels=labels)
                 else:
-                    external_datasets[f'{name}_{dset}'] = ImageClassificationDataset(self,
-                          dataset_root=e_root,
-                          seed_labels=labels)
+                    external_datasets[f'{name}_{dset}'] = ImageClassificationDataset(
+                        self,
+                        dataset_name=name,
+                        dataset_root=e_root,
+                        seed_labels=labels)
 
         return external_datasets
 
@@ -121,12 +126,11 @@ class JPLInterface:
         return self.metadata[para]
 
     def start_next_checkpoint(self, stage, target_dataset):
-        #the JPL server tracks this information, so there is nothing to do here
+        # the JPL server tracks this information, so there is nothing to do here
         pass
 
     def get_remaining_budget(self):
         return self.status['budget_left_until_checkpoint']
-
 
     def post_results(self, dataset, predictions):
         """
@@ -148,7 +152,7 @@ class JPLInterface:
             self.toolset = dict()
         except KeyError:
             pass
-        
+
         pass
 
     def get_current_status(self):
@@ -246,23 +250,25 @@ class JPLInterface:
         metadata = r.json()['task_metadata']
         return metadata
 
-    def get_dataset(self, stage_name, dataset_name, categories=None):
+    def get_dataset_jpl(self, stage_name, dataset_name, categories=None):
         current_dataset = self.status['current_dataset']['name']
         if self.evaluate:
             dataset_root = (f'{self.dataset_dir}/evaluate/{current_dataset}/'
-                    f'{current_dataset}_{self.data_type}/{dataset_name}')
+                            f'{current_dataset}_{self.data_type}/{dataset_name}')
         else:
             dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/'
-                    f'{current_dataset}_{self.data_type}/{dataset_name}')
+                            f'{current_dataset}_{self.data_type}/{dataset_name}')
 
         if self.metadata['problem_type'] == "image_classification":
             return ImageClassificationDataset(self,
-                    dataset_root=dataset_root,
-                    categories=categories)
+                                              dataset_root=dataset_root,
+                                              dataset_name=current_dataset,
+                                              categories=categories)
         else:
             return ObjectDetectionDataset(self,
-                    dataset_root=dataset_root,
-                    categories=categories)
+                                          dataset_root=dataset_root,
+                                          dataset_name=current_dataset,
+                                          categories=categories)
 
     def get_seed_labels(self, dataset_root):
         """
