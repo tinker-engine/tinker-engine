@@ -13,6 +13,11 @@ import bisect
 
 class LocalInterface:
     def __init__(self, json_configuration_file):
+        """
+
+        Args:
+            json_configuration_file:
+        """
 
         json_full_path = os.path.join(protocol_file_path, json_configuration_file)
         print("Protocol path", json_full_path)
@@ -26,11 +31,24 @@ class LocalInterface:
         self.toolset = dict()
 
     def get_task_ids(self):
+        """
+
+        Returns:
+
+        """
         # each top level in the configuration_data represents a single
         # task. The keys of this dict are the names of the tasks.
         return self.configuration_data.keys()
 
     def initialize_session(self, task_id):
+        """
+
+        Args:
+            task_id:
+
+        Returns:
+
+        """
         # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
         self.stagenames = self.get_stages()
@@ -40,6 +58,11 @@ class LocalInterface:
         self.label_sets_pd = dict()
 
     def get_whitelist_datasets_jpl(self):
+        """
+
+        Returns:
+
+        """
         # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
         from pathlib import Path
@@ -70,6 +93,11 @@ class LocalInterface:
         return external_datasets
 
     def get_whitelist_datasets(self):
+        """
+
+        Returns:
+
+        """
         # TODO: This function currently goes through the entire external_dataset_location
         # and returns every dataset it finds. This should be modified to
         # accept a configuration option to define the datasets that are whitelisted
@@ -99,6 +127,10 @@ class LocalInterface:
     def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata
+
+        Args:
+            stage (str):
+            target_dataset (str):
         """
         stage_metadata = self.get_stage_metadata(stage)
         if stage_metadata:
@@ -151,6 +183,11 @@ class LocalInterface:
             self.current_budget = target_dataset.unlabeled_size
 
     def get_remaining_budget(self):
+        """
+
+        Returns:
+
+        """
         if not self.current_budget is None:
             return self.current_budget
         else:
@@ -339,6 +376,15 @@ class LocalInterface:
                                           categories=categories)
 
     def get_more_labels(self, fnames, dataset_root):
+        """
+
+        Args:
+            fnames:
+            dataset_root:
+
+        Returns:
+
+        """
         if self.current_budget == None:
             print("Can't get labels before checkpoint is started")
             exit(1)
@@ -365,6 +411,15 @@ class LocalInterface:
         return self.seed_labels[dataset_name]
 
     def post_results(self, dataset, predictions):
+        """
+
+        Args:
+            dataset:
+            predictions:
+
+        Returns:
+
+        """
         # TODO: Currently this simply writes the results to the results_file
         # this will need to do more processing in the future.
         self.current_budget = None
@@ -388,6 +443,14 @@ class LocalInterface:
               f'{100*acc:.02f}%')
 
     def get_problem_metadata(self, task_id):
+        """
+
+        Args:
+            task_id:
+
+        Returns:
+
+        """
         self.metadata = self.configuration_data[task_id]
         return self.metadata
 
