@@ -301,8 +301,6 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         This also initializes the Categories based on the seed labels.
 
         """
-        print("unlab", len(self.unlabeled_indices))
-        print( "lab", len(self.labeled_indices))
         if seed_labels is None:
             seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.name))
 
@@ -311,8 +309,6 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
         print(f'Added {n} seed labels to the dataset: {self.labeled_size} files now labeled, {self.unlabeled_size} unlabeled ')
-        exit(0)
-
 
     def _category_name_to_category_index(self, category_names):
         """
@@ -590,7 +586,6 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         """
 
         n = len(new_labels)
-        print("foo")
         fnames = new_labels['id'].tolist()
         indices = self._fnames_to_indices(fnames)
 
