@@ -41,10 +41,19 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             object of the relevant type from that file.
 
             Arguments:
-                algotype: This is a string that contains either an absolute or relative path to the
+                algotype: (option 1) This is a string that contains either an absolute or relative path to the
                             desired algorithm file. If the path is relative, then the location of
                             the file is determined using the self.algorithmsbase directory and
                             appending the algotype string to it to generate the absolute file path.
+
+                algotype: (option 2) This is a string that names a plugin that has been pip installed. This
+                            function will attempt to load using the plugin if a file with a matching name to
+                            algotype can't be found.
+
+                toolset: This is a dict() containing the initialization information for the algorithm.
+
+            Returns:
+                a single instantiated object of the desired algorithm class.
 
 
         '''
