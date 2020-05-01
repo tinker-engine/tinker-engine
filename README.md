@@ -1,9 +1,11 @@
 # Learn Framework
 
 ## Getting started
-To install the framework, simply use pip to install from the root of the project
+To install the framework, use Pipenv to bootstrap a development virtual
+environment:
 ```bash
-pip install .
+pipenv install
+pipenv shell
 ```
 
 Once this is complete, you can execute protocols using the framework using the following command
