@@ -5,7 +5,6 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = ">=3.7"
-flake8-black = "==0.1.1"
 flake8-bugbear = ">=20.1"
 flake8-builtins = ">=1.5"
 flake8-comprehensions = ">=3.2"
@@ -15,7 +14,6 @@ flake8-mutable = ">=1.2"
 flake8-polyfill = ">=1.0"
 flake8-quotes = ">=3.0"
 pep8-naming = "==0.10.0"
-black = ">=19.10b0"
 framework = {editable = true,path = "."}
 
 [packages]
@@ -30,3 +28,7 @@ python_version = "3.7"
 
 [pipenv]
 allow_prereleases = true
+
+[scripts]
+lint = "flake8"
+format = "black ."
