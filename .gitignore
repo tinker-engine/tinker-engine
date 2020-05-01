@@ -16,6 +16,8 @@ output/
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
 
+# mypy cache
+.mypy_cache/
 
 
 ##### Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
