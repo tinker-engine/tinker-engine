@@ -1,8 +1,7 @@
 from jplinterface import JPLInterface
 from baseprotocol import BaseProtocol
 
-class SAILON(JPLInterface, BaseProtocol)
-:
+class SAILON(JPLInterface, BaseProtocol):
     def __init__(self, algorithmsdirectory):
         BaseProtocol.__init__(self, algorithmsdirectory)
         JPLInterface.__init__(self,
