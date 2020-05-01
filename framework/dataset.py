@@ -1,8 +1,8 @@
 """
 .. _dataset.py:
 
-dataset.py
-==========
+Datasets
+=========
 
 Kitware manages this function.  The dataset classes for the train/eval parts of
 both the train and adapt stages. This will need to change when more types of
@@ -107,7 +107,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     Attributes:
         problem (LwLL): problem class instance containing the
-            information, see :ref:`problem.py` for more information
+            information,
         name (str): Name of dataset
         image_fnames (list): list of image filenames
         num_images (int): number of images in filelist (both labeled and unlabeled)
@@ -567,7 +567,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
         new_data = self.problem.get_more_labels(
-                self._indices_to_fnames(unlabeled_indices), self.root)
+                self._indices_to_fnames(unlabeled_indices), self.name)
 
         columns = ['id', 'bbox', 'class']
 
@@ -583,6 +583,8 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         Args:
             new_labels (pandas.DataFrame): new labels to add
             requested (list[int]): list of requested labels
+            check_redundant (bool): Whether to check if incoming labels are
+                redundant
         """
 
         n = len(new_labels)

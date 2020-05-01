@@ -1,14 +1,17 @@
-import abc
-import os
-import sys
+"""
+JPL Interface
+-------------
+"""
 import requests
 import json
-import inspect
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
 
 
 class JPLInterface:
+    """
+    JPL Interface
+    """
     def __init__(self, apikey="", url=""):
         # TODO: define the data_type
         self.data_type = "full"

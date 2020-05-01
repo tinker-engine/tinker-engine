@@ -1,3 +1,8 @@
+"""
+Local Interface
+---------------
+"""
+
 import abc
 import os
 import sys
@@ -11,8 +16,16 @@ from framework.dataset import ObjectDetectionDataset
 import bisect
 
 
-class LocalInterface:
+class LocalInterface(object):
+    """  Local interface
+
+    """
     def __init__(self, json_configuration_file):
+        """
+
+        Args:
+            json_configuration_file:
+        """
 
         json_full_path = os.path.join(protocol_file_path, json_configuration_file)
         print("Protocol path", json_full_path)
@@ -26,11 +39,24 @@ class LocalInterface:
         self.toolset = dict()
 
     def get_task_ids(self):
+        """
+
+        Returns:
+
+        """
         # each top level in the configuration_data represents a single
         # task. The keys of this dict are the names of the tasks.
         return self.configuration_data.keys()
 
     def initialize_session(self, task_id):
+        """
+
+        Args:
+            task_id:
+
+        Returns:
+
+        """
         # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
         self.stagenames = self.get_stages()
@@ -40,6 +66,11 @@ class LocalInterface:
         self.label_sets_pd = dict()
 
     def get_whitelist_datasets_jpl(self):
+        """
+
+        Returns:
+
+        """
         # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
         from pathlib import Path
@@ -70,6 +101,11 @@ class LocalInterface:
         return external_datasets
 
     def get_whitelist_datasets(self):
+        """
+
+        Returns:
+
+        """
         # TODO: This function currently goes through the entire external_dataset_location
         # and returns every dataset it finds. This should be modified to
         # accept a configuration option to define the datasets that are whitelisted
@@ -99,6 +135,10 @@ class LocalInterface:
     def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata
+
+        Args:
+            stage (str):
+            target_dataset (str):
         """
         stage_metadata = self.get_stage_metadata(stage)
         if stage_metadata:
@@ -151,6 +191,11 @@ class LocalInterface:
             self.current_budget = target_dataset.unlabeled_size
 
     def get_remaining_budget(self):
+        """
+
+        Returns:
+
+        """
         if not self.current_budget is None:
             return self.current_budget
         else:
@@ -217,16 +262,15 @@ class LocalInterface:
             record['image_id'] = itx
             record['category_id'] = label
             images.append(record)
+
         dataset_coco['images'] = images
         coco_filename = dataset_path / f'{dataset_name}_{split}.coco'
         json_obj = json.dumps(dataset_coco, indent=4)
         with open(coco_filename, "w") as json_file:
             json_file.write(json_obj)
-        import ipdb
-        ipdb.set_trace()
 
     def get_dataset(self, stage_name, dataset_split, categories=None):
-        """ lookup the path to the dataset in the configuration infromation
+        """ lookup the path to the dataset in the configuration information
         and use that path to construct and return the correct dataset object
 
         Args:
@@ -338,8 +382,17 @@ class LocalInterface:
                                           dataset_name=name,
                                           categories=categories)
 
-    def get_more_labels(self, fnames, dataset_root):
-        if self.current_budget == None:
+    def get_more_labels(self, fnames, dataset_name):
+        """
+
+        Args:
+            fnames (list[str]): name of file names
+            dataset_root:
+
+        Returns:
+
+        """
+        if self.current_budget is None:
             print("Can't get labels before checkpoint is started")
             exit(1)
 
@@ -348,10 +401,9 @@ class LocalInterface:
             print("Too many labels requested, not enough budget.")
             exit(1)
 
-        output_list = []
-        for filename in fnames:
-            output_list.append([self.label_sets[dataset_root][filename], filename])
-        return output_list
+        mask =  self.label_sets_pd[dataset_name]['id'].isin(fnames)
+        new_labels = self.label_sets_pd[dataset_name][mask]
+        return new_labels.to_dict()
 
     def get_seed_labels(self, dataset_name):
         """ seed labels do not count against the budgets
@@ -365,6 +417,15 @@ class LocalInterface:
         return self.seed_labels[dataset_name]
 
     def post_results(self, dataset, predictions):
+        """
+
+        Args:
+            dataset (framework.dataset):  Framework Dataset
+            predictions:
+
+        Returns:
+
+        """
         # TODO: Currently this simply writes the results to the results_file
         # this will need to do more processing in the future.
         self.current_budget = None
@@ -380,14 +441,38 @@ class LocalInterface:
         gt = self.label_sets_pd[dataset.name].sort_values('id')
         pred = pd.DataFrame(predictions_formatted).sort_values('id')
 
-        # Ensure that this is true and all classes are aligned.
-        assert ((gt['id'].values != pred['id'].values).sum() == 0)
-        acc = (gt['class'].values == pred['class'].values).mean()
-        print(f'Accuracy for Stage:{self.stage_id} '
-              f'Checkpoint: {self.current_checkpoint_index} is '
-              f'{100*acc:.02f}%')
+        import ipdb
+        ipdb.set_trace()
+
+        if self.metadata['problem_type'] == 'image_classification':
+            # Ensure that this is true and all classes are aligned.
+            assert ((gt['id'].values != pred['id'].values).sum() == 0)
+            acc2 = (gt['class'].values == pred['class'].values).mean()
+
+            from .metrics import accuracy
+            acc = accuracy(pred, gt)
+            print(f'Accuracy for Stage:{self.stage_id} '
+                  f'Checkpoint: {self.current_checkpoint_index} is '
+                  f'{100 * acc:.02f}%')
+
+        elif self.metadata['problem_type'] == 'object_detection':
+            from .metrics import mAP
+            acc = mAP(pred, gt)
+            print(f'Accuracy for Stage:{self.stage_id} '
+                  f'Checkpoint: {self.current_checkpoint_index} is '
+                  f'mAP: {100 * acc:.02f}')
+
+
 
     def get_problem_metadata(self, task_id):
+        """
+
+        Args:
+            task_id:
+
+        Returns:
+
+        """
         self.metadata = self.configuration_data[task_id]
         return self.metadata
 
