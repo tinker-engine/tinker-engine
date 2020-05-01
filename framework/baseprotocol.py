@@ -3,6 +3,26 @@ import os
 import sys
 import inspect
 
+import pkg_resources
+from typing import Any, Optional, TypeVar
+from pkg_resources import EntryPoint
+
+def _safe_load(entry_point: EntryPoint) -> Optional[Any]:
+    """Load algorithms from an entrypoint without raising exceptions."""
+    try:
+        return entry_point.load()
+    except Exception as fault:
+        print("Cannot load entrypoint")
+        print( fault )
+        exit(1)
+
+
+
+discovered_plugins = {
+    entry_point.name: _safe_load(entry_point)
+    for entry_point in pkg_resources.iter_entry_points("framework")
+}
+
 
 class BaseProtocol(metaclass=abc.ABCMeta):
     """ The BaseProtocol class provides a generic toolset storage and a mechanism to
@@ -21,10 +41,19 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             object of the relevant type from that file.
 
             Arguments:
-                algotype: This is a string that contains either an absolute or relative path to the
+                algotype: (option 1) This is a string that contains either an absolute or relative path to the
                             desired algorithm file. If the path is relative, then the location of
                             the file is determined using the self.algorithmsbase directory and
                             appending the algotype string to it to generate the absolute file path.
+
+                algotype: (option 2) This is a string that names a plugin that has been pip installed. This
+                            function will attempt to load using the plugin if a file with a matching name to
+                            algotype can't be found.
+
+                toolset: This is a dict() containing the initialization information for the algorithm.
+
+            Returns:
+                a single instantiated object of the desired algorithm class.
 
 
         '''
@@ -32,25 +61,23 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         # TODO: implement the mechanism to override the normal behavior of this function and use it to create
         #       template algorithm files and adapters instead.
 
-
-        #validate that the file exists
-        algofile = os.path.join(self.algorithmsbase, algotype)
-        if not os.path.exists(algofile):
-            print("given algorithm file", algotype, "doesn't exist")
-            exit(1)
-
-        # TODO: support handling a directory in the future. The idea would be that the directory
-        # would contain only the one algorithm file, and that the protocol wouldn't care what the
-        # name of the file was.
-        if os.path.isdir(algofile):
-            print("algorithm not yet supported on a directory, use a specific file instead")
-            raise NotImplementedError
-
         # Validate the toolset is a dictionary or None
         if toolset:
             if not isinstance( toolset, dict):
                 print( "toolset must be a dictionary")
                 exit(1)
+
+
+        # if the file exists, then load the algo from the file. if not, then load the algo from plugin
+        algofile = os.path.join(self.algorithmsbase, algotype)
+        if os.path.exists(algofile) and not os.path.isdir(algofile):
+            print(algotype, "found in algorithms path, loading file")
+            return self.load_from_file(algofile,toolset)
+        else:
+            print(algotype, "not found in path, loading plugin")
+            return self.load_from_plugin(algotype, toolset)
+
+    def load_from_file( self, algofile, toolset):
 
         # get the path to the algo file so that we can append it to the system path
         # this makes the import easier
@@ -75,3 +102,12 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             exit(1)
 
         return algorithm
+
+
+    def load_from_plugin( self, algotype, toolset):
+        algorithm = discovered_plugins.get(algotype)
+        if algorithm is None:
+            print("Requested plugin not found")
+            exit(1)
+        return algorithm(toolset)
+
