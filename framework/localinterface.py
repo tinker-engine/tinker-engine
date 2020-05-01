@@ -1,3 +1,8 @@
+"""
+Local Interface
+---------------
+"""
+
 import abc
 import os
 import sys
@@ -11,7 +16,10 @@ from framework.dataset import ObjectDetectionDataset
 import bisect
 
 
-class LocalInterface:
+class LocalInterface(object):
+    """  Local interface
+
+    """
     def __init__(self, json_configuration_file):
         """
 
@@ -254,16 +262,15 @@ class LocalInterface:
             record['image_id'] = itx
             record['category_id'] = label
             images.append(record)
+
         dataset_coco['images'] = images
         coco_filename = dataset_path / f'{dataset_name}_{split}.coco'
         json_obj = json.dumps(dataset_coco, indent=4)
         with open(coco_filename, "w") as json_file:
             json_file.write(json_obj)
-        import ipdb
-        ipdb.set_trace()
 
     def get_dataset(self, stage_name, dataset_split, categories=None):
-        """ lookup the path to the dataset in the configuration infromation
+        """ lookup the path to the dataset in the configuration information
         and use that path to construct and return the correct dataset object
 
         Args:
@@ -375,17 +382,17 @@ class LocalInterface:
                                           dataset_name=name,
                                           categories=categories)
 
-    def get_more_labels(self, fnames, dataset_root):
+    def get_more_labels(self, fnames, dataset_name):
         """
 
         Args:
-            fnames:
+            fnames (list[str]): name of file names
             dataset_root:
 
         Returns:
 
         """
-        if self.current_budget == None:
+        if self.current_budget is None:
             print("Can't get labels before checkpoint is started")
             exit(1)
 
@@ -394,10 +401,9 @@ class LocalInterface:
             print("Too many labels requested, not enough budget.")
             exit(1)
 
-        output_list = []
-        for filename in fnames:
-            output_list.append([self.label_sets[dataset_root][filename], filename])
-        return output_list
+        mask =  self.label_sets_pd[dataset_name]['id'].isin(fnames)
+        new_labels = self.label_sets_pd[dataset_name][mask]
+        return new_labels.to_dict()
 
     def get_seed_labels(self, dataset_name):
         """ seed labels do not count against the budgets
@@ -414,7 +420,7 @@ class LocalInterface:
         """
 
         Args:
-            dataset:
+            dataset (framework.dataset):  Framework Dataset
             predictions:
 
         Returns:
@@ -435,12 +441,28 @@ class LocalInterface:
         gt = self.label_sets_pd[dataset.name].sort_values('id')
         pred = pd.DataFrame(predictions_formatted).sort_values('id')
 
-        # Ensure that this is true and all classes are aligned.
-        assert ((gt['id'].values != pred['id'].values).sum() == 0)
-        acc = (gt['class'].values == pred['class'].values).mean()
-        print(f'Accuracy for Stage:{self.stage_id} '
-              f'Checkpoint: {self.current_checkpoint_index} is '
-              f'{100*acc:.02f}%')
+        import ipdb
+        ipdb.set_trace()
+
+        if self.metadata['problem_type'] == 'image_classification':
+            # Ensure that this is true and all classes are aligned.
+            assert ((gt['id'].values != pred['id'].values).sum() == 0)
+            acc2 = (gt['class'].values == pred['class'].values).mean()
+
+            from .metrics import accuracy
+            acc = accuracy(pred, gt)
+            print(f'Accuracy for Stage:{self.stage_id} '
+                  f'Checkpoint: {self.current_checkpoint_index} is '
+                  f'{100 * acc:.02f}%')
+
+        elif self.metadata['problem_type'] == 'object_detection':
+            from .metrics import mAP
+            acc = mAP(pred, gt)
+            print(f'Accuracy for Stage:{self.stage_id} '
+                  f'Checkpoint: {self.current_checkpoint_index} is '
+                  f'mAP: {100 * acc:.02f}')
+
+
 
     def get_problem_metadata(self, task_id):
         """
