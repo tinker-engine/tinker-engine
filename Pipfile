@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+framework = {editable = true,path = "."}
+
+[packages]
+requests = ">=2.23"
+torch = ">=1.4"
+torchvision = "==0.6.0"
+pandas = ">=1.0"
+ubelt = "==0.9.1"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
