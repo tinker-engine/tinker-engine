@@ -3,7 +3,6 @@ Local Interface
 ---------------
 """
 
-import abc
 import os
 import sys
 import json
@@ -11,12 +10,12 @@ import inspect
 from pathlib import Path
 import pandas as pd
 from framework.main import protocol_file_path
+from framework.harness import Harness
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
-import bisect
 
 
-class LocalInterface(object):
+class LocalInterface(Harness):
     """  Local interface
 
     """
@@ -38,15 +37,7 @@ class LocalInterface(object):
         self.metadata = None
         self.toolset = dict()
 
-    def get_task_ids(self):
-        """
-
-        Returns:
-
-        """
-        # each top level in the configuration_data represents a single
-        # task. The keys of this dict are the names of the tasks.
-        return self.configuration_data.keys()
+        self.task_ids = self.configuration_data.keys()
 
     def initialize_session(self, task_id):
         """
@@ -59,7 +50,11 @@ class LocalInterface(object):
         """
         # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
-        self.stagenames = self.get_stages()
+
+        self.stagenames = []
+        for stage in self.metadata["stages"]:
+            self.stagenames.append(stage['name'])
+
         self.current_stage = None
         self.seed_labels = dict()
         self.label_sets = dict()
@@ -480,11 +475,6 @@ class LocalInterface(object):
         self.toolset = dict()
         self.metadata = None
 
-    def get_stages(self):
-        stagenames = []
-        for stage in self.metadata["stages"]:
-            stagenames.append(stage['name'])
-        return stagenames
 
     def get_stage_metadata(self, stagename):
         # search through the list of stages for one that has a matching name.
