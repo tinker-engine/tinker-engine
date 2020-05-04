@@ -134,7 +134,7 @@ class JPLInterface(Harness):
     def get_remaining_budget(self):
         return self.status['budget_left_until_checkpoint']
 
-    def post_results(self, dataset, predictions):
+    def post_results(self, stage_id, dataset, predictions):
         """
         Submit prediction back to JPL for evaluation
 

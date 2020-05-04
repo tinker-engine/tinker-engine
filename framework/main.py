@@ -33,6 +33,8 @@ import argparse
 import json
 import os
 import requests
+from framework.localinterface import LocalInterface
+from framework.jplinterface import JPLInterface
 
 protocol_file_path = ""
 
@@ -81,6 +83,10 @@ def execute(req):
         sys.path.append(protocol_file_path)
     protbase, protext = os.path.splitext(protfile)
 
+    # create the harness
+    #TODO: make this configurable
+    harness = LocalInterface('localinterface.json', protocol_file_path )
+
     # make sure the protocol file is a python file
     if protext == ".py":
         # import the file and get the object name. The object should go in the
@@ -94,7 +100,7 @@ def execute(req):
                 foo = inspect.getmodule( obj )
                 if foo == protocolimport:
                     #construct the protocol object
-                    protocol = obj(algorithmsbasepath)
+                    protocol = obj(algorithmsbasepath, harness)
     else:
         print("Invalid protocol file, must be a python3 source file")
         sys.exit(1)

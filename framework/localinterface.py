@@ -9,7 +9,6 @@ import json
 import inspect
 from pathlib import Path
 import pandas as pd
-from framework.main import protocol_file_path
 from framework.harness import Harness
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
@@ -19,14 +18,14 @@ class LocalInterface(Harness):
     """  Local interface
 
     """
-    def __init__(self, json_configuration_file):
+    def __init__(self, json_configuration_file, interface_config_path):
         """
 
         Args:
             json_configuration_file:
         """
 
-        json_full_path = os.path.join(protocol_file_path, json_configuration_file)
+        json_full_path = os.path.join(interface_config_path, json_configuration_file)
         print("Protocol path", json_full_path)
         if not os.path.exists(json_full_path):
             print("Given LocalInterface configuration file does not exist")
@@ -70,7 +69,7 @@ class LocalInterface(Harness):
         print("get whitelist datasets")
         from pathlib import Path
         import pandas as pd
-        external_dataset_root = f'{self.dataset_dir}/external/'
+        external_dataset_root = f'{self.metadata["external_dataset_location"]}'
         p = Path(external_dataset_root)
         # TODO: load both train and test into same dataset
         external_datasets = dict()
@@ -278,9 +277,8 @@ class LocalInterface(Harness):
         stage_metadata = self.get_stage_metadata(stage_name)
         dataset_name = stage_metadata["datasets"][dataset_split]
         if stage_metadata:
-            dataset_path = (Path(self.config['dataset_dir']) /
-                            self.metadata['development_dataset_location'] /
-                            dataset_name)
+            dataset_path = (Path( self.metadata['development_dataset_location'] /
+                            dataset_name) )
         else:
             print("Missing stage metadata for", stage_name)
             exit(1)
@@ -340,9 +338,9 @@ class LocalInterface(Harness):
         if dataset_split == 'eval':
             dataset_split = 'test'
 
-        dataset_root = (f'{self.config["dataset_dir"]}/external/{current_dataset}/'
+        dataset_root = (f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
                         f'{current_dataset}_full/{dataset_split}')
-        label_file = (f'{self.config["dataset_dir"]}/external/{current_dataset}/'
+        label_file = (f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
                       f'labels_full/labels_{dataset_split}.feather')
 
         labels = pd.read_feather(label_file)
@@ -411,7 +409,7 @@ class LocalInterface(Harness):
         """
         return self.seed_labels[dataset_name]
 
-    def post_results(self, dataset, predictions):
+    def post_results(self, stage_id, dataset, predictions):
         """
 
         Args:
@@ -436,9 +434,6 @@ class LocalInterface(Harness):
         gt = self.label_sets_pd[dataset.name].sort_values('id')
         pred = pd.DataFrame(predictions_formatted).sort_values('id')
 
-        import ipdb
-        ipdb.set_trace()
-
         if self.metadata['problem_type'] == 'image_classification':
             # Ensure that this is true and all classes are aligned.
             assert ((gt['id'].values != pred['id'].values).sum() == 0)
@@ -446,14 +441,14 @@ class LocalInterface(Harness):
 
             from .metrics import accuracy
             acc = accuracy(pred, gt)
-            print(f'Accuracy for Stage:{self.stage_id} '
+            print(f'Accuracy for Stage:{stage_id} '
                   f'Checkpoint: {self.current_checkpoint_index} is '
                   f'{100 * acc:.02f}%')
 
         elif self.metadata['problem_type'] == 'object_detection':
             from .metrics import mAP
             acc = mAP(pred, gt)
-            print(f'Accuracy for Stage:{self.stage_id} '
+            print(f'Accuracy for Stage:{stage_id} '
                   f'Checkpoint: {self.current_checkpoint_index} is '
                   f'mAP: {100 * acc:.02f}')
 
