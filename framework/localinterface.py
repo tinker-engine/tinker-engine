@@ -3,31 +3,29 @@ Local Interface
 ---------------
 """
 
-import abc
 import os
 import sys
 import json
 import inspect
 from pathlib import Path
 import pandas as pd
-from framework.main import protocol_file_path
+from framework.harness import Harness
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
-import bisect
 
 
-class LocalInterface(object):
+class LocalInterface(Harness):
     """  Local interface
 
     """
-    def __init__(self, json_configuration_file):
+    def __init__(self, json_configuration_file, interface_config_path):
         """
 
         Args:
             json_configuration_file:
         """
 
-        json_full_path = os.path.join(protocol_file_path, json_configuration_file)
+        json_full_path = os.path.join(interface_config_path, json_configuration_file)
         print("Protocol path", json_full_path)
         if not os.path.exists(json_full_path):
             print("Given LocalInterface configuration file does not exist")
@@ -38,15 +36,7 @@ class LocalInterface(object):
         self.metadata = None
         self.toolset = dict()
 
-    def get_task_ids(self):
-        """
-
-        Returns:
-
-        """
-        # each top level in the configuration_data represents a single
-        # task. The keys of this dict are the names of the tasks.
-        return self.configuration_data.keys()
+        self.task_ids = self.configuration_data.keys()
 
     def initialize_session(self, task_id):
         """
@@ -59,7 +49,11 @@ class LocalInterface(object):
         """
         # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
-        self.stagenames = self.get_stages()
+
+        self.stagenames = []
+        for stage in self.metadata["stages"]:
+            self.stagenames.append(stage['name'])
+
         self.current_stage = None
         self.seed_labels = dict()
         self.label_sets = dict()
@@ -75,7 +69,7 @@ class LocalInterface(object):
         print("get whitelist datasets")
         from pathlib import Path
         import pandas as pd
-        external_dataset_root = f'{self.dataset_dir}/external/'
+        external_dataset_root = f'{self.metadata["external_dataset_location"]}'
         p = Path(external_dataset_root)
         # TODO: load both train and test into same dataset
         external_datasets = dict()
@@ -283,9 +277,8 @@ class LocalInterface(object):
         stage_metadata = self.get_stage_metadata(stage_name)
         dataset_name = stage_metadata["datasets"][dataset_split]
         if stage_metadata:
-            dataset_path = (Path(self.config['dataset_dir']) /
-                            self.metadata['development_dataset_location'] /
-                            dataset_name)
+            dataset_path = (Path( self.metadata['development_dataset_location'] /
+                            dataset_name) )
         else:
             print("Missing stage metadata for", stage_name)
             exit(1)
@@ -345,9 +338,9 @@ class LocalInterface(object):
         if dataset_split == 'eval':
             dataset_split = 'test'
 
-        dataset_root = (f'{self.config["dataset_dir"]}/external/{current_dataset}/'
+        dataset_root = (f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
                         f'{current_dataset}_full/{dataset_split}')
-        label_file = (f'{self.config["dataset_dir"]}/external/{current_dataset}/'
+        label_file = (f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
                       f'labels_full/labels_{dataset_split}.feather')
 
         labels = pd.read_feather(label_file)
@@ -416,7 +409,7 @@ class LocalInterface(object):
         """
         return self.seed_labels[dataset_name]
 
-    def post_results(self, dataset, predictions):
+    def post_results(self, stage_id, dataset, predictions):
         """
 
         Args:
@@ -447,14 +440,14 @@ class LocalInterface(object):
 
             from .metrics import accuracy
             acc = accuracy(pred, gt)
-            print(f'Accuracy for Stage:{self.stage_id} '
+            print(f'Accuracy for Stage:{stage_id} '
                   f'Checkpoint: {self.current_checkpoint_index} is '
                   f'{100 * acc:.02f}%')
 
         elif self.metadata['problem_type'] == 'object_detection':
             from .metrics import mAP
             acc = mAP(pred, gt)
-            print(f'Accuracy for Stage:{self.stage_id} '
+            print(f'Accuracy for Stage:{stage_id} '
                   f'Checkpoint: {self.current_checkpoint_index} is '
                   f'mAP: {100 * acc:.02f}')
 
@@ -476,11 +469,6 @@ class LocalInterface(object):
         self.toolset = dict()
         self.metadata = None
 
-    def get_stages(self):
-        stagenames = []
-        for stage in self.metadata["stages"]:
-            stagenames.append(stage['name'])
-        return stagenames
 
     def get_stage_metadata(self, stagename):
         # search through the list of stages for one that has a matching name.

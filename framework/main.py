@@ -33,6 +33,9 @@ import argparse
 import json
 import os
 import requests
+from framework.harness import Harness
+from framework.localinterface import LocalInterface
+from framework.jplinterface import JPLInterface
 
 protocol_file_path = ""
 
@@ -49,6 +52,13 @@ def execute(req):
             default = ".")
     parser.add_argument("-g", "--generate",
             help="Generate template algorithm files",
+            action='store_true')
+    parser.add_argument("-i", "--interface",
+            help="Name of the Interface class to use. use '--list_interfaces' to show available interfaces",
+            type= str,
+            default = "LocalInterface")
+    parser.add_argument("-l", "--list_interfaces",
+            help="Print the list of available interfaces",
             action='store_true')
 
     args = parser.parse_args()
@@ -79,6 +89,28 @@ def execute(req):
 
     if protocol_file_path:
         sys.path.append(protocol_file_path)
+
+
+
+    # find the interface (or list the available ones)
+    harness = None
+    for name, obj in inspect.getmembers(sys.modules[__name__]):
+        if args.list_interfaces:
+            print_interface( name, obj)
+        else:
+            if args.interface == name and inspect.isclass(obj) and issubclass(obj, Harness):
+                harness = obj('configuration.json', protocol_file_path)
+    #TODO: check the working direcotory and "protocol" directory as well.
+
+    if args.list_interfaces:
+        # nothing more to do here, all we are doing is listing the itnerfaces.
+        exit(0)
+
+    if harness is None:
+        print( "Interface not found" )
+        exit(1)
+
+
     protbase, protext = os.path.splitext(protfile)
 
     # make sure the protocol file is a python file
@@ -94,7 +126,7 @@ def execute(req):
                 foo = inspect.getmodule( obj )
                 if foo == protocolimport:
                     #construct the protocol object
-                    protocol = obj(algorithmsbasepath)
+                    protocol = obj(algorithmsbasepath, harness)
     else:
         print("Invalid protocol file, must be a python3 source file")
         sys.exit(1)
@@ -104,6 +136,12 @@ def execute(req):
     else:
         print("protocol invalid")
 
+def print_interface( name, obj):
+    if inspect.isclass(obj):
+       if issubclass(obj, Harness) and not name == "Harness":
+           print(name, obj)
+
+    
 
 def main():
     """ Main to run the algorithm locally.  Just loads the input.json file and calls

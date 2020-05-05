@@ -28,7 +28,8 @@ class BaseProtocol(metaclass=abc.ABCMeta):
     """ The BaseProtocol class provides a generic toolset storage and a mechanism to
         retreive algorithms given their filename.
     """
-    def __init__(self,algodirectory):
+    def __init__(self,algodirectory, harness):
+        self.test_harness = harness
         self.algorithmsbase = algodirectory
         self.toolset = dict()
 

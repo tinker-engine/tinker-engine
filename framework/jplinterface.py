@@ -4,11 +4,12 @@ JPL Interface
 """
 import requests
 import json
+from framework.harness import Harness
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
 
 
-class JPLInterface:
+class JPLInterface(Harness):
     """
     JPL Interface
     """
@@ -31,12 +32,12 @@ class JPLInterface:
 
         # Change during evaluation on DMC servers (changes paths to eval datasets)
         self.evaluate = False
-
-    def get_task_ids(self):
-        print("getTestIDs")
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
         r.raise_for_status()
-        return r.json()['tasks']
+        self.task_ids = r.json()['tasks']
+
+        self.stagenames = ['base', 'adapt']
+
 
     def initialize_session(self, task_id):
         """
@@ -106,8 +107,6 @@ class JPLInterface:
 
         return external_datasets
 
-    def get_stages(self):
-        return ['base', 'adapt']
 
     def get_budget_checkpoints(self, stage, target_dataset):
         """
@@ -135,7 +134,7 @@ class JPLInterface:
     def get_remaining_budget(self):
         return self.status['budget_left_until_checkpoint']
 
-    def post_results(self, dataset, predictions):
+    def post_results(self, stage_id, dataset, predictions):
         """
         Submit prediction back to JPL for evaluation
 
