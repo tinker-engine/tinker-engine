@@ -380,7 +380,7 @@ class LocalInterface(Harness):
 
         Args:
             fnames (list[str]): name of file names
-            dataset_root:
+            dataset_name (str): lookup for dataset name in label_set_pd
 
         Returns:
 

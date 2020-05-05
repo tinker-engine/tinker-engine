@@ -7,19 +7,36 @@ import json
 from framework.harness import Harness
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
+from pathlib import Path
+import pandas as pd
 
 
 class JPLInterface(Harness):
     """
     JPL Interface
     """
-    def __init__(self, apikey="", url=""):
+    def __init__(self,
+                 apikey="",
+                 url="abc"):
+        """
+
+
+        Args:
+            apikey:
+            url:
+        """
         # TODO: define the data_type
         self.data_type = "full"
 
+
+        # TODO: The setting of these is too confusing and VERY unclear, hardcoding these now
+        apikey = "adab5090-39a9-47f3-9fc2-3d65e0fee9a2"
+        # url = 'https://api-dev.lollllz.com/'
+        url = 'https://api-staging.lollllz.com/'
         self.apikey = apikey
         self.headers = {'user_secret': self.apikey}
         self.url = url
+        self.dataset_dir = "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets2/"
 
         self.task_id = ""
         self.stage_id = ""
@@ -27,17 +44,16 @@ class JPLInterface(Harness):
         self.status = dict()
         self.metadata = dict()
 
-        # TODO: make this a parameter
-        self.dataset_dir = ""
 
         # Change during evaluation on DMC servers (changes paths to eval datasets)
         self.evaluate = False
+        print(self.url, url)
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
         r.raise_for_status()
         self.task_ids = r.json()['tasks']
 
         self.stagenames = ['base', 'adapt']
-
+        self.checkpoint_num = 0
 
     def initialize_session(self, task_id):
         """
@@ -71,16 +87,15 @@ class JPLInterface(Harness):
 
         out_obj = json.dumps(self.metadata, indent=4)
 
-        with open("/home/eric/foo.json", "w") as outfile:
-            outfile.write(out_obj)
+        # TODO:  Eric, can you explain this???? What is this????
+        # with open("/home/eric/foo.json", "w") as outfile:
+        #     outfile.write(out_obj)
 
         self.problem_type = self.metadata['problem_type']
 
     def get_whitelist_datasets_jpl(self):
         # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
-        from pathlib import Path
-        import pandas as pd
         external_dataset_root = f'{self.dataset_dir}/external/'
         p = Path(external_dataset_root)
         # TODO: load both train and test into same dataset
@@ -107,15 +122,17 @@ class JPLInterface(Harness):
 
         return external_datasets
 
+    def get_whitelist_datasets(self):
+        self.get_whitelist_datasets_jpl()
 
     def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata
         """
         if stage == 'base':
-            para = 'base_label_budget'
+            para = 'base_label_budget_full'
         elif stage == 'adapt':
-            para = 'adaptation_label_budget'
+            para = 'adaptation_label_budget_full'
         else:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
 
@@ -129,6 +146,7 @@ class JPLInterface(Harness):
 
     def start_next_checkpoint(self, stage, target_dataset):
         # the JPL server tracks this information, so there is nothing to do here
+
         pass
 
     def get_remaining_budget(self):
@@ -142,7 +160,7 @@ class JPLInterface(Harness):
             predictions (dict): predictions to submit in a dictionary format
 
         """
-        return self.submit_predictions(predictions)
+        return self.submit_predictions(predictions, dataset)
 
     def terminate_session(self):
         # end the current session with the JPL server
@@ -252,25 +270,51 @@ class JPLInterface(Harness):
         metadata = r.json()['task_metadata']
         return metadata
 
-    def get_dataset_jpl(self, stage_name, dataset_name, categories=None):
+    def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
+        """
+
+        Args:
+            stage_name: unused here
+            dataset_split:
+            categories:
+
+        Returns:
+
+        """
         current_dataset = self.status['current_dataset']['name']
-        if self.evaluate:
-            dataset_root = (f'{self.dataset_dir}/evaluate/{current_dataset}/'
-                            f'{current_dataset}_{self.data_type}/{dataset_name}')
-        else:
-            dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/'
-                            f'{current_dataset}_{self.data_type}/{dataset_name}')
+        if dataset_split == 'eval':
+            dataset_split = 'test'
+
+        dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/'
+                        f'{current_dataset}_full/{dataset_split}')
+
+        name = current_dataset + '_' + dataset_split
 
         if self.metadata['problem_type'] == "image_classification":
             return ImageClassificationDataset(self,
                                               dataset_root=dataset_root,
-                                              dataset_name=current_dataset,
+                                              dataset_name=name,
                                               categories=categories)
         else:
             return ObjectDetectionDataset(self,
                                           dataset_root=dataset_root,
-                                          dataset_name=current_dataset,
+                                          dataset_name=name,
                                           categories=categories)
+
+    def get_dataset(self, stage_name, dataset_name, categories=None):
+        """ Load a dataset
+
+        Args:
+            stage_name:
+            dataset_name:
+            categories:
+
+        Returns:
+
+        """
+        # TODO: right now assume jpl.  Need to make an automated way to tell if
+        #       coco or jpl dataset.  Also, create func for loading coco
+        return self.get_dataset_jpl(stage_name, dataset_name, categories=None)
 
     def get_seed_labels(self, dataset_root):
         """
@@ -285,7 +329,7 @@ class JPLInterface(Harness):
         seed_labels = r.json()
         return seed_labels['Labels']
 
-    def get_more_labels(self, fnames, dataset_root):
+    def get_more_labels(self, fnames, dataset_name):
         """
         Query JPL's API for more labels (the active learning component).
 
@@ -296,6 +340,7 @@ class JPLInterface(Harness):
 
         Args:
             fnames (list[str]): filenames for which you want the labels
+            dataset_name (str): dataset name (used in local for lookup)
 
         Return:
             list: (list[tuple(str,str)]): newly labeled image filenames and classes
@@ -309,16 +354,17 @@ class JPLInterface(Harness):
         self.status = new_data['Session_Status']
         return new_data['Labels']
 
-    def submit_predictions(self, predictions):
+    def submit_predictions(self, predictions, dataset):
         """
         Submit prediction back to JPL for evaluation
 
         Args:
             predictions (dict): predictions to submit in a dictionary format
+            dataset (framework.dataset) for which you are submitting labels
 
         """
 
-        predictions = self.toolset['eval_dataset'].format_predictions(
+        predictions = dataset.format_predictions(
             predictions[0], predictions[1])
 
         r = requests.post(f"{self.url}/submit_predictions",
