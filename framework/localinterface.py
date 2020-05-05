@@ -433,7 +433,6 @@ class LocalInterface(Harness):
 
         gt = self.label_sets_pd[dataset.name].sort_values('id')
         pred = pd.DataFrame(predictions_formatted).sort_values('id')
-
         if self.metadata['problem_type'] == 'image_classification':
             # Ensure that this is true and all classes are aligned.
             assert ((gt['id'].values != pred['id'].values).sum() == 0)
