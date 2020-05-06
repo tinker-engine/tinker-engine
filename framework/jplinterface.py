@@ -187,17 +187,13 @@ class JPLInterface(Harness):
         return self.submit_predictions(predictions, dataset)
 
     def terminate_session(self):
-        # end the current session with the JPL server
-        # no formal communication with the JPL server is needed to end the session.
+        # Clean up early closed session
         # wipe the session id so that it can't be inadvertently used again
-        self.sessiontoken = None
-        try:
+        if self.sessiontoken is not None:
+            self.deactivate_current_session()
+            self.sessiontoken = None
             del self.headers['session_token']
-            self.toolset = dict()
-        except KeyError:
-            pass
-
-        pass
+        self.toolset = dict()
 
     def get_current_status(self):
         """
@@ -406,8 +402,6 @@ class JPLInterface(Harness):
                           json={'predictions': predictions},
                           headers=self.headers)
         r.raise_for_status()
-        self.status = r.json()['Session_Status']
-        print(self.format_task_metadata())
         return self.status
 
     def format_status(self, update=False):
@@ -422,7 +416,7 @@ class JPLInterface(Harness):
               str: Formatted String of Status
         """
         if update:
-            info = json.dumps(self.get_current_status, indent=4)
+            info = json.dumps(self.get_current_status(), indent=4)
         else:
             info = json.dumps(self.status, indent=4)
         return '\n'.join(['Problem/Task Status:', info, ''])
@@ -462,6 +456,28 @@ class JPLInterface(Harness):
             r = requests.post(f"{self.url}/deactivate_session",
                               json={'session_token': act_sess},
                               headers=self.headers)
+            r.raise_for_status()
+            print(r.json())
+
+    def deactivate_current_session(self):
+        """ Clean up by deactivating a session that was canceled early
+
+        Returns:
+            None
+        """
+
+        r = requests.get(f"{self.url}/list_active_sessions", headers=self.headers)
+        r.raise_for_status()
+        active_sessions = r.json()['active_sessions']
+        if self.sessiontoken in active_sessions:
+            print("Deactivated improperly ended session")
+            r = requests.post(f"{self.url}/deactivate_session",
+                              json={'session_token': self.sessiontoken},
+                              headers=self.headers)
+            r.raise_for_status()
+            print(r.json())
+        else:
+            print("Session Properly Deactivated")
 
 
 
