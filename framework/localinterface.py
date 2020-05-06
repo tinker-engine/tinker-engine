@@ -150,7 +150,7 @@ class LocalInterface(Harness):
             print("Missing stage metadata for", stage)
             exit(1)
 
-    def start_next_checkpoint(self, stage_name, target_dataset):
+    def start_next_checkpoint(self, stage_name, target_dataset, checkpoint_num):
         """ Cycle thorugh the checkpoints for all stages in order.
         report an error if we try to start a checkpoint after the last
         stage is complete. A checkpoint is ended when post_results is callled.
@@ -169,12 +169,11 @@ class LocalInterface(Harness):
 
         if not self.current_stage == stage_name:
             # this is a new stage, so reset to use the budgets for the new stage
-            self.current_checkpoint_index = -1  # this will increment to be the 0th item automatically
             self.current_stage = stage_name
 
         # move to the next checkpoint and moive its budget into the current budget.
         stage_metadata = self.get_stage_metadata(stage_name)
-        self.current_checkpoint_index += 1
+        self.current_checkpoint_index = checkpoint_num
         if self.current_checkpoint_index >= len(stage_metadata['label_budget']):
             print("Out of checkpoints, cant start a new checkpoint")
             exit(1)
@@ -398,15 +397,17 @@ class LocalInterface(Harness):
         new_labels = self.label_sets_pd[dataset_name][mask]
         return new_labels.to_dict()
 
-    def get_seed_labels(self, dataset_name):
+    def get_seed_labels(self, dataset_name, num_seed_calls):
         """ seed labels do not count against the budgets
 
         Args:
             dataset_name (str): name of dataset to get the seed labels from
+            num_seed_calls: (int): number of seed label level
 
         Returns:
 
         """
+        # TODO: get seocondary seed labels added here
         return self.seed_labels[dataset_name]
 
     def post_results(self, stage_id, dataset, predictions):
