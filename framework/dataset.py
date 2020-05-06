@@ -312,6 +312,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
+
         print(f'Added {n} seed labels to the dataset: {self.labeled_size} '
               f'files now labeled, {self.unlabeled_size} unlabeled ')
 
@@ -584,7 +585,8 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
-        print(f'Added {n} more labels to the dataset')
+        print(f'Added {n} seed labels to the dataset: {self.labeled_size} '
+              f'files now labeled, {self.unlabeled_size} unlabeled ')
 
     def update_targets(self, new_labels, requested=[], check_redundant=False):
         """

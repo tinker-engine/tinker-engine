@@ -431,7 +431,6 @@ class LocalInterface(Harness):
         with open(predicitons_filename, "w") as json_file:
             json_file.write(json_obj)
 
-
         gt = self.label_sets_pd[dataset.name].sort_values('id')
         pred = pd.DataFrame(predictions_formatted).sort_values('id')
         if self.metadata['problem_type'] == 'image_classification':
@@ -452,8 +451,6 @@ class LocalInterface(Harness):
                   f'Checkpoint: {self.current_checkpoint_index} is '
                   f'mAP: {100 * acc:.02f}')
 
-
-
     def get_problem_metadata(self, task_id):
         """
 
@@ -470,10 +467,23 @@ class LocalInterface(Harness):
         self.toolset = dict()
         self.metadata = None
 
-
     def get_stage_metadata(self, stagename):
         # search through the list of stages for one that has a matching name.
         for stage in self.metadata["stages"]:
             if stage['name'] == stagename:
                 return stage
         return None
+
+    def format_status(self, update: bool) -> str:
+        """
+         Update and return formatted string with the current status
+         of the problem/task.  Also should return accuracy if available
+
+         Args:
+             update (bool): not used
+
+         Returns:
+               str: Formatted String of Status
+         """
+        info = json.dumps(self.metadata, indent=4)
+        return '\n'.join(['Problem/Task Status:', info, ''])

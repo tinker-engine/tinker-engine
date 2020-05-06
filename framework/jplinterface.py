@@ -13,17 +13,15 @@ import pandas as pd
 
 class JPLInterface(Harness):
     """
-    JPL Interface - This interface handles
+    JPL Interface - This interface handles the backend for integration with the
+    JPL test harness.  It handles all the rest calls.
     """
     def __init__(self,
                  apikey="",
                  url="abc"):
-        """
+        """ Constructs the JPL problem and get list of tasks. Args will be moved to
+        config
 
-
-        Args:
-            apikey:
-            url:
         """
         # TODO: define the data_type
         self.data_type = "full"
@@ -45,7 +43,7 @@ class JPLInterface(Harness):
         self.metadata = dict()
 
 
-        # Change during evaluation on DMC servers (changes paths to eval datasets)
+        # Change url during evaluation on DMC servers (changes paths to eval datasets)
         self.evaluate = False
         print(self.url, url)
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
@@ -55,10 +53,13 @@ class JPLInterface(Harness):
         self.stagenames = ['base', 'adapt']
         self.checkpoint_num = 0
 
-    def initialize_session(self, task_id):
+    def initialize_session(self, task_id: str) -> None:
         """
         Get the session token from JPL's server.  This should only be run once
         per task. The session token defines the instance of the problem being run.
+
+        Args:
+            task_id (str): Name of the task you would like to start
 
         Returns:
             none
@@ -94,12 +95,17 @@ class JPLInterface(Harness):
         self.problem_type = self.metadata['problem_type']
 
     def get_whitelist_datasets_jpl(self):
-        # TODO: get the whitelist datasets for this test id from the JPL server
+        """ Get all the whitelisted datasets requested in the task if they are on
+        disk.  Warn if they aren't on disk.
+
+        Returns:
+            dict[framework.dataset]: dictionary of datasets
+        """
         whitelist = self.metadata['whitelist']
-        print("get whitelist datasets:", whitelist)
+        print("Get whitelist datasets:", whitelist)
         external_dataset_root = f'{self.dataset_dir}/external/'
         p = Path(external_dataset_root)
-        # TODO: load both train and test into same dataset
+        # TODO: Iter whitelist rather than ones on disk.  This is fine for now.
         external_datasets = dict()
         whitelist_found = set()
         for e in [x for x in p.iterdir() if x.is_dir()]:
@@ -147,21 +153,24 @@ class JPLInterface(Harness):
         else:
             raise NotImplementedError('{} not implemented'.format(self.stage_id))
 
-        total_avaialble_labels = target_dataset.unlabeled_size
+        total_available_labels = target_dataset.unlabeled_size
         for index, budget in enumerate(self.metadata[para]):
-            if budget > total_avaialble_labels:
-                self.metadata[para][index] = total_avaialble_labels
-            total_avaialble_labels -= self.metadata[para][index]
+            if budget > total_available_labels:
+                self.metadata[para][index] = total_available_labels
+            total_available_labels -= self.metadata[para][index]
 
         return self.metadata[para]
 
     def start_next_checkpoint(self, stage, target_dataset, checkpoint_num):
-        """  Update status and get second seed labels if on 2nd checkpoint (counting from 1)
+        """  Update status and get second seed labels if on 2nd checkpoint
+        (counting from 1)
 
         Args:
             stage (str): name of stage (not used here)
-            target_dataset:
-            checkpoint_num:
+            target_dataset: target dataset for this checkpoint
+                (used to get secondary seed labels)
+            checkpoint_num: the current number of the checkpoint
+                Only calls secondary seed labels
 
         Returns:
 
@@ -171,7 +180,13 @@ class JPLInterface(Harness):
         # Update status.
         self.status = self.get_current_status()
 
-    def get_remaining_budget(self):
+    def get_remaining_budget(self) -> int:
+        """ Update the status and then use it to return the current budget
+
+        Returns:
+            Current budget
+
+        """
         # Make sure it's up to date
         status = self.get_current_status()
         return status['budget_left_until_checkpoint']
@@ -181,14 +196,22 @@ class JPLInterface(Harness):
         Submit prediction back to JPL for evaluation
 
         Args:
+            stage_id (str): unused here.
+            dataset (framework.dataset): the dataset that you are predicting on
+                Necessary to format the predictions correctly
             predictions (dict): predictions to submit in a dictionary format
 
         """
         return self.submit_predictions(predictions, dataset)
 
     def terminate_session(self):
-        # Clean up early closed session
-        # wipe the session id so that it can't be inadvertently used again
+        """ clean up session and close if not closed yet
+        wipe the session id so that it can't be inadvertently used again
+
+        Returns:
+            None
+        """
+
         if self.sessiontoken is not None:
             self.deactivate_current_session()
             self.sessiontoken = None
@@ -200,46 +223,39 @@ class JPLInterface(Harness):
         Get the current status of the session.
         This will tell you things like the number of images you can query
         before evaluation, location of the dataset, number of classes, etc.
+
         An example session: ::
 
-            {
-                "active": true,
-                "budget_left_until_checkpoint": 3000,
-                "current_dataset": {
-                    "classes": [
-                        "0",
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9"
-                    ],
-                    "data_url": "/datasets/lwll_datasets/mnist/mnist_full/train",
-                    "dataset_type": "image_classification",
-                    "name": "mnist",
-                    "number_of_channels": 1,
-                    "number_of_classes": 10,
-                    "number_of_samples_test": 10000,
-                    "number_of_samples_train": 60000,
-                    "uid": "mnist"
-                },
-                "current_label_budget_stages": [
-                    3000,
-                    6000,
-                    8000
-                ],
-                "date_created": 1580411853000,
-                "date_last_interacted": 1580411853000,
-                "pair_stage": "base",
-                "task_id": "problem_test_image_classification",
-                "uid": "iN9xVy67QBt71K9ATOqx",
-                "user_name": "Berkely",
-                "using_sample_datasets": false
-            }
+            { 'active': 'In Progress',
+              'budget_left_until_checkpoint': 10,
+              'budget_used': 0,
+              'current_dataset': {'classes': ['0',
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6',
+                '7',
+                '8',
+                '9'],
+               'data_url': '/datasets/lwll_datasets/mnist/mnist_sample/train',
+               'dataset_type': 'image_classification',
+               'name': 'mnist',
+               'number_of_channels': 1,
+               'number_of_classes': 10,
+               'number_of_samples_test': 1000,
+               'number_of_samples_train': 5000,
+               'uid': 'mnist'},
+              'current_label_budget_stages': [10, 30, 70, 165, 387, 909, 2131, 5000],
+              'date_created': 1588221182000,
+              'date_last_interacted': 1588221182000,
+              'pair_stage': 'base',
+              'session_name': 'testing',
+              'task_id': 'problem_test_image_classification',
+              'uid': 'k6tE4Vo2oFEuSHo7MhUE',
+              'user_name': 'JPL',
+              'using_sample_datasets': True}
 
         Returns:
             dict[str, str]: status of problem/task
@@ -254,31 +270,70 @@ class JPLInterface(Harness):
     def get_problem_metadata(self, task_id=None):
         """
         Get the task metadata from JPL's server.
+
+        Args:
+            task_id (str): task id for which you want the metadata for.  If none
+                given, assume you want the current one
+
         An example: ::
 
-            {
-                "adaptation_can_use_pretrained_model": false,
+              "task_metadata": {
                 "adaptation_dataset": "mnist",
                 "adaptation_evaluation_metrics": [
-                    "accuracy"
+                  "accuracy"
                 ],
-                "adaptation_label_budget": [
-                    1000,
-                    2000,
-                    3000
+                "adaptation_label_budget_full": [
+                  10,
+                  110,
+                  314,
+                  899,
+                  2569,
+                  7343,
+                  20991,
+                  60000
                 ],
-                "base_can_use_pretrained_model": true,
-                "base_dataset": "mnist",
+                "adaptation_label_budget_sample": [
+                  10,
+                  30,
+                  70,
+                  165,
+                  387,
+                  909,
+                  2131,
+                  5000
+                ],
+                "base_dataset": "cifar100",
                 "base_evaluation_metrics": [
-                    "accuracy"
+                  "accuracy"
                 ],
-                "base_label_budget": [
-                    3000,
-                    6000,
-                    8000
+                "base_label_budget_full": [
+                  100,
+                  1100,
+                  2078,
+                  3926,
+                  7416,
+                  14010,
+                  26467,
+                  50000
+                ],
+                "base_label_budget_sample": [
+                  100,
+                  300,
+                  479,
+                  766,
+                  1225,
+                  1957,
+                  3128,
+                  5000
                 ],
                 "problem_type": "image_classification",
-                "task_id": "problem_test_image_classification"
+                "task_id": "6d5e1f85-5d8f-4cc9-8184-299db03713f4",
+                "whitelist": [
+                  "imagenet1k",
+                  "domain_net-painting",
+                  "coco2014"
+                ]
+              }
             }
 
         """
@@ -292,15 +347,17 @@ class JPLInterface(Harness):
         return metadata
 
     def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
-        """
+        """ Get a dataset which has been downloaded from the JPL Repo and
+        return a framework.dataset with that data.
 
         Args:
-            stage_name: unused here
-            dataset_split:
-            categories:
+            stage_name (str): unused here
+            dataset_split (str): whether get train or test data
+            categories (list[str]): if test data, list of catagories.
+                Otherwise None
 
         Returns:
-
+            requested datasets as a framework.dataset
         """
         current_dataset = self.status['current_dataset']['name']
         if dataset_split == 'eval':
@@ -324,6 +381,8 @@ class JPLInterface(Harness):
 
     def get_dataset(self, stage_name, dataset_name, categories=None):
         """ Load a dataset
+
+        Wrapper right now for :meth:get_dataset_jpl
 
         Args:
             stage_name:
@@ -385,14 +444,17 @@ class JPLInterface(Harness):
         self.status = new_data['Session_Status']
         return new_data['Labels']
 
-    def submit_predictions(self, predictions, dataset):
+    def submit_predictions(self, predictions: dict, dataset) -> dict:
         """
-        Submit prediction back to JPL for evaluation
+        Submit prediction back to JPL for evaluation.  Look at
+        ..:meth: framework.dataset.format_predictions for formatting info
 
         Args:
             predictions (dict): predictions to submit in a dictionary format
             dataset (framework.dataset) for which you are submitting labels
 
+        Returns:
+            dict for status
         """
 
         predictions = dataset.format_predictions(
@@ -402,6 +464,7 @@ class JPLInterface(Harness):
                           json={'predictions': predictions},
                           headers=self.headers)
         r.raise_for_status()
+        self.status = r.json()['Session_Status']
         return self.status
 
     def format_status(self, update=False):
@@ -460,7 +523,7 @@ class JPLInterface(Harness):
             print(r.json())
 
     def deactivate_current_session(self):
-        """ Clean up by deactivating a session that was canceled early
+        """ Clean up by deactivating a session that was canceled early or do nothing
 
         Returns:
             None
@@ -470,12 +533,11 @@ class JPLInterface(Harness):
         r.raise_for_status()
         active_sessions = r.json()['active_sessions']
         if self.sessiontoken in active_sessions:
-            print("Deactivated improperly ended session")
             r = requests.post(f"{self.url}/deactivate_session",
                               json={'session_token': self.sessiontoken},
                               headers=self.headers)
             r.raise_for_status()
-            print(r.json())
+            print("Deactivated improperly ended session")
         else:
             print("Session Properly Deactivated")
 

@@ -150,5 +150,18 @@ class Harness(metaclass=abc.ABCMeta):
         """
         return self.task_ids
 
+    @abc.abstractmethod
+    def format_status(self, update: bool) -> str:
+        """ Return formated
+
+        Args:
+            update (bool): whether or not to update it from the server
+
+        Returns:
+            String of formatted status of the system.  May include metadata
+
+        """
+        raise NotImplementedError
+
 
 
