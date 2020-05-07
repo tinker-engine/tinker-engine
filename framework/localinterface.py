@@ -150,7 +150,7 @@ class LocalInterface(Harness):
             print("Missing stage metadata for", stage)
             exit(1)
 
-    def start_next_checkpoint(self, stage_name, target_dataset, checkpoint_num):
+    def start_checkpoint(self, stage_name, target_dataset, checkpoint_num):
         """ Cycle thorugh the checkpoints for all stages in order.
         report an error if we try to start a checkpoint after the last
         stage is complete. A checkpoint is ended when post_results is callled.

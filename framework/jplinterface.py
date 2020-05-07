@@ -88,10 +88,6 @@ class JPLInterface(Harness):
 
         out_obj = json.dumps(self.metadata, indent=4)
 
-        # TODO:  Eric, can you explain this???? What is this????
-        # with open("/home/eric/foo.json", "w") as outfile:
-        #     outfile.write(out_obj)
-
         self.problem_type = self.metadata['problem_type']
 
     def get_whitelist_datasets_jpl(self):
@@ -166,7 +162,7 @@ class JPLInterface(Harness):
 
         return self.metadata[para]
 
-    def start_next_checkpoint(self, stage, target_dataset, checkpoint_num):
+    def start_checkpoint(self, stage, target_dataset, checkpoint_num):
         """  Update status and get second seed labels if on 2nd checkpoint
         (counting from 1)
 

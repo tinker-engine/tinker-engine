@@ -95,7 +95,7 @@ class Harness(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def start_next_checkpoint(self, stage_name, target_dataset, checkpoint_num):
+    def start_checkpoint(self, stage_name, target_dataset, checkpoint_num):
         """
         setup and begin handling for a checkpoint. Starting a checkpoint allows for
         performance and accuracy measurements of each checkpoint. A checkpoint is
