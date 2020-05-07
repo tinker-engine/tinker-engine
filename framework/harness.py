@@ -52,12 +52,13 @@ class Harness(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_seed_labels(self, dataset):
+    def get_seed_labels(self, dataset, seed_level):
         """
         get seed labels for the given dataset. These labels do not count against any budgets
 
         Args:
             dataset:    The dataset to get the seed labels for
+            seed_level (int): which set of seed labels to get (first: 0 or second: 1)
         """
         raise NotImplementedError
 
@@ -101,7 +102,7 @@ class Harness(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def start_next_checkpoint(self, stage_name, target_dataset):
+    def start_checkpoint(self, stage_name, target_dataset, checkpoint_num):
         """
         setup and begin handling for a checkpoint. Starting a checkpoint allows for
         performance and accuracy measurements of each checkpoint. A checkpoint is
@@ -151,6 +152,19 @@ class Harness(metaclass=abc.ABCMeta):
         return a list of tasks
         """
         return self.task_ids
+
+    @abc.abstractmethod
+    def format_status(self, update: bool) -> str:
+        """ Return formated
+
+        Args:
+            update (bool): whether or not to update it from the server
+
+        Returns:
+            String of formatted status of the system.  May include metadata
+
+        """
+        raise NotImplementedError
 
 
 

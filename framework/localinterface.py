@@ -150,7 +150,7 @@ class LocalInterface(Harness):
             print("Missing stage metadata for", stage)
             exit(1)
 
-    def start_next_checkpoint(self, stage_name, target_dataset):
+    def start_checkpoint(self, stage_name, target_dataset, checkpoint_num):
         """ Cycle thorugh the checkpoints for all stages in order.
         report an error if we try to start a checkpoint after the last
         stage is complete. A checkpoint is ended when post_results is callled.
@@ -169,12 +169,11 @@ class LocalInterface(Harness):
 
         if not self.current_stage == stage_name:
             # this is a new stage, so reset to use the budgets for the new stage
-            self.current_checkpoint_index = -1  # this will increment to be the 0th item automatically
             self.current_stage = stage_name
 
         # move to the next checkpoint and moive its budget into the current budget.
         stage_metadata = self.get_stage_metadata(stage_name)
-        self.current_checkpoint_index += 1
+        self.current_checkpoint_index = checkpoint_num
         if self.current_checkpoint_index >= len(stage_metadata['label_budget']):
             print("Out of checkpoints, cant start a new checkpoint")
             exit(1)
@@ -380,7 +379,7 @@ class LocalInterface(Harness):
 
         Args:
             fnames (list[str]): name of file names
-            dataset_root:
+            dataset_name (str): lookup for dataset name in label_set_pd
 
         Returns:
 
@@ -398,15 +397,17 @@ class LocalInterface(Harness):
         new_labels = self.label_sets_pd[dataset_name][mask]
         return new_labels.to_dict()
 
-    def get_seed_labels(self, dataset_name):
+    def get_seed_labels(self, dataset_name, seed_level):
         """ seed labels do not count against the budgets
 
         Args:
             dataset_name (str): name of dataset to get the seed labels from
+            seed_level: (int): number of seed label level
 
         Returns:
 
         """
+        # TODO: get secondary seed labels added here
         return self.seed_labels[dataset_name]
 
     def post_results(self, stage_id, dataset, predictions):
@@ -430,7 +431,6 @@ class LocalInterface(Harness):
         with open(predicitons_filename, "w") as json_file:
             json_file.write(json_obj)
 
-
         gt = self.label_sets_pd[dataset.name].sort_values('id')
         pred = pd.DataFrame(predictions_formatted).sort_values('id')
         if self.metadata['problem_type'] == 'image_classification':
@@ -451,8 +451,6 @@ class LocalInterface(Harness):
                   f'Checkpoint: {self.current_checkpoint_index} is '
                   f'mAP: {100 * acc:.02f}')
 
-
-
     def get_problem_metadata(self, task_id):
         """
 
@@ -469,10 +467,23 @@ class LocalInterface(Harness):
         self.toolset = dict()
         self.metadata = None
 
-
     def get_stage_metadata(self, stagename):
         # search through the list of stages for one that has a matching name.
         for stage in self.metadata["stages"]:
             if stage['name'] == stagename:
                 return stage
         return None
+
+    def format_status(self, update: bool) -> str:
+        """
+         Update and return formatted string with the current status
+         of the problem/task.  Also should return accuracy if available
+
+         Args:
+             update (bool): not used
+
+         Returns:
+               str: Formatted String of Status
+         """
+        info = json.dumps(self.metadata, indent=4)
+        return '\n'.join(['Problem/Task Status:', info, ''])

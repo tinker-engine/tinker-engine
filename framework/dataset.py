@@ -105,6 +105,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     :meth:`JPLDataset.get_more_labels` method the indices of those images.
     See the method for more info.
 
+    TODO: Update all attributes
+
     Attributes:
         problem (LwLL): problem class instance containing the
             information,
@@ -204,7 +206,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         #TODO: fix the following to correctly initialize
         if categories is None:
-            self.get_seed_labels(seed_labels)
+            self.get_seed_labels(seed_labels, 0)
         else:
             self.initialize_categories(categories)
 
@@ -288,27 +290,35 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
-        print(f'Added {n} more labels to the dataset: {self.labeled_size} files now labeled, {self.unlabeled_size} unlabeled ')
+        print(f'Added {n} more labels to the dataset: {self.labeled_size} '
+              f'files now labeled, {self.unlabeled_size} unlabeled ')
 
-    def get_seed_labels(self, seed_labels=None):
+    def get_seed_labels(self, seed_labels=None, num_seed_calls=0):
         """
         Get the seed labels from JPL (via the LwLL class) and add them to
         the dataset
 
         Args:
-            seed_labels,
+            seed_labels: Seed labels to add or none if want to go get them
+            from problem
+            num_seed_calls: number of seed labeled level (either 0 or 1)
+                necessitated by the secondary_seed_labels in the second checkpoint
+                which is considered "seed" labels"
 
         This also initializes the Categories based on the seed labels.
 
         """
         if seed_labels is None:
-            seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.name))
+            seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.name,
+                                                                    num_seed_calls))
 
         cat_labels = seed_labels['class'].tolist()
 
         self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
-        print(f'Added {n} seed labels to the dataset: {self.labeled_size} files now labeled, {self.unlabeled_size} unlabeled ')
+
+        print(f'Added {n} seed labels to the dataset: {self.labeled_size} '
+              f'files now labeled, {self.unlabeled_size} unlabeled ')
 
     def _category_name_to_category_index(self, category_names):
         """
@@ -529,8 +539,9 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         return df.to_dict()
 
 class ObjectDetectionDataset(ImageClassificationDataset):
-
-
+    """
+    TODO: Define all attributes
+    """
     def __init__(self,
                  problem,
                  dataset_name,
@@ -560,6 +571,11 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         Args:
             indices (list): list of ints that are indices
 
+        Warning:
+            If no labels comes back, this will just assume that there are no labels
+                for that image but will mark it as a labeled image.  This is true for
+                Object Detection and perhaps some image classification problems
+
         TODO:
             make generalizable when bounding boxes added to api
         """
@@ -574,7 +590,8 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
-        print(f'Added {n} more labels to the dataset')
+        print(f'Added {n} seed labels to the dataset: {self.labeled_size} '
+              f'files now labeled, {self.unlabeled_size} unlabeled ')
 
     def update_targets(self, new_labels, requested=[], check_redundant=False):
         """
