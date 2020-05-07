@@ -18,6 +18,7 @@ class LocalInterface(Harness):
     """  Local interface
 
     """
+
     def __init__(self, json_configuration_file, interface_config_path):
         """
 
@@ -131,8 +132,8 @@ class LocalInterface(Harness):
         Find and return the budget checkpoints from the previously loaded metadata
 
         Args:
-            stage (str):
-            target_dataset (str):
+            stage (str): current stage
+            target_dataset (framework.dataset): the dataset you want to draw from
         """
         stage_metadata = self.get_stage_metadata(stage)
         if stage_metadata:
@@ -158,6 +159,7 @@ class LocalInterface(Harness):
         Args:
             stage_name (str): name of current stage
             target_dataset (framework.dataset): framework dataset class
+            checkpoint_num (int): number of checkpoint
 
         Returns:
 
@@ -276,8 +278,8 @@ class LocalInterface(Harness):
         stage_metadata = self.get_stage_metadata(stage_name)
         dataset_name = stage_metadata["datasets"][dataset_split]
         if stage_metadata:
-            dataset_path = (Path( self.metadata['development_dataset_location'] /
-                            dataset_name) )
+            dataset_path = (Path(self.metadata['development_dataset_location'] /
+                                 dataset_name))
         else:
             print("Missing stage metadata for", stage_name)
             exit(1)
@@ -319,13 +321,16 @@ class LocalInterface(Harness):
                                           dataset_name=name,
                                           categories=categories)
 
-    def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
+    def get_dataset_jpl(self,
+                        stage_name: str,
+                        dataset_split: str,
+                        categories: list[str] = None):
         """
 
         Args:
-            stage_name:
-            dataset_split:
-            categories:
+            stage_name (str): name of the current stage
+            dataset_split (str): name of the dataset set split you want (train|test)
+            categories: if you have it, the categories of the dataset.
 
         Returns:
 
@@ -348,7 +353,6 @@ class LocalInterface(Harness):
         # while we are at it, build the seed labels as well.
         self.label_sets[name] = dict()
         self.label_sets_pd[name] = dict()
-        classes = []
 
         # select one label for each class, using the first label we find for that
         # class.
@@ -393,7 +397,7 @@ class LocalInterface(Harness):
             print("Too many labels requested, not enough budget.")
             exit(1)
 
-        mask =  self.label_sets_pd[dataset_name]['id'].isin(fnames)
+        mask = self.label_sets_pd[dataset_name]['id'].isin(fnames)
         new_labels = self.label_sets_pd[dataset_name][mask]
         return new_labels.to_dict()
 

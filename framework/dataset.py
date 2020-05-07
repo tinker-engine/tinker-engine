@@ -293,7 +293,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         print(f'Added {n} more labels to the dataset: {self.labeled_size} '
               f'files now labeled, {self.unlabeled_size} unlabeled ')
 
-    def get_seed_labels(self, seed_labels=None, num_seed_calls=0):
+    def get_seed_labels(self, seed_labels=None, seed_level=0):
         """
         Get the seed labels from JPL (via the LwLL class) and add them to
         the dataset
@@ -301,7 +301,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         Args:
             seed_labels: Seed labels to add or none if want to go get them
             from problem
-            num_seed_calls: number of seed labeled level (either 0 or 1)
+            seed_level: number of seed labeled level (either 0 or 1)
                 necessitated by the secondary_seed_labels in the second checkpoint
                 which is considered "seed" labels"
 
@@ -310,11 +310,13 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         if seed_labels is None:
             seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.name,
-                                                                    num_seed_calls))
+                                                                    seed_level))
 
-        cat_labels = seed_labels['class'].tolist()
-
-        self.initialize_categories(cat_labels)
+        # Initialize Cats only once, there should be no new labels added here
+        #   (don't want to rearrange the cats after the first seed labels).
+        if seed_level < 1:
+            cat_labels = seed_labels['class'].tolist()
+            self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
 
         print(f'Added {n} seed labels to the dataset: {self.labeled_size} '
