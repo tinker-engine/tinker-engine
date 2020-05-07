@@ -397,17 +397,17 @@ class LocalInterface(Harness):
         new_labels = self.label_sets_pd[dataset_name][mask]
         return new_labels.to_dict()
 
-    def get_seed_labels(self, dataset_name, num_seed_calls):
+    def get_seed_labels(self, dataset_name, seed_level):
         """ seed labels do not count against the budgets
 
         Args:
             dataset_name (str): name of dataset to get the seed labels from
-            num_seed_calls: (int): number of seed label level
+            seed_level: (int): number of seed label level
 
         Returns:
 
         """
-        # TODO: get seocondary seed labels added here
+        # TODO: get secondary seed labels added here
         return self.seed_labels[dataset_name]
 
     def post_results(self, stage_id, dataset, predictions):

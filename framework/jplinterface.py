@@ -45,7 +45,7 @@ class JPLInterface(Harness):
 
         # Change url during evaluation on DMC servers (changes paths to eval datasets)
         self.evaluate = False
-        print(self.url, url)
+        print("Using this URL:", self.url)
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
         r.raise_for_status()
         self.task_ids = r.json()['tasks']
@@ -145,6 +145,11 @@ class JPLInterface(Harness):
     def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata
+
+        Args:
+            stage (str): current stage
+            target_dataset (framework.dataset): dataset from which you want
+                the budget
         """
         if stage == 'base':
             para = 'base_label_budget_full'
@@ -396,22 +401,22 @@ class JPLInterface(Harness):
         #       coco or jpl dataset.  Also, create func for loading coco
         return self.get_dataset_jpl(stage_name, dataset_name, categories=None)
 
-    def get_seed_labels(self, dataset_name, num_seed_calls):
+    def get_seed_labels(self, dataset_name, seed_level):
         """
         Get the seed labels for the dataset from JPL's server.
 
         Args:
             dataset_name (str): Not used here
-            num_seed_calls (int): number of seed labeled level (either 0 or 1)
+            seed_level (int): number of seed labeled level (either 0 or 1)
                 necessitated by the secondary_seed_labels in the second checkpoint
 
         Returns:
             list[tuple[str, str]]: the initial seed labels
                 a list of [filename, label] elements
         """
-        if num_seed_calls == 0:
+        if seed_level == 0:
             call = 'seed_labels'
-        elif num_seed_calls == 1:
+        elif seed_level == 1:
             call = 'secondary_seed_labels'
 
         r = requests.get(f"{self.url}/{call}", headers=self.headers)

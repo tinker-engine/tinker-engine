@@ -49,12 +49,12 @@ class Harness(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_seed_labels(self, dataset, num_seed_calls):
+    def get_seed_labels(self, dataset, seed_level):
         """
         get seed labels for the given dataset. These labels do not count against any budgets
         Args:
             dataset:    The dataset to get the seed labels for
-            num_seed_calls (int): which set of seed labels to get (first or second)
+            seed_level (int): which set of seed labels to get (first: 0 or second: 1)
         """
         raise NotImplementedError
 
