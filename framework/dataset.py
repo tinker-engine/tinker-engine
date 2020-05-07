@@ -301,7 +301,9 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         Args:
             seed_labels: Seed labels to add or none if want to go get them
             from problem
-            num_seed_calls:
+            num_seed_calls: number of seed labeled level (either 0 or 1)
+                necessitated by the secondary_seed_labels in the second checkpoint
+                which is considered "seed" labels"
 
         This also initializes the Categories based on the seed labels.
 
