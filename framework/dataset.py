@@ -567,7 +567,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
             indices (list): list of ints that are indices
 
         Warning:
-            If not labels comes back, this will just assume that there are no labels
+            If no labels comes back, this will just assume that there are no labels
                 for that image but will mark it as a labeled image.  This is true for
                 Object Detection and perhaps some image classification problems
 
