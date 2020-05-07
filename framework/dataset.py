@@ -105,6 +105,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     :meth:`JPLDataset.get_more_labels` method the indices of those images.
     See the method for more info.
 
+    TODO: Update all attributes
+
     Attributes:
         problem (LwLL): problem class instance containing the
             information,
@@ -535,8 +537,9 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         return df.to_dict()
 
 class ObjectDetectionDataset(ImageClassificationDataset):
-
-
+    """
+    TODO: Define all attributes
+    """
     def __init__(self,
                  problem,
                  dataset_name,
