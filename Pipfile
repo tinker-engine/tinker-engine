@@ -24,6 +24,7 @@ torch = ">=1.4"
 torchvision = "==0.6.0"
 pandas = ">=1.0"
 ubelt = "==0.9.1"
+pyarrow = "==0.17.0"
 
 [requires]
 python_version = "3.7"
