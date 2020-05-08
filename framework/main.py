@@ -68,18 +68,18 @@ def execute(req):
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
-        print("given algorithm directory doesni't exist")
+        print(f"algorithm directory {algorithmsbasepath} doesn't exist")
         exit(1)
 
     if not os.path.isdir(algorithmsbasepath):
-        print("given algorithm path isnt a directory")
+        print(f"algorithm path {algorithmsbasepath} isn't a directory")
         exit(1)
 
     # deconstruct the path to the protocol so that we can construct the
     # object dynamically.
     protfilename = args.protocol_file
     if not os.path.exists(protfilename):
-        print("given protocol file does not exist")
+        print(f"protocol file {protfilename} does not exist")
         sys.exit(1)
 
     # split out the path to the protocol file from the filename so that we can add
