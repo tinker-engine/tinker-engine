@@ -6,6 +6,7 @@ from json import JSONDecodeError
 import io
 import os
 
+from framework.harness import Harness
 from typing import Any, Generator, Optional, Dict
 from requests import Response
 from uuid import UUID
@@ -111,6 +112,7 @@ class ParInterface(Harness):
 
         _check_response(response)
         self.session_id = response.json()["session_id"]
+        return self.session_id
 
     def dataset_request(self, test_id: UUID, round_id: int) -> str:
         """
@@ -139,7 +141,25 @@ class ParInterface(Harness):
         with open(filename, "wb") as f:
             f.write(response.content)
 
-        return filename
+        new_filename = _append_data_root_to_dataset(filename)
+
+        return new_filename
+
+    #TODO: merge this code directly into dataset_request, and stop writing so many files
+    def _append_data_root_to_dataset(self, dataset_path: str) -> str:
+        assert os.path.exists(dataset_path)
+        orig_dataset = open(dataset_path, "r")
+        with open(dataset_path, "r") as orig_dataset:
+            image_names = orig_dataset.readlines()
+            image_paths = [
+                os.path.join(self.data_root, image_name) for image_name in image_names
+            ]
+        new_dataset_file = f"{self.session_id}_{self.test_id}.csv"
+        new_dataset_path = os.path.join(os.getcwd(), new_dataset_file)
+        with open(new_dataset_path, "w") as new_dataset:
+            new_dataset.writelines(image_paths)
+        return new_dataset_path
+
 
     def get_feedback_request(
         self,
@@ -245,4 +265,5 @@ class ParInterface(Harness):
         response = request.delete("/session", params={"session_id": self.session_id})
 
         _check_response(response)
+        self.session_id = None
 
