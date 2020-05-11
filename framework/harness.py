@@ -2,15 +2,13 @@
 Test Harness
 ---------------
 """
-import abc
-
 from framework.dataset import ImageClassificationDataset
 from framework.dataset import ObjectDetectionDataset
 import os
 import json
 
 
-class Harness(metaclass=abc.ABCMeta):
+class Harness:
     """
     Harness
     """

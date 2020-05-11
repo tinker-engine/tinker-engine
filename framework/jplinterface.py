@@ -18,7 +18,7 @@ class JPLInterface(Harness):
     """
     def __init__(self,
                  apikey="",
-                 url="abc"):
+                 url=""):
         """ Constructs the JPL problem and get list of tasks. Args will be moved to
         config
 
