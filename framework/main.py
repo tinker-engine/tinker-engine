@@ -36,6 +36,7 @@ import requests
 from framework.harness import Harness
 from framework.localinterface import LocalInterface
 from framework.jplinterface import JPLInterface
+from framework.parinterface import ParInterface
 
 protocol_file_path = ""
 

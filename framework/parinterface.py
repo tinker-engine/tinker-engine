@@ -12,16 +12,17 @@ from requests import Response
 from uuid import UUID
 
 class ParInterface(Harness):
-    def __init__(self, api_url: str, folder: str = ".") -> None:
+    def __init__(self, configfile, configfolder ) -> None:
         """
         Initialize a client connection object.
 
         :param api_url: url for where server is hosted
         """
-        self.api_url = api_url
-        self.folder = folder
+        Harness.__init__(self, configfile, configfolder )
+        self.api_url = self.configuration_data['url']
+        self.folder = configfolder
 
-    def _check_response(response: Response) -> None:
+    def _check_response(self, response: Response) -> None:
         """
         Raise the appropriate ApiError based on response error code.
     
@@ -62,15 +63,15 @@ class ParInterface(Harness):
         with open(test_assumptions, "r") as f:
             contents = f.read()
 
-        response = request.get(
-            "/test/ids",
+        response = requests.get(
+            f"{self.api_url}/test/ids",
             files={
                 "test_requirements": io.StringIO(json.dumps(payload)),
                 "test_assumptions": io.StringIO(contents),
             },
         )
 
-        _check_response(response)
+        self._check_response(response)
 
         header = response.headers["Content-Disposition"]
         header_dict = {
@@ -84,7 +85,7 @@ class ParInterface(Harness):
 
         return filename
 
-    def session_request( self, test_ids: str, protocol: str, novelty_detector_version: str):
+    def session_request( self, test_ids: list, protocol: str, novelty_detector_version: str):
         """
         Create a new session to evaluate the detector using an empirical protocol.
 
@@ -99,18 +100,18 @@ class ParInterface(Harness):
             "novelty_detector_version": novelty_detector_version,
         }
 
-        with open(test_ids, "r") as f:
-            contents = f.read()
+        ids = '\n'.join(test_ids) + "\n"
 
-        response = request.post(
-            "/session",
+
+        response = requests.post(
+            f"{self.api_url}/session",
             files={
-                "test_ids": io.StringIO(contents),
+                "test_ids": ids,
                 "configuration": io.StringIO(json.dumps(payload)),
             },
         )
 
-        _check_response(response)
+        self._check_response(response)
         self.session_id = response.json()["session_id"]
         return self.session_id
 
@@ -125,12 +126,12 @@ class ParInterface(Harness):
             -num_samples
             -dataset_uris filename
         """
-        response = request.get(
-            "/session/dataset",
+        response = requests.get(
+            f"{self.api_url}/session/dataset",
             params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id},
         )
 
-        _check_response(response)
+        self._check_response(response)
 
         header = response.headers["Content-Disposition"]
         header_dict = {
@@ -141,20 +142,20 @@ class ParInterface(Harness):
         with open(filename, "wb") as f:
             f.write(response.content)
 
-        new_filename = _append_data_root_to_dataset(filename)
+        new_filename = self._append_data_root_to_dataset(filename, test_id)
 
         return new_filename
 
     #TODO: merge this code directly into dataset_request, and stop writing so many files
-    def _append_data_root_to_dataset(self, dataset_path: str) -> str:
+    def _append_data_root_to_dataset(self, dataset_path: str, test_id: UUID) -> str:
         assert os.path.exists(dataset_path)
         orig_dataset = open(dataset_path, "r")
         with open(dataset_path, "r") as orig_dataset:
             image_names = orig_dataset.readlines()
             image_paths = [
-                os.path.join(self.data_root, image_name) for image_name in image_names
+                os.path.join(self.configuration_data['data_location'], image_name) for image_name in image_names
             ]
-        new_dataset_file = f"{self.session_id}_{self.test_id}.csv"
+        new_dataset_file = f"{self.session_id}_{test_id}.csv"
         new_dataset_path = os.path.join(os.getcwd(), new_dataset_file)
         with open(new_dataset_path, "w") as new_dataset:
             new_dataset.writelines(image_paths)
@@ -179,8 +180,8 @@ class ParInterface(Harness):
         Returns:
             -labels dictionary
         """
-        response = request.get(
-            "/session/feedback",
+        response = requests.get(
+            f"{self.api_url}/session/feedback",
             params={
                 "feedback_ids": "|".join(feedback_ids),
                 "session_id": self.session_id,
@@ -190,7 +191,7 @@ class ParInterface(Harness):
             },
         )
 
-        _check_response(response)
+        self._check_response(response)
 
         return response.json()
 
@@ -222,9 +223,9 @@ class ParInterface(Harness):
                 contents = f.read()
                 files[f"{r_type}_file"] = io.StringIO(contents)
 
-        response = request.post("/session/results", files=files)
+        response = requests.post(f"{self.api_url}/session/results", files=files)
 
-        _check_response(response)
+        self._check_response(response)
 
     def evaluate(self, test_id: str, round_id: int) -> str:
         """
@@ -236,12 +237,12 @@ class ParInterface(Harness):
         Returns:
             -filename
         """
-        response = request.get(
-            "/session/evaluations",
+        response = requests.get(
+            f"{self.api_url}/session/evaluations",
             params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id},
         )
 
-        _check_response(response)
+        self._check_response(response)
 
         header = response.headers["Content-Disposition"]
         header_dict = {
@@ -262,8 +263,8 @@ class ParInterface(Harness):
         Arguments:
         Returns: No return
         """
-        response = request.delete("/session", params={"session_id": self.session_id})
+        response = requests.delete(f"{self.api_url}/session", params={"session_id": self.session_id})
 
-        _check_response(response)
+        self._check_response(response)
         self.session_id = None
 

@@ -25,16 +25,7 @@ class LocalInterface(Harness):
             json_configuration_file:
         """
 
-        json_full_path = os.path.join(interface_config_path, json_configuration_file)
-        print("Protocol path", json_full_path)
-        if not os.path.exists(json_full_path):
-            print("Given LocalInterface configuration file does not exist")
-            exit(1)
-
-        with open(json_full_path) as json_file:
-            self.configuration_data = json.load(json_file)
-        self.metadata = None
-        self.toolset = dict()
+        Harness.__init__(self, json_configuration_file, interface_config_path)
 
         self.task_ids = self.configuration_data.keys()
 
@@ -487,3 +478,19 @@ class LocalInterface(Harness):
          """
         info = json.dumps(self.metadata, indent=4)
         return '\n'.join(['Problem/Task Status:', info, ''])
+
+    def get_stages(self):
+        """
+        return a list of the stages in the current task
+        Args:
+            none
+        """
+        return self.stagenames
+    def get_task_ids(self):
+        """
+        return a list of tasks
+        Args:
+            none
+        """
+        return self.task_ids
+
