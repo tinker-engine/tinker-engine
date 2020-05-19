@@ -264,7 +264,7 @@ class ParInterface(Harness):
         Returns:
             metadata json
         """
-        response = self.get(
+        response = requests.get(
             f"{self.api_url}/test/metadata",
             params={"test_id": test_id},
         )
