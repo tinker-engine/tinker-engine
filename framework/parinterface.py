@@ -165,9 +165,9 @@ class ParInterface(Harness):
     def get_feedback_request(
         self,
         feedback_ids: list,
+        feedback_type: str,
         test_id: str,
         round_id: int,
-        feedback_type: str,
     ) -> Dict[str, Any]:
         """
         Get Labels from the server based provided one or more example ids.
@@ -255,6 +255,22 @@ class ParInterface(Harness):
             f.write(response.content.decode("utf-8"))
 
         return filename
+
+    def get_test_metadata(self, test_id: str) -> Dict[str, Any]:
+        """
+        Retrieves the metadata json for the specified test
+        Arguments:
+            -test_id
+        Returns:
+            metadata json
+        """
+        response = self.get(
+            f"{self.api_url}/test/metadata",
+            params={"test_id": test_id},
+        )
+
+        self._check_response(response)
+        return response.json()
 
     def terminate_session(self) -> None:
         """
