@@ -55,6 +55,7 @@ class LocalInterface(Harness):
         # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
 
+        # prep the stagenames from the metadata for easier searching later.
         self.stagenames = []
         for stage in self.metadata["stages"]:
             self.stagenames.append(stage['name'])
@@ -147,7 +148,7 @@ class LocalInterface(Harness):
         """
         stage_metadata = self.get_stage_metadata(stage)
         if stage_metadata:
-            # check the dataset to make sure that the budgets dont exceed the available
+            # check the dataset to make sure that the budgets don't exceed the available
             # labels
             total_avaialble_labels = target_dataset.unlabeled_size
             for index, budget in enumerate(stage_metadata['label_budget']):
@@ -182,7 +183,7 @@ class LocalInterface(Harness):
             # this is a new stage, so reset to use the budgets for the new stage
             self.current_stage = stage_name
 
-        # move to the next checkpoint and moive its budget into the current budget.
+        # move to the next checkpoint and move its budget into the current budget.
         stage_metadata = self.get_stage_metadata(stage_name)
         self.current_checkpoint_index = checkpoint_num
         if self.current_checkpoint_index >= len(stage_metadata['label_budget']):
@@ -315,7 +316,7 @@ class LocalInterface(Harness):
 
         # select one label for each class, using the first label we find for that
         # class.
-        # TODO: make the method of determining which labes are seed labels
+        # TODO: make the method of determining which labels are seed labels
         #  configurable.
         self.seed_labels[name] = labels.drop_duplicates(subset='class')
         self.label_sets_pd[dataset_name] = labels
