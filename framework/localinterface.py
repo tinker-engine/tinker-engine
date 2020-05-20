@@ -20,6 +20,8 @@ class LocalInterface(Harness):
     """
     def __init__(self, json_configuration_file, interface_config_path):
         """
+        Initialize the object by loading the given configuration file. The configuration file
+        is expected to be located relative to the interface_config_path.
 
         Args:
             json_configuration_file:
@@ -40,6 +42,9 @@ class LocalInterface(Harness):
 
     def initialize_session(self, task_id):
         """
+        Open a new session for the given task id. This will reset old information from
+        any previous sessions. Do not call this before posting results from an existing
+        session or the results will not post properly.
 
         Args:
             task_id:
@@ -61,11 +66,13 @@ class LocalInterface(Harness):
 
     def get_whitelist_datasets_jpl(self):
         """
+        Return a list of datasets that are acceptable for use in training. This will
+        return all datasets present in the location indicated by the configuration option:
+        "external_dataset_location".
 
         Returns:
 
         """
-        # TODO: get the whitelist datasets for this test id from the JPL server
         print("get whitelist datasets")
         from pathlib import Path
         import pandas as pd
@@ -96,6 +103,9 @@ class LocalInterface(Harness):
 
     def get_whitelist_datasets(self):
         """
+        Return a list of datasets that are acceptable for use in training. This will
+        return all datasets present in the location indicated by the configuration option:
+        "external_dataset_location".
 
         Returns:
 
@@ -128,7 +138,8 @@ class LocalInterface(Harness):
 
     def get_budget_checkpoints(self, stage, target_dataset):
         """
-        Find and return the budget checkpoints from the previously loaded metadata
+        Find and return the budget checkpoints from the previously loaded metadata.
+        This uses the configuration option: "label_budget"
 
         Args:
             stage (str):
@@ -151,9 +162,9 @@ class LocalInterface(Harness):
             exit(1)
 
     def start_checkpoint(self, stage_name, target_dataset, checkpoint_num):
-        """ Cycle thorugh the checkpoints for all stages in order.
-        report an error if we try to start a checkpoint after the last
-        stage is complete. A checkpoint is ended when post_results is callled.
+        """ Cycle through the checkpoints for all stages in order.
+        Report an error if we try to start a checkpoint after the last
+        stage is complete. A checkpoint is ended when post_results is called.
 
         Args:
             stage_name (str): name of current stage
@@ -185,8 +196,15 @@ class LocalInterface(Harness):
 
     def get_remaining_budget(self):
         """
+        Return the amount of budget remaining on the current checkpoint.
+        The budget reflects and extra labels that have already been used, but is
+        not affected by seed labels. The budget indicates the total number of
+        files that are permitted to be labeled, and the actual number of labels
+        may be higher if there are multiple labels per file.
 
         Returns:
+                The current number of files that can be labeled. Multiple labels may
+                be returned per file requested.
 
         """
         if not self.current_budget is None:
@@ -321,6 +339,8 @@ class LocalInterface(Harness):
 
     def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
         """
+        lookup the path to the dataset in the configuration information
+        and use that path to construct and return the correct dataset object
 
         Args:
             stage_name:
@@ -352,7 +372,7 @@ class LocalInterface(Harness):
 
         # select one label for each class, using the first label we find for that
         # class.
-        # TODO: make the method of determining which labes are seed labels
+        # TODO: make the method of determining which labels are seed labels
         #  configurable.
         self.seed_labels[name] = labels.drop_duplicates(subset='class')
         self.label_sets_pd[name] = labels
@@ -376,6 +396,12 @@ class LocalInterface(Harness):
 
     def get_more_labels(self, fnames, dataset_name):
         """
+        Request labels for a given set of filenames. This will deduct the
+        number of files requested from the budget, and return all labels for
+        the files requested. This can return more labels than files requested
+        if individual files have multiple labels per file.
+        If not enough budget is available for the requested list, this function
+        will produce an error.
 
         Args:
             fnames (list[str]): name of file names
@@ -411,7 +437,8 @@ class LocalInterface(Harness):
         return self.seed_labels[dataset_name]
 
     def post_results(self, stage_id, dataset, predictions):
-        """
+        """ Submit predictions for analysis and recording. This function
+        will report on the accuracy of the submitted predictions.
 
         Args:
             dataset (framework.dataset):  Framework Dataset
@@ -453,6 +480,8 @@ class LocalInterface(Harness):
 
     def get_problem_metadata(self, task_id):
         """
+        Return the metadata for the given task id. This data will
+        provide information about the test configuration for the task.
 
         Args:
             task_id:
@@ -464,10 +493,19 @@ class LocalInterface(Harness):
         return self.metadata
 
     def terminate_session(self):
+        """
+        End the current session. This should be called after all results have been posted,
+        and before a new session is started.
+        """
         self.toolset = dict()
         self.metadata = None
 
     def get_stage_metadata(self, stagename):
+        """
+        Find and return the metadata for the given stage name.
+        If no matching stage is found, this will return None.
+        """
+
         # search through the list of stages for one that has a matching name.
         for stage in self.metadata["stages"]:
             if stage['name'] == stagename:
