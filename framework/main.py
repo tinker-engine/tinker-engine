@@ -40,7 +40,6 @@ from framework.localinterface import LocalInterface
 from framework.jplinterface import JPLInterface
 
 
-protocol_file_path = ""
 
 def _safe_load(entry_point: EntryPoint):
     """Load algorithms from an entrypoint without raising exceptions."""
@@ -58,7 +57,6 @@ discovered_plugins = {
 
 def execute(req):
     # Setup the argument parsing, and generate help information.
-    global protocol_file_path
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file",
             help="protocol python file",
@@ -196,7 +194,7 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces ):
     harness = None
     for file in os.listdir(file_path):
         filebase, fileext = os.path.splitext(file)
-        if fileext == ".py":
+        if fileext == ".py" and not filebase == "__init__":
             interfaceimport = __import__(filebase, globals(), locals(), [], 0)
             for name, obj in inspect.getmembers(interfaceimport):
                 if inspect.isclass(obj) and interfaceimport == inspect.getmodule( obj ):
