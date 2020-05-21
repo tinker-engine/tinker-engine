@@ -24,7 +24,7 @@ class ParInterface(Harness):
 
     def _check_response(self, response: Response) -> None:
         """
-        Raise the appropriate ApiError based on response error code.
+        Produce appropriate output on error.
     
         :param response:
         :return: True
@@ -46,13 +46,12 @@ class ParInterface(Harness):
         Request Test Identifiers as part of a series of individual tests.
 
         Arguments:
-            -protocol
-            -domain
+            -protocol   : string indicating which protocol is being evaluated
+            -domain     : 
             -detector_seed
             -test_assumptions
         Returns:
-            -detection_seed
-            -test_ids filename
+            -filename of file containing test ids
         """
         payload = {
             "protocol": protocol,
@@ -90,10 +89,11 @@ class ParInterface(Harness):
         Create a new session to evaluate the detector using an empirical protocol.
 
         Arguments:
-            -test_ids
-            -protocol
-            -novelty_detector_version
+            -test_ids   : list of tests being evaluated in this session
+            -protocol   : string indicating which protocol is being evaluated
+            -novelty_detector_version : string indicating the version of the novelty detector being evaluated
         Returns:
+            -session id
         """
         payload = {
             "protocol": protocol,
@@ -120,11 +120,10 @@ class ParInterface(Harness):
         Request data for evaluation.
 
         Arguments:
-            -test_id
-            -round_id
+            -test_id    : the test being evaluated at this moment.
+            -round_id   : the sequential number of the round being evaluated
         Returns:
-            -num_samples
-            -dataset_uris filename
+            -filename of a file containing a list of image files (including full path for each) 
         """
         response = requests.get(
             f"{self.api_url}/session/dataset",
@@ -174,8 +173,8 @@ class ParInterface(Harness):
 
         Arguments:
             -feedback_ids
-            -test_id
-            -round_id
+            -test_id        : the id of the test currently being evaluated
+            -round_id       : the sequential number of the round being evaluated
             -feedback_type -- label, detection, characterization
         Returns:
             -labels dictionary
