@@ -242,7 +242,10 @@ class LocalInterface(Harness):
 
     @staticmethod
     def create_dataset(dataset, dataset_name, dataset_path):
-        """
+        """  This function will take a torchvision dataset and will convert it
+        to a dataset which can be used by a framework.dataset object.  This will
+        download the zip, create and save the iamges as a png, and then create
+        a coco dataset object.  
 
         Args:
             dataset (torchvision.datasets.mnist): dataset from torchvision which
