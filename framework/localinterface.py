@@ -245,9 +245,11 @@ class LocalInterface(Harness):
         """
 
         Args:
-            dataset (torchvision.datasets.mnist):
-            dataset_name (str): name of dataset
-            dataset_path (Path): path to root dataset folder
+            dataset (torchvision.datasets.mnist): dataset from torchvision which
+                will be remade into our glorious dataset
+            dataset_name (str): name of dataset being created
+            dataset_path (Path): path to root dataset folder where all the 
+                images will be saved.
 
         """
         dataset_coco = dict()
