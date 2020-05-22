@@ -55,7 +55,7 @@ discovered_plugins = {
     for entry_point in pkg_resources.iter_entry_points("framework")
 }
 
-def execute(req):
+def execute():
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file",
@@ -217,7 +217,7 @@ def main():
     """ Main to run the algorithm locally.  Just loads the input.json file and calls
     the :meth:`main.execute` function.
     """
-    execute({})
+    execute()
 
 
 if __name__ == "__main__":
