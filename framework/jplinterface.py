@@ -18,7 +18,7 @@ class JPLInterface(Harness):
     """
     def __init__(self,
                  apikey="",
-                 url="abc"):
+                 url=""):
         """ Constructs the JPL problem and get list of tasks. Args will be moved to
         config
 
@@ -543,7 +543,20 @@ class JPLInterface(Harness):
             print("Session Properly Deactivated")
 
 
-
+    def get_stages(self):
+        """
+        return a list of the stages in the current task
+        Args:
+            none
+        """
+        return self.stagenames
+    def get_task_ids(self):
+        """
+        return a list of tasks
+        Args:
+            none
+        """
+        return self.task_ids
 
 
 

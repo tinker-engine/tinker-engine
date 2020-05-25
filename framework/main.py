@@ -38,6 +38,7 @@ import pkg_resources
 from pkg_resources import EntryPoint
 from framework.localinterface import LocalInterface
 from framework.jplinterface import JPLInterface
+from framework.parinterface import ParInterface
 
 
 
