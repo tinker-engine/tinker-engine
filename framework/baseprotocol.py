@@ -3,34 +3,29 @@ import os
 import sys
 import inspect
 
-import pkg_resources
 from typing import Any, Optional, TypeVar
-from pkg_resources import EntryPoint
-
-def _safe_load(entry_point: EntryPoint) -> Optional[Any]:
-    """Load algorithms from an entrypoint without raising exceptions."""
-    try:
-        return entry_point.load()
-    except Exception as fault:
-        print("Cannot load entrypoint")
-        print( fault )
-        exit(1)
-
-
-
-discovered_plugins = {
-    entry_point.name: _safe_load(entry_point)
-    for entry_point in pkg_resources.iter_entry_points("framework")
-}
+from framework.basealgorithm import BaseAlgorithm
 
 
 class BaseProtocol(metaclass=abc.ABCMeta):
     """ The BaseProtocol class provides a generic toolset storage and a mechanism to
-        retreive algorithms given their filename.
+        retrieve algorithms given their filename.
     """
-    def __init__(self,algodirectory, harness):
+    def __init__(self, discovered_plugins, algodirectory, harness):
+        """
+        Arguments:
+            discovered_plugins: A dictionary of plugin names and classes. Used to locate and instantiate
+                                plugins
+            algodirectory:      The path to the algorithms if they are located in a directory. This path
+                                will be searched for algorithms first, and then a plugin will be loaded
+                                if the path doe snot contain the named algorithm to be loaded.
+            harness:            The interface to use for harness functionality (dataset access, test metadata,
+                                etc...
+
+        """
         self.test_harness = harness
         self.algorithmsbase = algodirectory
+        self.discovered_plugins = discovered_plugins
         self.toolset = dict()
 
     @abc.abstractmethod
@@ -69,7 +64,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
                 exit(1)
 
 
-        # if the file exists, then load the algo from the file. if not, then load the algo from plugin
+        # if the file exists, then load the algo from the file. If not, then load the algo from plugin
         algofile = os.path.join(self.algorithmsbase, algotype)
         if os.path.exists(algofile) and not os.path.isdir(algofile):
             print(algotype, "found in algorithms path, loading file")
@@ -87,7 +82,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             sys.path.append(argpath)
 
         # load the file as a module and create an object of the class type in the file
-        # the name of the class doesnt matter, as long as there is only one class in
+        # the name of the class doesn't matter, as long as there is only one class in
         # the file.
         argbase, argext = os.path.splitext(argfile)
         if argext == ".py":
@@ -106,9 +101,12 @@ class BaseProtocol(metaclass=abc.ABCMeta):
 
 
     def load_from_plugin( self, algotype, toolset):
-        algorithm = discovered_plugins.get(algotype)
+        algorithm = self.discovered_plugins.get(algotype)
         if algorithm is None:
             print("Requested plugin not found")
+            exit(1)
+        if not issubclass(algorithm, BaseAlgorithm):
+            print("Requested plugin", algotype, "is not an algorithm")
             exit(1)
         return algorithm(toolset)
 
