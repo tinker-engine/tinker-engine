@@ -34,15 +34,30 @@ import json
 import os
 import requests
 from framework.harness import Harness
+import pkg_resources
+from pkg_resources import EntryPoint
 from framework.localinterface import LocalInterface
 from framework.jplinterface import JPLInterface
 from framework.parinterface import ParInterface
 
-protocol_file_path = ""
 
-def execute(req):
+
+def _safe_load(entry_point: EntryPoint):
+    """Load algorithms from an entrypoint without raising exceptions."""
+    try:
+        return entry_point.load()
+    except Exception as fault:
+        print("Cannot load entrypoint")
+        print( fault )
+        exit(1)
+
+discovered_plugins = {
+    entry_point.name: _safe_load(entry_point)
+    for entry_point in pkg_resources.iter_entry_points("framework")
+}
+
+def execute():
     # Setup the argument parsing, and generate help information.
-    global protocol_file_path
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file",
             help="protocol python file",
@@ -55,7 +70,7 @@ def execute(req):
             help="Generate template algorithm files",
             action='store_true')
     parser.add_argument("-i", "--interface",
-            help="Name of the Interface class to use. use '--list_interfaces' to show available interfaces",
+            help="Name of the Interface class to use. Use '--list_interfaces' to show available interfaces",
             type= str,
             default = "LocalInterface")
     parser.add_argument("-l", "--list_interfaces",
@@ -69,11 +84,11 @@ def execute(req):
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
-        print("given algorithm directory doesni't exist")
+        print("given algorithm directory doesn't exist")
         exit(1)
 
     if not os.path.isdir(algorithmsbasepath):
-        print("given algorithm path isnt a directory")
+        print("given algorithm path isn't a directory")
         exit(1)
 
     # deconstruct the path to the protocol so that we can construct the
@@ -88,27 +103,60 @@ def execute(req):
     # to the system path.
     protocol_file_path, protfile = os.path.split(protfilename);
 
+    # append the CWD and the protocol file directory to the sys path so that we can
+    # import from those locations.
+    sys.path.append(".")
     if protocol_file_path:
         sys.path.append(protocol_file_path)
+    else:
+        print("Invalid protocol file")
+        exit(1)
 
 
 
-    # find the interface (or list the available ones)
+    # list the available interfaces
     harness = None
-    for name, obj in inspect.getmembers(sys.modules[__name__]):
-        if args.list_interfaces:
-            print_interface( name, obj)
-        else:
-            if args.interface == name and inspect.isclass(obj) and issubclass(obj, Harness):
-                harness = obj('configuration.json', protocol_file_path)
-    #TODO: check the working direcotory and "protocol" directory as well.
-
     if args.list_interfaces:
-        # nothing more to do here, all we are doing is listing the itnerfaces.
+        # print the interfaces included with the framework.
+        for name, obj in inspect.getmembers(sys.modules[__name__]):
+            print_interface( name, obj)
+
+        # print the interfaces in the protocol directory
+        check_directory_for_interface(protocol_file_path, args.interface, True)
+
+        # print the interfaces in the current working directory.
+        check_directory_for_interface(".", args.interface, True)
+
+        # print any interfaces available in the plugins
+        for name in discovered_plugins.keys():
+            print_interface( name, discovered_plugins[name] )
+
+        # after printing the interfaces, there is nothing else to do.
         exit(0)
+    
+    # search for the desired interface in the various places it could be.
+    if harness is None:
+        # check the protocol directory for the desired interface class
+        check_directory_for_interface(protocol_file_path, args.interface, False)
 
     if harness is None:
-        print( "Interface not found" )
+        # check the current working directory for the desired interface class.
+        check_directory_for_interface(".", args.interface, False)
+
+    # check the plugins for a Harness that matches the interface argument
+    if harness is None:
+        obj = discovered_plugins.get(args.interface)
+        if obj is not None:
+            harness = obj('configuration.json', protocol_file_path )
+
+    # as a last resort, look for the interface in the framework itself.
+    if harness is None:
+        for name, obj in inspect.getmembers(sys.modules[__name__]):
+            if args.interface == name and inspect.isclass(obj) and issubclass(obj, Harness):
+                harness = obj('configuration.json', protocol_file_path)
+
+    if harness is None:
+        print( "Requested interface not found" )
         exit(1)
 
 
@@ -127,7 +175,7 @@ def execute(req):
                 foo = inspect.getmodule( obj )
                 if foo == protocolimport:
                     #construct the protocol object
-                    protocol = obj(algorithmsbasepath, harness)
+                    protocol = obj(discovered_plugins, algorithmsbasepath, harness)
     else:
         print("Invalid protocol file, must be a python3 source file")
         sys.exit(1)
@@ -137,8 +185,30 @@ def execute(req):
     else:
         print("protocol invalid")
 
+def check_directory_for_interface(file_path, interface_name, print_interfaces ):
+    """
+    Check the given file path for any python files containing classes that derive
+    from the Harness class. If the print_interfaces flag is set, then print any that
+    are found. If that flag is not set, then instantiate the interface name interface_name,
+    and return the object.
+    """
+    harness = None
+    for file in os.listdir(file_path):
+        filebase, fileext = os.path.splitext(file)
+        if fileext == ".py" and not filebase == "__init__":
+            interfaceimport = __import__(filebase, globals(), locals(), [], 0)
+            for name, obj in inspect.getmembers(interfaceimport):
+                if inspect.isclass(obj) and interfaceimport == inspect.getmodule( obj ):
+                    if print_interfaces:
+                        print_interface( name, obj)
+                    elif name == interface_name and issubclass(obj, Harness):
+                        harness = obj('configuration.json', file_path)
+    return harness
+
+
 def print_interface( name, obj):
     if inspect.isclass(obj):
+
        if issubclass(obj, Harness) and not name == "Harness":
            print(name, obj)
 
@@ -148,7 +218,7 @@ def main():
     """ Main to run the algorithm locally.  Just loads the input.json file and calls
     the :meth:`main.execute` function.
     """
-    execute({})
+    execute()
 
 
 if __name__ == "__main__":
