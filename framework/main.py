@@ -1,4 +1,6 @@
 """
+This file contains the main code to run the experiment.
+
 .. _main.py:
 
 main.py
@@ -30,15 +32,10 @@ Email Kitware if you think that this needs to be changed.
 import inspect
 import sys
 import argparse
-import json
 import os
-import requests
 from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
-from framework.localinterface import LocalInterface
-from framework.jplinterface import JPLInterface
-from framework.parinterface import ParInterface
 
 
 def _safe_load(entry_point: EntryPoint):
@@ -58,6 +55,8 @@ discovered_plugins = {
 
 
 def execute():
+    """Run the main program."""
+
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file", help="protocol python file", type=str)
@@ -179,7 +178,7 @@ def execute():
         # import the file and get the object name. The object should go in the
         # protocol local object
         protocolimport = __import__(protbase, globals(), locals(), [], 0)
-        for name, obj in inspect.getmembers(protocolimport):
+        for _name, obj in inspect.getmembers(protocolimport):
             # This will get every class that is referenced within the file,
             # including base classes to ensure we get the right one, check for only
             # classes that are within the module defined by the protocol file.
@@ -200,6 +199,8 @@ def execute():
 
 def check_directory_for_interface(file_path, interface_name, print_interfaces):
     """
+    Load Harness objects found on the Python path.
+
     Check the given file path for any python files containing classes that derive
     from the Harness class. If the print_interfaces flag is set, then print any that
     are found. If that flag is not set, then instantiate the interface name interface_name,
@@ -220,6 +221,7 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
 
 
 def print_interface(name, obj):
+    """Print out information about an interface."""
     if inspect.isclass(obj):
 
         if issubclass(obj, Harness) and not name == "Harness":
@@ -227,8 +229,10 @@ def print_interface(name, obj):
 
 
 def main():
-    """ Main to run the algorithm locally.  Just loads the input.json file and calls
-    the :meth:`main.execute` function.
+    """
+    Run the algorithm locally.
+
+    Just loads the input.json file and calls the :meth:`main.execute` function.
     """
     execute()
 

@@ -29,7 +29,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     description="Framework for evaluating active learning algorithms.",
-    entry_points={"console_scripts": ["framework=framework.main:main",],},
+    entry_points={"console_scripts": ["framework=framework.main:main"]},
     install_requires=requirements,
     long_description=readme,
     include_package_data=True,

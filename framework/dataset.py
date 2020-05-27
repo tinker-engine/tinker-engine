@@ -1,14 +1,12 @@
 """
-.. _dataset.py:
+Datasets.
 
-Datasets
-=========
+.. _dataset.py:
 
 Kitware manages this function.  The dataset classes for the train/eval parts of
 both the train and adapt stages. This will need to change when more types of
 problems are added.  Email or create an issue if you want to change
 something in this file.
-
 """
 
 from __future__ import print_function
@@ -36,7 +34,7 @@ IMG_EXTENSIONS = (
 
 def basic_transformer():
     """
-    Basic transformer which resizes the images to 32x32 and converts it to a tensor.
+    Resize the image to 32x32 and convert it to a tensor.
 
     Returns:
         torch.Tensor: image in CHW
@@ -48,7 +46,7 @@ def basic_transformer():
 
 def pil_loader(path):
     """
-    Opens an image using PIL
+    Open an image using PIL.
 
     Args:
         path (str): path to the image
@@ -65,7 +63,7 @@ def pil_loader(path):
 
 def has_file_allowed_extension(filename, extensions=IMG_EXTENSIONS):
     """
-    Checks if a file is an allowed extension.
+    Check if a file is an allowed extension.
 
     Args:
         filename: path to a file
@@ -78,7 +76,7 @@ def has_file_allowed_extension(filename, extensions=IMG_EXTENSIONS):
 
 
 def is_image_file(filename):
-    """Checks if a file is an allowed image extension.
+    """Check if a file is an allowed image extension.
 
     Args:
         filename (str): path to a file
@@ -91,7 +89,7 @@ def is_image_file(filename):
 
 def ensure_image_list(filelist):
     """
-    Takes a list of filenames and ensures that these have image extensions
+    Take a list of filenames and ensures that these have image extensions.
 
     Args:
         filelist (list[str]): list of strings containing the file names
@@ -104,9 +102,11 @@ def ensure_image_list(filelist):
 
 class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     """
-    Training dataset class.  Contains both labeled and unlabeled images.  Loads
-    images from file. This should only be edited by Kitware but feel free to add
-    an issue if you want to change something.
+    Training dataset class.
+
+    Contains both labeled and unlabeled images.  Loads images from file. This
+    should only be edited by Kitware but feel free to add an issue if you want
+    to change something.
 
     The images are tracked by the indices within this dataset.  For example, if you
     want to request something to be labeled you need to give the
@@ -148,8 +148,9 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         seed_labels=None,
     ):
         """
-        The initialization function for the dataset.  This initializes the
-        attributes and gets the seed labels.
+        Initialize the dataset.
+
+        This initializes the attributes and gets the seed labels.
 
         Args:
             problem (LwLL): problem class instance containing the
@@ -204,14 +205,6 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         )
 
         # check to make sure number of images is consistent with problem metadata
-        # psize = self.problem.status['current_dataset']['number_of_samples_train']
-
-        # Taken out for now b/c object detection
-        # if psize != self.size:
-        #     raise AssertionError(f'Dataset size from problem status {psize} does '
-        #                          f'not match what is on disk from {self.size} from'
-        #                          f' {self.root}')
-
         self.indices = set(np.arange(self.num_images))
         self.categories = None
         self.category_to_category_index = None
@@ -225,7 +218,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def __len__(self):
         """
-        Get length of unlabeled and labeled data
+        Get length of unlabeled and labeled data.
 
         Returns:
             int: number of unlabeled and labeled data
@@ -234,6 +227,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def __getitem__(self, index):
         """
+        Return an item by index.
+
         Args:
             index (int): Index
 
@@ -261,7 +256,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def get_unlabeled_indices(self):
         """
-        Getter for unlabeled indices
+        Return unlabeled indices.
 
         Returns:
             list (int): indices
@@ -271,7 +266,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def get_labeled_indices(self):
         """
-        Getter for labeled indices
+        Return labeled indices.
 
         Returns:
             list (int): indices
@@ -281,8 +276,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def get_more_labels(self, indices):
         """
-        Active learning step which calls on the LwLL class to interface with
-        JPL server to query for indices
+        Ask LwLL class to interface with JPL server to query for indices.
 
         This function will check to make sure all requested images are unlabeled and
         will only query for unlabeled indices.
@@ -311,8 +305,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def get_seed_labels(self, seed_labels=None, num_seed_calls=0):
         """
-        Get the seed labels from JPL (via the LwLL class) and add them to
-        the dataset
+        Get the seed labels from JPL and add them to the dataset.
 
         Args:
             seed_labels: Seed labels to add or none if want to go get them
@@ -341,7 +334,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def _category_name_to_category_index(self, category_names):
         """
-        Given category names, return category indices
+        Given category names, return category indices.
 
         Args:
             category_names (list[str]): category names
@@ -354,7 +347,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def _category_index_to_category_name(self, category_indices):
         """
-        Given category indices, return category names
+        Given category indices, return category names.
 
         Args:
             category indices (list[int]): category indices
@@ -365,14 +358,17 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return [self.category_index_to_category[i] for i in category_indices]
 
-    def update_targets(self, new_labels, requested=[], check_redundant=False):
+    def update_targets(self, new_labels, requested=None, check_redundant=False):
         """
-        Update with new labels for targets
+        Update with new labels for targets.
 
         Args:
             new_labels (pandas.DataFrame): new labels to add
             requested (list[int]): list of requested labels
         """
+
+        if requested is None:
+            requested = []
 
         n = len(new_labels)
 
@@ -407,7 +403,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def initialize_categories(self, seed_labels):
         """
-        Given the seed labels, initialize the category names and indices
+        Given the seed labels, initialize the category names and indices.
 
         Args:
             seed_labels (list[str]): list of seed category names
@@ -422,7 +418,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def _fnames_to_indices(self, fnames):
         """
-        Given filenames, return indices
+        Given filenames, return indices.
 
         Args:
             fnames (list[str]): filenames of images
@@ -435,7 +431,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def _indices_to_fnames(self, indices):
         """
-        Given indices, return filenames
+        Given indices, return filenames.
 
         Args:
             indices (list[int]): indices of images
@@ -448,7 +444,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def extra_repr(self):
         """
-        Adds extra bit when printing out dataset
+        Add extra bit when printing out dataset.
 
         Returns:
             str: Extra Info of Dataset
@@ -460,7 +456,9 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def show_example(self, index=0):
         """
-        Given an index, show an example.  Only works for image classification
+        Given an index, show an example.
+
+        Only works for image classification.
 
         Args:
             index (int, optional, default=0): index of the image you want to show
@@ -474,6 +472,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     def collate_batch(self, batch):
         """
+        Collate a batch.
+
         Custom collate batch function which handles lists and tuples a bit
         differently to accommodate bboxes.  Check out
         https://github.com/pytorch/pytorch/blob/master/torch/utils/data/_utils/collate.py
@@ -493,7 +493,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             if torch.utils.data.get_worker_info() is not None:
                 # If we're in a background process, concatenate directly into a
                 # shared memory tensor to avoid an extra copy
-                numel = sum([x.numel() for x in batch])
+                numel = sum(x.numel() for x in batch)
                 storage = elem.storage()._new_shared(numel)
                 out = elem.new(storage)
             return torch.stack(batch, 0, out=out)
@@ -522,20 +522,21 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         raise NotImplementedError
 
-    def dummy_data(self, type):
+    def dummy_data(self, task_type):
         """
-        Create dummy data for evaluation
+        Create dummy data for evaluation.
+
         Args:
-            type (str): either image_classification or object_detection
+            task_type (str): either image_classification or object_detection
             test_imgs (list[str]): list of image names to create fake data for
 
         Returns:
             preds, indices (same as inference)
         """
         classes = np.random.randint(0, len(self.categories), len(self.image_fnames))
-        if type == "image_classification":
+        if task_type == "image_classification":
             return classes, list(self.indices)
-        elif type == "object_detection":
+        elif task_type == "object_detection":
             bbox = ["20, 20, 80, 80" for _ in range(len(self.image_fnames))]
             conf = [0.95 for _ in range(len(self.image_fnames))]
 
@@ -567,9 +568,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
 
 class ObjectDetectionDataset(ImageClassificationDataset):
-    """
-    TODO: Define all attributes
-    """
+    """TODO: Define all attributes."""
 
     def __init__(
         self,
@@ -581,6 +580,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         categories=None,
         seed_labels=None,
     ):
+        """Initialize."""
 
         super(ObjectDetectionDataset, self).__init__(
             problem,
@@ -594,8 +594,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
 
     def get_more_labels(self, indices):
         """
-        Active learning step which calls on the LwLL class to interface with
-        JPL server to query for indices
+        Ask LwLL class to interface with JPL server to query for indices.
 
         This function will check to make sure all requested images are unlabeled and
         will only query for unlabeled indices.
@@ -628,9 +627,9 @@ class ObjectDetectionDataset(ImageClassificationDataset):
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
 
-    def update_targets(self, new_labels, requested=[], check_redundant=False):
+    def update_targets(self, new_labels, requested=None, check_redundant=False):
         """
-        Update with new labels for targets
+        Update with new labels for targets.
 
         Args:
             new_labels (pandas.DataFrame): new labels to add
@@ -638,6 +637,9 @@ class ObjectDetectionDataset(ImageClassificationDataset):
             check_redundant (bool): Whether to check if incoming labels are
                 redundant
         """
+
+        if requested is None:
+            requested = []
 
         n = len(new_labels)
         fnames = new_labels["id"].tolist()

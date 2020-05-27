@@ -2,17 +2,18 @@
 
 import requests
 import json
-from json import JSONDecodeError
 import io
 import os
 
 from framework.harness import Harness
-from typing import Any, Generator, Optional, Dict
+from typing import Any, Dict
 from requests import Response
 from uuid import UUID
 
 
 class ParInterface(Harness):
+    """Interface to PAR server."""
+
     def __init__(self, configfile, configfolder) -> None:
         """
         Initialize a client connection object.
@@ -26,7 +27,7 @@ class ParInterface(Harness):
     def _check_response(self, response: Response) -> None:
         """
         Produce appropriate output on error.
-    
+
         :param response:
         :return: True
         """
@@ -47,7 +48,7 @@ class ParInterface(Harness):
 
         Arguments:
             -protocol   : string indicating which protocol is being evaluated
-            -domain     : 
+            -domain     :
             -detector_seed
             -test_assumptions
         Returns:
@@ -106,7 +107,7 @@ class ParInterface(Harness):
 
         response = requests.post(
             f"{self.api_url}/session",
-            files={"test_ids": ids, "configuration": io.StringIO(json.dumps(payload)),},
+            files={"test_ids": ids, "configuration": io.StringIO(json.dumps(payload))},
         )
 
         self._check_response(response)
@@ -121,7 +122,7 @@ class ParInterface(Harness):
             -test_id    : the test being evaluated at this moment.
             -round_id   : the sequential number of the round being evaluated
         Returns:
-            -filename of a file containing a list of image files (including full path for each) 
+            -filename of a file containing a list of image files (including full path for each)
         """
         response = requests.get(
             f"{self.api_url}/session/dataset",
@@ -147,7 +148,8 @@ class ParInterface(Harness):
 
         return new_filename
 
-    # TODO: merge this code directly into dataset_request, and stop writing so many files
+    # TODO: merge this code directly into dataset_request, and stop writing so
+    # many files
     def _append_data_root_to_dataset(self, dataset_path: str, test_id: UUID) -> str:
         assert os.path.exists(dataset_path)
         orig_dataset = open(dataset_path, "r")
@@ -261,7 +263,8 @@ class ParInterface(Harness):
 
     def get_test_metadata(self, test_id: str) -> Dict[str, Any]:
         """
-        Retrieves the metadata json for the specified test
+        Retrieve the metadata json for the specified test.
+
         Arguments:
             -test_id
         Returns:

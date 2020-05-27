@@ -1,23 +1,24 @@
-import abc
-
 """
+Provide an interface for all algorithm implementations.
+
 .. _basealgorithm.py:
 
-basealgorithm.py
-============
+The BaseAlgorithm class is a base class that provides an interface for all
+algorithm implementations Each implementation must implement the execute()
+function. The execute function acts a generic dispatcher for calling
+subfunctions of the algorithm. This is done to simplify the auto-generation of
+template algorithm files for researchers to use.
+"""
 
-The BaseAlgorithm class is a base class that provides an interface for all 
-algorithm implementations Each implementation must implement the execute() 
-function. The execute function acts a generic dispatcher for calling subfunctions 
-of the algorithm. This is done to simplify the auto-generation of template 
-algorithm files for researchers to use. """
+import abc
 
 
 class BaseAlgorithm(metaclass=abc.ABCMeta):
     """
-    Base Class for defining an algorithm. Implementations of
-    an algorithm should inherit from this class to be run within
-    the framework. Each implementation must implement the execute
+    Base Class for defining an algorithm.
+
+    Implementations of an algorithm should inherit from this class to be run
+    within the framework. Each implementation must implement the execute
     function.
 
     An algorithm object is persistent for the duration of the
@@ -33,17 +34,21 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
     """
 
     def __init__(self, toolset):
+        """Initialize."""
+
         if isinstance(toolset, dict):
             self.toolset = toolset
         elif toolset:
             print("Algorithms must be constructed with dictionary toolset")
             exit(1)
         else:
-            toolset = dict()
+            toolset = {}
 
     @abc.abstractmethod
     def execute(self, toolset, step_descriptor):
         """
+        Execute general steps of an algorithm.
+
         The execute function is a generic dispatch function for handling calls to
         the algorithm This generic dispatch call allow the introduction of an
         adapter class for dispatching calls to pre-existing algorithms. This

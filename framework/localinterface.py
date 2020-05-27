@@ -1,12 +1,6 @@
-"""
-Local Interface
----------------
-"""
+"""Local Interface."""
 
-import os
-import sys
 import json
-import inspect
 from pathlib import Path
 import pandas as pd
 from framework.harness import Harness
@@ -15,14 +9,14 @@ from framework.dataset import ObjectDetectionDataset
 
 
 class LocalInterface(Harness):
-    """  Local interface
-
-    """
+    """Local interface."""
 
     def __init__(self, json_configuration_file, interface_config_path):
         """
-        Initialize the object by loading the given configuration file. The configuration file
-        is expected to be located relative to the interface_config_path.
+        Initialize the object by loading the given configuration file.
+
+        The configuration file is expected to be located relative to the
+        interface_config_path.
 
         Args:
             json_configuration_file:
@@ -34,15 +28,14 @@ class LocalInterface(Harness):
 
     def initialize_session(self, task_id):
         """
-        Open a new session for the given task id. This will reset old information from
-        any previous sessions. Do not call this before posting results from an existing
-        session or the results will not post properly.
+        Open a new session for the given task id.
+
+        This will reset old information from any previous sessions. Do not call
+        this before posting results from an existing session or the results will
+        not post properly.
 
         Args:
             task_id:
-
-        Returns:
-
         """
         # clear any old session data, and prepare for the next task
         self.metadata = self.configuration_data[task_id]
@@ -53,18 +46,16 @@ class LocalInterface(Harness):
             self.stagenames.append(stage["name"])
 
         self.current_stage = None
-        self.seed_labels = dict()
-        self.label_sets = dict()
-        self.label_sets_pd = dict()
+        self.seed_labels = {}
+        self.label_sets = {}
+        self.label_sets_pd = {}
 
     def get_whitelist_datasets_jpl(self):
         """
-        Return a list of datasets that are acceptable for use in training. This will
-        return all datasets present in the location indicated by the configuration option:
-        "external_dataset_location".
+        Return a list of datasets that are acceptable for use in training.
 
-        Returns:
-
+        This will return all datasets present in the location indicated by the
+        configuration option: "external_dataset_location".
         """
         print("get whitelist datasets")
         from pathlib import Path
@@ -73,7 +64,7 @@ class LocalInterface(Harness):
         external_dataset_root = f'{self.metadata["external_dataset_location"]}'
         p = Path(external_dataset_root)
         # TODO: load both train and test into same dataset
-        external_datasets = dict()
+        external_datasets = {}
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
             print(f"Loading {name}")
@@ -92,12 +83,10 @@ class LocalInterface(Harness):
 
     def get_whitelist_datasets(self):
         """
-        Return a list of datasets that are acceptable for use in training. This will
-        return all datasets present in the location indicated by the configuration option:
-        "external_dataset_location".
+        Return a list of datasets that are acceptable for use in training.
 
-        Returns:
-
+        This will return all datasets present in the location indicated by the
+        configuration option: "external_dataset_location".
         """
         # TODO: This function currently goes through the entire external_dataset_location
         # and returns every dataset it finds. This should be modified to
@@ -105,7 +94,7 @@ class LocalInterface(Harness):
         external_dataset_root = self.metadata["external_dataset_location"]
         p = Path(external_dataset_root)
         # load both train and test into same dataset
-        external_datasets = dict()
+        external_datasets = {}
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
             print("Loading external dataset", name)
@@ -124,6 +113,7 @@ class LocalInterface(Harness):
     def get_budget_checkpoints(self, stage, target_dataset):
         """
         Find and return the budget checkpoints from the previously loaded metadata.
+
         This uses the configuration option: "label_budget"
 
         Args:
@@ -147,16 +137,15 @@ class LocalInterface(Harness):
             exit(1)
 
     def start_checkpoint(self, stage_name, target_dataset, checkpoint_num):
-        """ Cycle through the checkpoints for all stages in order.
+        """
+        Cycle through the checkpoints for all stages in order.
+
         Report an error if we try to start a checkpoint after the last
         stage is complete. A checkpoint is ended when post_results is called.
 
         Args:
             stage_name (str): name of current stage
             target_dataset (framework.dataset): framework dataset class
-
-        Returns:
-
         """
 
         if not self.stagenames:
@@ -183,6 +172,7 @@ class LocalInterface(Harness):
     def get_remaining_budget(self):
         """
         Return the amount of budget remaining on the current checkpoint.
+
         The budget reflects and extra labels that have already been used, but is
         not affected by seed labels. The budget indicates the total number of
         files that are permitted to be labeled, and the actual number of labels
@@ -191,16 +181,16 @@ class LocalInterface(Harness):
         Returns:
                 The current number of files that can be labeled. Multiple labels may
                 be returned per file requested.
-
         """
-        if not self.current_budget is None:
+        if self.current_budget is not None:
             return self.current_budget
         else:
             print("Must start a checkpoint before requesting a budget")
             exit(1)
 
     def download_dataset(self, dataset_name, dataset_path):
-        """ Downloads the data using torchvision
+        """
+        Download the data using torchvision.
 
         Args:
             dataset_name (str): name of dataset to download
@@ -231,20 +221,21 @@ class LocalInterface(Harness):
 
     @staticmethod
     def create_dataset(dataset, dataset_name, dataset_path):
-        """  This function will take a torchvision dataset and will convert it
-        to a dataset which can be used by a framework.dataset object.  This will
-        download the zip, create and save the iamges as a png, and then create
-        a coco dataset object.  
+        """
+        Convert torchvision dataset to a coco dataset object.
+
+        This will download the zip, create and save the iamges as a png, and
+        then create a coco dataset object.
 
         Args:
             dataset (torchvision.datasets.mnist): dataset from torchvision which
                 will be remade into our glorious dataset
             dataset_name (str): name of dataset being created
-            dataset_path (Path): path to root dataset folder where all the 
+            dataset_path (Path): path to root dataset folder where all the
                 images will be saved.
 
         """
-        dataset_coco = dict()
+        dataset_coco = {}
         dataset_root = dataset_path / "images"
         dataset_coco["root"] = str(dataset_root)
         dataset_coco["classes"] = dataset.classes
@@ -261,7 +252,7 @@ class LocalInterface(Harness):
             img.save(img_name)
 
             # Add record for coco
-            record = dict()
+            record = {}
             record["file_name"] = str(img_name)
             record["height"] = img.height
             record["width"] = img.width
@@ -276,8 +267,8 @@ class LocalInterface(Harness):
             json_file.write(json_obj)
 
     def get_dataset(self, stage_name, dataset_split, categories=None):
-        """ lookup the path to the dataset in the configuration information
-        and use that path to construct and return the correct dataset object
+        """
+        Construct a dataset object from a path in the configuration.
 
         Args:
             stage_name (str): stage you are in for the problem
@@ -305,9 +296,8 @@ class LocalInterface(Harness):
         name = dataset_name + "_" + dataset_split
         # translate the labels provided by pandas into a dict keyed on the filename
         # while we are at it, build the seed labels as well.
-        self.label_sets[name] = dict()
-        self.label_sets_pd[name] = dict()
-        classes = []
+        self.label_sets[name] = {}
+        self.label_sets_pd[name] = {}
 
         # select one label for each class, using the first label we find for that
         # class.
@@ -339,16 +329,12 @@ class LocalInterface(Harness):
 
     def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
         """
-        lookup the path to the dataset in the configuration information
-        and use that path to construct and return the correct dataset object
+        Construct a JPL dataset object from a path in the configuration.
 
         Args:
             stage_name:
             dataset_split:
             categories:
-
-        Returns:
-
         """
 
         # TODO: Get this working for the local example
@@ -370,9 +356,8 @@ class LocalInterface(Harness):
         name = current_dataset + "_" + dataset_split
         # translate the labels provided by pandas into a dict keyed on the filename
         # while we are at it, build the seed labels as well.
-        self.label_sets[name] = dict()
-        self.label_sets_pd[name] = dict()
-        classes = []
+        self.label_sets[name] = {}
+        self.label_sets_pd[name] = {}
 
         # select one label for each class, using the first label we find for that
         # class.
@@ -404,19 +389,17 @@ class LocalInterface(Harness):
 
     def get_more_labels(self, fnames, dataset_name):
         """
-        Request labels for a given set of filenames. This will deduct the
-        number of files requested from the budget, and return all labels for
-        the files requested. This can return more labels than files requested
-        if individual files have multiple labels per file.
+        Request labels for a given set of filenames.
+
+        This will deduct the number of files requested from the budget, and
+        return all labels for the files requested. This can return more labels
+        than files requested if individual files have multiple labels per file.
         If not enough budget is available for the requested list, this function
         will produce an error.
 
         Args:
             fnames (list[str]): name of file names
             dataset_name (str): lookup for dataset name in label_set_pd
-
-        Returns:
-
         """
         if self.current_budget is None:
             print("Can't get labels before checkpoint is started")
@@ -432,28 +415,27 @@ class LocalInterface(Harness):
         return new_labels.to_dict()
 
     def get_seed_labels(self, dataset_name, seed_level):
-        """ seed labels do not count against the budgets
+        """
+        Retrieve seed labels.
+
+        Seed labels do not count against the budgets.
 
         Args:
             dataset_name (str): name of dataset to get the seed labels from
             seed_level: (int): number of seed label level
-
-        Returns:
-
         """
         # TODO: get secondary seed labels added here
         return self.seed_labels[dataset_name]
 
     def post_results(self, stage_id, dataset, predictions):
-        """ Submit predictions for analysis and recording. This function
-        will report on the accuracy of the submitted predictions.
+        """
+        Submit predictions for analysis and recording.
+
+        This function will report on the accuracy of the submitted predictions.
 
         Args:
             dataset (framework.dataset):  Framework Dataset
             predictions:
-
-        Returns:
-
         """
         # TODO: Currently this simply writes the results to the results_file
         # this will need to do more processing in the future.
@@ -495,29 +477,31 @@ class LocalInterface(Harness):
 
     def get_problem_metadata(self, task_id):
         """
-        Return the metadata for the given task id. This data will
-        provide information about the test configuration for the task.
+        Return the metadata for the given task id.
+
+        This data will provide information about the test configuration for the
+        task.
 
         Args:
             task_id:
-
-        Returns:
-
         """
         self.metadata = self.configuration_data[task_id]
         return self.metadata
 
     def terminate_session(self):
         """
-        End the current session. This should be called after all results have been posted,
-        and before a new session is started.
+        End the current session.
+
+        This should be called after all results have been posted, and before a
+        new session is started.
         """
-        self.toolset = dict()
+        self.toolset = {}
         self.metadata = None
 
     def get_stage_metadata(self, stagename):
         """
         Find and return the metadata for the given stage name.
+
         If no matching stage is found, this will return None.
         """
 
@@ -529,21 +513,23 @@ class LocalInterface(Harness):
 
     def format_status(self, update: bool) -> str:
         """
-         Update and return formatted string with the current status
-         of the problem/task.  Also should return accuracy if available
+        Update and return formatted string with the current status of the problem/task.
 
-         Args:
-             update (bool): not used
+        Also should return accuracy if available
 
-         Returns:
-               str: Formatted String of Status
-         """
+        Args:
+            update (bool): not used
+
+        Returns:
+              str: Formatted String of Status
+        """
         info = json.dumps(self.metadata, indent=4)
         return "\n".join(["Problem/Task Status:", info, ""])
 
     def get_stages(self):
         """
-        return a list of the stages in the current task
+        Return a list of the stages in the current task.
+
         Args:
             none
         """
@@ -551,7 +537,8 @@ class LocalInterface(Harness):
 
     def get_task_ids(self):
         """
-        return a list of tasks
+        Return a list of tasks.
+
         Args:
             none
         """

@@ -1,16 +1,19 @@
+"""
+File to house metric calculation code.
+
+Copied from JPL's code here:
+https://gitlab.lollllz.com/lwll/lwll_api/-/blob/devel/lwll_api/classes/metrics.py
+"""
+
 import pandas as pd
 import math
 import numpy as np
 from typing import Tuple
 
-"""
-File to house metric calculation code.
-Copied from JPL's code here: 
-https://gitlab.lollllz.com/lwll/lwll_api/-/blob/devel/lwll_api/classes/metrics.py
-"""
-
 
 def accuracy(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
+    """Compute accuracy of calculated data frame."""
+
     _validate_input_ids_one_to_one(df, actuals)
     _df = df.set_index("id")
     _actuals = actuals.set_index("id")
@@ -22,23 +25,25 @@ def accuracy(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
 
 
 def mAP(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
+    """Compute mean average precision."""
+
     _validate_input_ids_many_to_many(df, actuals)
     _df = format_obj_detection_data(df)
     _actuals = format_obj_detection_data(actuals)
-    mAP = mean_average_precision(_actuals, _df)
-    return mAP
+    value = mean_average_precision(_actuals, _df)
+    return value
 
 
 def _validate_input_ids_one_to_one(df: pd.DataFrame, actuals: pd.DataFrame) -> None:
     # Check lengths of dataframes are the same
     if len(df["id"]) != len(actuals["id"]):
         raise Exception(
-            f"Hitting condition: `len(df['id']) != len(actuals['id'])`\nThis probably means that you are missing some test ids"
+            "Hitting condition: `len(df['id']) != len(actuals['id'])`\nThis probably means that you are missing some test ids"
         )
     # Check all test labels are accounted for in one to one relationship
     if len(set(df["id"].tolist()).difference(set(actuals["id"].tolist()))) != 0:
         raise Exception(
-            f"Hitting condition: `len(set(df['id'].tolist()).difference(set(actuals['id'].tolist()))) != 0`\nThis probably means that you are \
+            "Hitting condition: `len(set(df['id'].tolist()).difference(set(actuals['id'].tolist()))) != 0`\nThis probably means that you are \
             missing some test ids"
         )
     return
@@ -55,7 +60,7 @@ def _validate_input_ids_many_to_many(df: pd.DataFrame, actuals: pd.DataFrame) ->
         != 0
     ):
         raise Exception(
-            f"Hitting condition: `len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0`\nThis \
+            "Hitting condition: `len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0`\nThis \
             probably means that you are missing some test ids"
         )
     return
@@ -75,17 +80,19 @@ def log_average_miss_rate(
     precision: np.array, fp_cumsum: np.array, num_images: int
 ) -> Tuple[float, float, float]:
     """
-        log-average miss rate:
-            Calculated by averaging miss rates at 9 evenly spaced FPPI points
-            between 10e-2 and 10e0, in log-space.
-        output:
-                lamr | log-average miss rate
-                mr | miss rate
-                fppi | false positives per image
-        references:
-            [1] Dollar, Piotr, et al. "Pedestrian Detection: An Evaluation of the
-               State of the Art." Pattern Analysis and Machine Intelligence, IEEE
-               Transactions on 34.4 (2012): 743 - 761.
+    Compute the log-average miss rate.
+
+    log-average miss rate:
+        Calculated by averaging miss rates at 9 evenly spaced FPPI points
+        between 10e-2 and 10e0, in log-space.
+    output:
+            lamr | log-average miss rate
+            mr | miss rate
+            fppi | false positives per image
+    references:
+        [1] Dollar, Piotr, et al. "Pedestrian Detection: An Evaluation of the
+           State of the Art." Pattern Analysis and Machine Intelligence, IEEE
+           Transactions on 34.4 (2012): 743 - 761.
     """
 
     # if there were no detections of that class
@@ -115,6 +122,9 @@ def log_average_miss_rate(
 
 
 def voc_ap(rec: list, prec: list) -> Tuple[float, list, list]:
+    # TODO
+    """Fill this in."""
+
     rec.insert(0, 0.0)  # insert 0.0 at begining of list
     rec.append(1.0)  # insert 1.0 at end of list
     mrec = rec[:]
@@ -145,13 +155,14 @@ def voc_ap(rec: list, prec: list) -> Tuple[float, list, list]:
 
 
 def populate_gt_stats(ground_truth_labels: list) -> Tuple[dict, dict, dict, list, int]:
+    """Compute ground truth statistics."""
 
     out_dict = {}
 
     gt_counter_per_class: dict = {}
     counter_images_per_class: dict = {}
 
-    unique_images = sorted(set([line[0] for line in ground_truth_labels]))
+    unique_images = sorted({line[0] for line in ground_truth_labels})
     for file_id in unique_images:
         lines_list = [line for line in ground_truth_labels if line[0] == file_id]
 
@@ -200,11 +211,13 @@ def populate_gt_stats(ground_truth_labels: list) -> Tuple[dict, dict, dict, list
 
 
 def prep_preds(preds_list: list, gt_classes: list) -> dict:
+    # TODO
+    """Fill this in."""
 
-    unique_files = sorted(set([line[0] for line in preds_list]))
+    unique_files = sorted({line[0] for line in preds_list})
 
     out_preds = {}
-    for class_index, class_name in enumerate(gt_classes):
+    for _class_index, class_name in enumerate(gt_classes):
         bounding_boxes = []
         for file_id in unique_files:
             lines = [line for line in preds_list if line[0] == file_id]
@@ -219,12 +232,10 @@ def prep_preds(preds_list: list, gt_classes: list) -> dict:
                     line[6],
                 )
                 if tmp_class_name == class_name:
-                    # print("match")
                     bbox = f"{left} {top} {right} {bottom}"
                     bounding_boxes.append(
                         {"confidence": confidence, "file_id": file_id, "bbox": bbox}
                     )
-                    # print(bounding_boxes)
         # sort detection-results by decreasing confidence
         bounding_boxes.sort(key=lambda x: float(x["confidence"]), reverse=True)
         out_preds[class_name] = bounding_boxes
@@ -252,28 +263,20 @@ def calculate_mAP(
     n_classes: int,
     min_overlap: float = 0.5,
 ) -> float:
-    """
-    Calculate the AP for each class
-    """
+    """Calculate the AP for each class."""
     out_dict = _add_used_var_to_bboxes(out_dict)
     sum_AP = 0.0
     ap_dictionary = {}
     lamr_dictionary = {}
     # open file to store the results
-    # print("# AP and precision/recall per class\n")
     count_true_positives = {}
-    for class_index, class_name in enumerate(gt_classes):
+    for _class_index, class_name in enumerate(gt_classes):
         count_true_positives[class_name] = 0
-        """
-            Load detection-results of that class
-        """
-        # dr_file = TEMP_FILES_PATH + "/" + class_name + "_dr.json"
-        # dr_data = json.load(open(dr_file))
+
+        # Load detection-results of that class
         dr_data = out_preds[class_name]
 
-        """
-            Assign detection-results to ground-truth objects
-        """
+        # Assign detection-results to ground-truth objects
         nd = len(dr_data)
         tp = [0] * nd  # creates an array of zeros of size nd
         fp = [0] * nd
@@ -305,7 +308,6 @@ def calculate_mAP(
                             - iw * ih
                         )
                         ov = iw * ih / ua
-                        # print(f"Overlap: {ov}")
                         if ov > ovmax:
                             ovmax = ov  # type: ignore
                             gt_match = obj
@@ -324,7 +326,6 @@ def calculate_mAP(
                 # false positive
                 fp[idx] = 1
                 if ovmax > 0:
-                    # status = "INSUFFICIENT OVERLAP"
                     pass
 
         # compute precision/recall
@@ -337,10 +338,10 @@ def calculate_mAP(
             tp[idx] += cumsum
             cumsum += val
         rec = tp[:]
-        for idx, val in enumerate(tp):
+        for idx, _val in enumerate(tp):
             rec[idx] = float(tp[idx]) / gt_counter_per_class[class_name]
         prec = tp[:]
-        for idx, val in enumerate(tp):
+        for idx, _val in enumerate(tp):
             prec[idx] = float(tp[idx]) / (fp[idx] + tp[idx])  # type: ignore
 
         ap, mrec, mprec = voc_ap(rec[:], prec[:])
@@ -358,6 +359,7 @@ def calculate_mAP(
 def mean_average_precision(
     ground_truth: list, predictions: list, overlap: float = 0.5
 ) -> float:
+    """Compute mean average precision."""
 
     (
         out_dict,
@@ -381,9 +383,7 @@ def mean_average_precision(
 
 
 def format_obj_detection_data(inp: pd.DataFrame) -> list:
-    """
-    Takes our DataFrame format input and converts to the appropriate list of lists format
-    """
+    """Convert DataFrame format input to the appropriate list of lists format."""
     new = inp["bbox"].str.split(",", n=4, expand=True)
     new.columns = ["xmin", "ymin", "xmax", "ymax"]
     inp = inp.merge(new, left_index=True, right_index=True)
