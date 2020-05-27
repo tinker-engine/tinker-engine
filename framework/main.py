@@ -86,11 +86,9 @@ def execute():
     if not os.path.exists(algorithmsbasepath):
         print("given algorithm directory doesn't exist")
         exit(1)
-
     if not os.path.isdir(algorithmsbasepath):
         print("given algorithm path isn't a directory")
         exit(1)
-
     # deconstruct the path to the protocol so that we can construct the
     # object dynamically.
     protfilename = args.protocol_file
@@ -113,7 +111,6 @@ def execute():
         exit(1)
 
 
-
     # list the available interfaces
     harness = None
     if args.list_interfaces:
@@ -133,12 +130,10 @@ def execute():
 
         # after printing the interfaces, there is nothing else to do.
         exit(0)
-    
     # search for the desired interface in the various places it could be.
     if harness is None:
         # check the protocol directory for the desired interface class
         check_directory_for_interface(protocol_file_path, args.interface, False)
-
     if harness is None:
         # check the current working directory for the desired interface class.
         check_directory_for_interface(".", args.interface, False)
@@ -148,7 +143,6 @@ def execute():
         obj = discovered_plugins.get(args.interface)
         if obj is not None:
             harness = obj('configuration.json', protocol_file_path )
-
     # as a last resort, look for the interface in the framework itself.
     if harness is None:
         for name, obj in inspect.getmembers(sys.modules[__name__]):
@@ -158,7 +152,6 @@ def execute():
     if harness is None:
         print( "Requested interface not found" )
         exit(1)
-
 
     protbase, protext = os.path.splitext(protfile)
 
@@ -193,16 +186,20 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces ):
     and return the object.
     """
     harness = None
-    for file in os.listdir(file_path):
-        filebase, fileext = os.path.splitext(file)
-        if fileext == ".py" and not filebase == "__init__":
-            interfaceimport = __import__(filebase, globals(), locals(), [], 0)
-            for name, obj in inspect.getmembers(interfaceimport):
-                if inspect.isclass(obj) and interfaceimport == inspect.getmodule( obj ):
-                    if print_interfaces:
-                        print_interface( name, obj)
-                    elif name == interface_name and issubclass(obj, Harness):
-                        harness = obj('configuration.json', file_path)
+    try:
+        for file in os.listdir(file_path):
+            filebase, fileext = os.path.splitext(file)
+            if fileext == ".py" and not filebase == "__init__" and not filebase == "setup":
+                interfaceimport = __import__(filebase, globals(), locals(), [], 0)
+                for name, obj in inspect.getmembers(interfaceimport):
+                    if inspect.isclass(obj) and interfaceimport == inspect.getmodule( obj ):
+                        if print_interfaces:
+                            print_interface( name, obj)
+                        elif name == interface_name and issubclass(obj, Harness):
+                            harness = obj('configuration.json', file_path)
+    except:
+        #ignore any import error, but leave the harness set to none to indicate failure
+        harness = none
     return harness
 
 
