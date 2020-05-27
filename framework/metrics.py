@@ -38,13 +38,22 @@ def _validate_input_ids_one_to_one(df: pd.DataFrame, actuals: pd.DataFrame) -> N
     # Check lengths of dataframes are the same
     if len(df["id"]) != len(actuals["id"]):
         raise Exception(
-            "Hitting condition: `len(df['id']) != len(actuals['id'])`\nThis probably means that you are missing some test ids"
+            "\n".join(
+                [
+                    "Hitting condition: `len(df['id']) != len(actuals['id'])`",
+                    "This probably means that you are missing some test ids",
+                ]
+            )
         )
     # Check all test labels are accounted for in one to one relationship
     if len(set(df["id"].tolist()).difference(set(actuals["id"].tolist()))) != 0:
         raise Exception(
-            "Hitting condition: `len(set(df['id'].tolist()).difference(set(actuals['id'].tolist()))) != 0`\nThis probably means that you are \
-            missing some test ids"
+            "\n".join(
+                [
+                    "Hitting condition: `len(set(df['id'].tolist()).difference(set(actuals['id'].tolist()))) != 0`",
+                    "This probably means that you are missing some test ids",
+                ]
+            )
         )
     return
 
@@ -53,8 +62,13 @@ def _validate_input_ids_many_to_many(df: pd.DataFrame, actuals: pd.DataFrame) ->
     # Check all test labels are accounted for in a possible many to many relationship
     if len(set(df["id"].unique().tolist()).difference(set(actuals["id"].unique().tolist()))) != 0:
         raise Exception(
-            "Hitting condition: `len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0`\nThis \
-            probably means that you are missing some test ids"
+            "\n".join(
+                [
+                    "Hitting condition:",
+                    "`len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0`",
+                    "This probably means that you are missing some test ids",
+                ]
+            )
         )
     return
 

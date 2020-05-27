@@ -59,7 +59,7 @@ class ParInterface(Harness):
 
         response = requests.get(
             f"{self.api_url}/test/ids",
-            files={"test_requirements": io.StringIO(json.dumps(payload)), "test_assumptions": io.StringIO(contents),},
+            files={"test_requirements": io.StringIO(json.dumps(payload)), "test_assumptions": io.StringIO(contents)},
         )
 
         self._check_response(response)
@@ -113,7 +113,7 @@ class ParInterface(Harness):
         """
         response = requests.get(
             f"{self.api_url}/session/dataset",
-            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id,},
+            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id},
         )
 
         self._check_response(response)
@@ -219,7 +219,7 @@ class ParInterface(Harness):
         """
         response = requests.get(
             f"{self.api_url}/session/evaluations",
-            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id,},
+            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id},
         )
 
         self._check_response(response)
