@@ -24,7 +24,7 @@ def accuracy(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
     return acc
 
 
-def mAP(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
+def mean_avg_prec(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
     """Compute mean average precision."""
 
     _validate_input_ids_many_to_many(df, actuals)
@@ -257,7 +257,7 @@ def _add_used_var_to_bboxes(out_dict: dict) -> dict:
     return _to_return
 
 
-def calculate_mAP(
+def calculate_mean_avg_prec(
     out_dict: dict,
     out_preds: dict,
     gt_classes: list,
@@ -355,8 +355,7 @@ def calculate_mAP(
         lamr, mr, fppi = log_average_miss_rate(np.array(rec), np.array(fp), n_images)
         lamr_dictionary[class_name] = lamr
 
-    mAP = round(sum_AP / n_classes, 2)
-    return mAP
+    return round(sum_AP / n_classes, 2)
 
 
 def mean_average_precision(ground_truth: list, predictions: list, overlap: float = 0.5) -> float:
@@ -364,11 +363,9 @@ def mean_average_precision(ground_truth: list, predictions: list, overlap: float
 
     (out_dict, gt_counter_per_class, counter_images_per_class, gt_classes, n_classes,) = populate_gt_stats(ground_truth)
     out_preds = prep_preds(predictions, gt_classes)
-    mAP = calculate_mAP(
+    return calculate_mean_avg_prec(
         out_dict, out_preds, gt_classes, counter_images_per_class, gt_counter_per_class, n_classes, min_overlap=overlap,
     )
-
-    return mAP
 
 
 def format_obj_detection_data(inp: pd.DataFrame) -> list:
