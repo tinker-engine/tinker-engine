@@ -41,19 +41,13 @@ class VAE(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(z_dim, 1024 * 4 * 4),  # B, 1024*8*8
             View((-1, 1024, 4, 4)),  # B, 1024,  8,  8
-            nn.ConvTranspose2d(
-                1024, 512, 4, 2, 1, bias=False
-            ),  # B,  512, 16, 16
+            nn.ConvTranspose2d(1024, 512, 4, 2, 1, bias=False),  # B,  512, 16, 16
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            nn.ConvTranspose2d(
-                512, 256, 4, 2, 1, bias=False
-            ),  # B,  256, 32, 32
+            nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),  # B,  256, 32, 32
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            nn.ConvTranspose2d(
-                256, 128, 4, 2, 1, bias=False
-            ),  # B,  128, 64, 64
+            nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),  # B,  128, 64, 64
             nn.BatchNorm2d(128),
             nn.ReLU(True),
             nn.ConvTranspose2d(128, nc, 1),  # B,   nc, 64, 64

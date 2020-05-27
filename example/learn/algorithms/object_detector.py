@@ -47,6 +47,7 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
     The last four variables (after arguments) are specific to the VAAL algorithm
     so are not necessary for the overall problem.
     """
+
     def __init__(self, toolset):
         """
         Here is where you can add in your initialization of your algorithm.
@@ -73,10 +74,8 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
         self.batch_size = 32
         self.num_workers = 0
 
-
     def initialize(self):
         pass
-
 
     def domain_adapt_training(self):
         """ Method for the training in the train stage of the problem.
@@ -128,9 +127,9 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
         labeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=labeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].labeled_size,
-                           int(self.batch_size)
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].labeled_size, int(self.batch_size)
+            ),
             num_workers=int(self.num_workers),
             collate_fn=self.toolset["target_dataset"].collate_batch,
             drop_last=True,
@@ -144,9 +143,9 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
         unlabeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].unlabeled_size,
-                           int(self.batch_size)
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].unlabeled_size, int(self.batch_size)
+            ),
             num_workers=int(self.num_workers),
             drop_last=False,
         )
@@ -171,71 +170,71 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
         # ##################  ACTIVE LEARNING... Finally. #####################
         #  Figure out the current budget left before checkpoint/evaluation from
         #  the status
-        budget = self.toolset['budget']
+        budget = self.toolset["budget"]
 
         #  This approach sets the budget for how many images that they want
         #  labeled.
         # self.vaal.sampler = VAAL.sampler.AdversarySampler(budget)
 
-#        # You pick which indices that you want labeled.  Here, it is using
-#        # dataset to ensure the correct indices and tracking inside their
-#        # function (the dataset getitem returns the index)
-#         sampled_indices = self.vaal.sample_for_labeling(
-#             vae, discriminator, unlabeled_dataloader)
-#
-#        #  ########### Query for labels -- Kitware managed ################
-#        #  This function is handled by Kitware and takes the indices from the
-#        #  algorithm and queries for new labels. The new labels are added to
-#        #  the dataset and the labeled/unlabeled indices are updated
+        #        # You pick which indices that you want labeled.  Here, it is using
+        #        # dataset to ensure the correct indices and tracking inside their
+        #        # function (the dataset getitem returns the index)
+        #         sampled_indices = self.vaal.sample_for_labeling(
+        #             vae, discriminator, unlabeled_dataloader)
+        #
+        #        #  ########### Query for labels -- Kitware managed ################
+        #        #  This function is handled by Kitware and takes the indices from the
+        #        #  algorithm and queries for new labels. The new labels are added to
+        #        #  the dataset and the labeled/unlabeled indices are updated
 
         sampled_indices = np.random.choice(
-                                           list(self.toolset["target_dataset"].unlabeled_indices),
-                                           budget
-                                           )
+            list(self.toolset["target_dataset"].unlabeled_indices), budget
+        )
 
         self.toolset["target_dataset"].get_more_labels(sampled_indices)
-#        #  Note: you don't have to request the entire budget, but
-#        #      you shouldn't end the function until the budget is exhausted
-#        #      since the budget is lost after evaluation.
 
-        #
-        # ##################  End of ACTIVE LEARNING #####################
+    #        #  Note: you don't have to request the entire budget, but
+    #        #      you shouldn't end the function until the budget is exhausted
+    #        #      since the budget is lost after evaluation.
 
-        # ##################  Training on all labels... #####################
+    #
+    # ##################  End of ACTIVE LEARNING #####################
 
-        # Update the labeled sampler and dataloader with the new data.
-        # labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
-        #     self.current_dataset.get_labeled_indices()
-        # )
-        #
-        # labeled_dataloader = torch.utils.data.DataLoader(
-        #     self.current_dataset,
-        #     sampler=labeled_sampler,
-        #     batch_size=min(len(self.current_dataset.get_labeled_indices()),
-        #                    int(self.arguments["batch_size"])
-        #                    ),
-        #     num_workers=int(self.arguments["num_workers"]),
-        #     collate_fn=self.current_dataset.collate_batch,
-        #     drop_last=True,
-        # )
+    # ##################  Training on all labels... #####################
 
-        # train the models on the current data
-        # acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
-        #                                                       labeled_dataloader,
-        #                                                       self.task_model)
-        # self.train_accuracies.append(acc)
+    # Update the labeled sampler and dataloader with the new data.
+    # labeled_sampler = torch.utils.data.sampler.SubsetRandomSampler(
+    #     self.current_dataset.get_labeled_indices()
+    # )
+    #
+    # labeled_dataloader = torch.utils.data.DataLoader(
+    #     self.current_dataset,
+    #     sampler=labeled_sampler,
+    #     batch_size=min(len(self.current_dataset.get_labeled_indices()),
+    #                    int(self.arguments["batch_size"])
+    #                    ),
+    #     num_workers=int(self.arguments["num_workers"]),
+    #     collate_fn=self.current_dataset.collate_batch,
+    #     drop_last=True,
+    # )
 
-        # ##################  End of ACTIVE LEARNING #####################
+    # train the models on the current data
+    # acc, self.task_model = CloserLookFewShot.solver.train(self.arguments,
+    #                                                       labeled_dataloader,
+    #                                                       self.task_model)
+    # self.train_accuracies.append(acc)
 
-        #  Note: Evaluation/inference will happen after this function is over so you
-        #      will probably want to continue to train for the task after the active
-        #      learning part is done since you just got new labels.
+    # ##################  End of ACTIVE LEARNING #####################
 
-        #  This function should end when the budget is exhausted and your algorithm
-        #  is fully trained on the current set of labels. Feel free to turn this
-        #  function into a loop containing both the training and active learning
-        #  elements if you want to request labels in smaller increments of data
-        #  rather than requesting the entire budget here
+    #  Note: Evaluation/inference will happen after this function is over so you
+    #      will probably want to continue to train for the task after the active
+    #      learning part is done since you just got new labels.
+
+    #  This function should end when the budget is exhausted and your algorithm
+    #  is fully trained on the current set of labels. Feel free to turn this
+    #  function into a loop containing both the training and active learning
+    #  elements if you want to request labels in smaller increments of data
+    #  rather than requesting the entire budget here
 
     def inference(self):
         """
@@ -273,5 +272,5 @@ class ObjectDetectorAlgorithm(ObjectDetectorAdapter):
         #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
         #     indices += inds.numpy().tolist()
 
-        preds, indices = self.toolset["eval_dataset"].dummy_data('object_detection')
+        preds, indices = self.toolset["eval_dataset"].dummy_data("object_detection")
         return preds, indices

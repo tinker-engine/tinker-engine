@@ -30,12 +30,7 @@ class Solver:
                     yield img
 
     def train(
-        self,
-        querry_dataloader,
-        task_model,
-        vae,
-        discriminator,
-        unlabeled_dataloader,
+        self, querry_dataloader, task_model, vae, discriminator, unlabeled_dataloader,
     ):
         labeled_data = self.read_data(querry_dataloader)
         unlabeled_data = self.read_data(unlabeled_dataloader, labels=False)
@@ -59,8 +54,9 @@ class Solver:
 
         change_lr_iter = int(self.args["train_iterations"]) // 25
 
-        for iter_count in ub.ProgIter(range(int(self.args["train_iterations"])),
-                                      desc='Training on Data'):
+        for iter_count in ub.ProgIter(
+            range(int(self.args["train_iterations"])), desc="Training on Data"
+        ):
             if iter_count is not 0 and iter_count % change_lr_iter == 0:
                 for param in optim_vae.param_groups:
                     param["lr"] = param["lr"] * 0.9
@@ -92,9 +88,7 @@ class Solver:
                 unsup_loss = self.vae_loss(
                     labeled_imgs, recon, mu, logvar, self.args["beta"]
                 )
-                unlab_recon, unlab_z, unlab_mu, unlab_logvar = vae(
-                    unlabeled_imgs
-                )
+                unlab_recon, unlab_z, unlab_mu, unlab_logvar = vae(unlabeled_imgs)
                 transductive_loss = self.vae_loss(
                     unlabeled_imgs,
                     unlab_recon,
@@ -113,9 +107,9 @@ class Solver:
                     lab_real_preds = lab_real_preds.cuda()
                     unlab_real_preds = unlab_real_preds.cuda()
 
-                dsc_loss = self.bce_loss(
-                    labeled_preds, lab_real_preds
-                ) + self.bce_loss(unlabeled_preds, unlab_real_preds)
+                dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
+                    unlabeled_preds, unlab_real_preds
+                )
                 total_vae_loss = (
                     unsup_loss
                     + transductive_loss
@@ -151,9 +145,9 @@ class Solver:
                     lab_real_preds = lab_real_preds.cuda()
                     unlab_fake_preds = unlab_fake_preds.cuda()
 
-                dsc_loss = self.bce_loss(
-                    labeled_preds, lab_real_preds
-                ) + self.bce_loss(unlabeled_preds, unlab_fake_preds)
+                dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
+                    unlabeled_preds, unlab_fake_preds
+                )
 
                 optim_discriminator.zero_grad()
                 dsc_loss.backward()
@@ -173,14 +167,8 @@ class Solver:
                 print("\nCurrent training iteration: {}".format(iter_count))
 
                 if task_model:
-                    print(
-                        "\tCurrent task model loss: {:.4f}".format(task_loss.item())
-                    )
-                print(
-                    "\tCurrent vae model loss: {:.4f}".format(
-                        total_vae_loss.item()
-                    )
-                )
+                    print("\tCurrent task model loss: {:.4f}".format(task_loss.item()))
+                print("\tCurrent vae model loss: {:.4f}".format(total_vae_loss.item()))
                 print(
                     "\tCurrent discriminator model loss: {:.4f}\n".format(
                         dsc_loss.item()

@@ -2,6 +2,7 @@ import sys
 import torch
 from imageClassificationAdapter import ImageClassifierAdapter
 import torch.utils.data as data
+
 # import CloserLookFewShot.model
 # import CloserLookFewShot.solver
 # import VAAL.sampler
@@ -10,7 +11,6 @@ import torch.utils.data as data
 
 
 class ImageClassifierAlgorithm(ImageClassifierAdapter):
-
     def __init__(self, toolset):
         # def __init__(self, problem, base_dataset, adapt_dataset, arguments):
         ImageClassifierAdapter.__init__(self, toolset)
@@ -60,9 +60,9 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         labeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=labeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].labeled_size,
-                           int(self.batch_size)
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].labeled_size, int(self.batch_size)
+            ),
             num_workers=int(self.num_workers),
             collate_fn=self.toolset["target_dataset"].collate_batch,
             drop_last=True,
@@ -76,9 +76,9 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         unlabeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].unlabeled_size,
-                           int(self.batch_size)
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].unlabeled_size, int(self.batch_size)
+            ),
             num_workers=int(self.num_workers),
             drop_last=False,
         )
@@ -201,8 +201,5 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         #     preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
         #     indices += inds.numpy().tolist()
 
-        preds, indices = self.toolset["eval_dataset"].dummy_data('image_classification')
+        preds, indices = self.toolset["eval_dataset"].dummy_data("image_classification")
         return preds, indices
-
-
-

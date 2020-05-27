@@ -11,15 +11,16 @@ from typing import Any, Generator, Optional, Dict
 from requests import Response
 from uuid import UUID
 
+
 class ParInterface(Harness):
-    def __init__(self, configfile, configfolder ) -> None:
+    def __init__(self, configfile, configfolder) -> None:
         """
         Initialize a client connection object.
 
         :param api_url: url for where server is hosted
         """
-        Harness.__init__(self, configfile, configfolder )
-        self.api_url = self.configuration_data['url']
+        Harness.__init__(self, configfile, configfolder)
+        self.api_url = self.configuration_data["url"]
         self.folder = configfolder
 
     def _check_response(self, response: Response) -> None:
@@ -30,10 +31,9 @@ class ParInterface(Harness):
         :return: True
         """
         if response.status_code != 200:
-            #TODO: print more thorough information here
-            print( "Server error: ", response.status_code )
+            # TODO: print more thorough information here
+            print("Server error: ", response.status_code)
             exit(1)
-
 
     def test_ids_request(
         self,
@@ -84,7 +84,9 @@ class ParInterface(Harness):
 
         return filename
 
-    def session_request( self, test_ids: list, protocol: str, novelty_detector_version: str):
+    def session_request(
+        self, test_ids: list, protocol: str, novelty_detector_version: str
+    ):
         """
         Create a new session to evaluate the detector using an empirical protocol.
 
@@ -100,15 +102,11 @@ class ParInterface(Harness):
             "novelty_detector_version": novelty_detector_version,
         }
 
-        ids = '\n'.join(test_ids) + "\n"
-
+        ids = "\n".join(test_ids) + "\n"
 
         response = requests.post(
             f"{self.api_url}/session",
-            files={
-                "test_ids": ids,
-                "configuration": io.StringIO(json.dumps(payload)),
-            },
+            files={"test_ids": ids, "configuration": io.StringIO(json.dumps(payload)),},
         )
 
         self._check_response(response)
@@ -127,7 +125,11 @@ class ParInterface(Harness):
         """
         response = requests.get(
             f"{self.api_url}/session/dataset",
-            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id},
+            params={
+                "session_id": self.session_id,
+                "test_id": test_id,
+                "round_id": round_id,
+            },
         )
 
         self._check_response(response)
@@ -145,14 +147,15 @@ class ParInterface(Harness):
 
         return new_filename
 
-    #TODO: merge this code directly into dataset_request, and stop writing so many files
+    # TODO: merge this code directly into dataset_request, and stop writing so many files
     def _append_data_root_to_dataset(self, dataset_path: str, test_id: UUID) -> str:
         assert os.path.exists(dataset_path)
         orig_dataset = open(dataset_path, "r")
         with open(dataset_path, "r") as orig_dataset:
             image_names = orig_dataset.readlines()
             image_paths = [
-                os.path.join(self.configuration_data['data_location'], image_name) for image_name in image_names
+                os.path.join(self.configuration_data["data_location"], image_name)
+                for image_name in image_names
             ]
         new_dataset_file = f"{self.session_id}_{test_id}.csv"
         new_dataset_path = os.path.join(os.getcwd(), new_dataset_file)
@@ -160,13 +163,8 @@ class ParInterface(Harness):
             new_dataset.writelines(image_paths)
         return new_dataset_path
 
-
     def get_feedback_request(
-        self,
-        feedback_ids: list,
-        feedback_type: str,
-        test_id: str,
-        round_id: int,
+        self, feedback_ids: list, feedback_type: str, test_id: str, round_id: int,
     ) -> Dict[str, Any]:
         """
         Get Labels from the server based provided one or more example ids.
@@ -194,7 +192,9 @@ class ParInterface(Harness):
 
         return response.json()
 
-    def post_results( self, result_files: Dict[str, str], test_id: UUID, round_id: int,) -> None:
+    def post_results(
+        self, result_files: Dict[str, str], test_id: UUID, round_id: int,
+    ) -> None:
         """
         Post client detector predictions for the dataset.
 
@@ -209,7 +209,7 @@ class ParInterface(Harness):
             "session_id": self.session_id,
             "test_id": test_id,
             "round_id": round_id,
-            "result_types": "|".join(result_files.keys())
+            "result_types": "|".join(result_files.keys()),
         }
 
         files = {"test_identification": io.StringIO(json.dumps(payload))}
@@ -238,7 +238,11 @@ class ParInterface(Harness):
         """
         response = requests.get(
             f"{self.api_url}/session/evaluations",
-            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id},
+            params={
+                "session_id": self.session_id,
+                "test_id": test_id,
+                "round_id": round_id,
+            },
         )
 
         self._check_response(response)
@@ -264,8 +268,7 @@ class ParInterface(Harness):
             metadata json
         """
         response = requests.get(
-            f"{self.api_url}/test/metadata",
-            params={"test_id": test_id},
+            f"{self.api_url}/test/metadata", params={"test_id": test_id},
         )
 
         self._check_response(response)
@@ -278,8 +281,9 @@ class ParInterface(Harness):
         Arguments:
         Returns: No return
         """
-        response = requests.delete(f"{self.api_url}/session", params={"session_id": self.session_id})
+        response = requests.delete(
+            f"{self.api_url}/session", params={"session_id": self.session_id}
+        )
 
         self._check_response(response)
         self.session_id = None
-

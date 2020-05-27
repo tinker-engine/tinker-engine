@@ -13,7 +13,7 @@ class DomainNetworkSelection(BaseAlgorithm):
         # of altering the internal model. Available resources for training can be
         # retrieved using the BaseAlgorithm functions.
         self.toolset = toolset
-        if step_descriptor == 'SelectAndLabelData':
+        if step_descriptor == "SelectAndLabelData":
             self.select_and_label_data()
 
         pass
@@ -37,7 +37,7 @@ class DomainNetworkSelection(BaseAlgorithm):
         # ##################  ACTIVE LEARNING... Finally. #####################
         #  Figure out the current budget left before checkpoint/evaluation from
         #  the status
-        budget = self.toolset['budget']
+        budget = self.toolset["budget"]
 
         #  This approach sets the budget for how many images that they want
         #  labeled.
@@ -54,12 +54,10 @@ class DomainNetworkSelection(BaseAlgorithm):
         #        #  algorithm and queries for new labels. The new labels are added to
         #        #  the dataset and the labeled/unlabeled indices are updated
         sampled_indices = np.random.choice(
-            list(self.toolset["target_dataset"].unlabeled_indices),
-            budget
+            list(self.toolset["target_dataset"].unlabeled_indices), budget
         )
 
         self.toolset["target_dataset"].get_more_labels(sampled_indices)
-
 
     #        #  Note: you don't have to request the entire budget, but
     #        #      you shouldn't end the function until the budget is exhausted

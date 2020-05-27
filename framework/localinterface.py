@@ -18,6 +18,7 @@ class LocalInterface(Harness):
     """  Local interface
 
     """
+
     def __init__(self, json_configuration_file, interface_config_path):
         """
         Initialize the object by loading the given configuration file. The configuration file
@@ -49,7 +50,7 @@ class LocalInterface(Harness):
         # prep the stagenames from the metadata for easier searching later.
         self.stagenames = []
         for stage in self.metadata["stages"]:
-            self.stagenames.append(stage['name'])
+            self.stagenames.append(stage["name"])
 
         self.current_stage = None
         self.seed_labels = dict()
@@ -68,29 +69,25 @@ class LocalInterface(Harness):
         print("get whitelist datasets")
         from pathlib import Path
         import pandas as pd
+
         external_dataset_root = f'{self.metadata["external_dataset_location"]}'
         p = Path(external_dataset_root)
         # TODO: load both train and test into same dataset
         external_datasets = dict()
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
-            print(f'Loading {name}')
-            for dset in ['train', 'test']:
-                labels = pd.read_feather(
-                    e / 'labels_full' / f'labels_{dset}.feather')
-                e_root = e / f'{name}_full' / dset
-                if 'bbox' in labels.columns:
-                    external_datasets[f'{name}_{dset}'] = ObjectDetectionDataset(
-                        self,
-                        dataset_name=name,
-                        dataset_root=e_root,
-                        seed_labels=labels)
+            print(f"Loading {name}")
+            for dset in ["train", "test"]:
+                labels = pd.read_feather(e / "labels_full" / f"labels_{dset}.feather")
+                e_root = e / f"{name}_full" / dset
+                if "bbox" in labels.columns:
+                    external_datasets[f"{name}_{dset}"] = ObjectDetectionDataset(
+                        self, dataset_name=name, dataset_root=e_root, seed_labels=labels
+                    )
                 else:
-                    external_datasets[f'{name}_{dset}'] = ImageClassificationDataset(
-                        self,
-                        dataset_name=name,
-                        dataset_root=e_root,
-                        seed_labels=labels)
+                    external_datasets[f"{name}_{dset}"] = ImageClassificationDataset(
+                        self, dataset_name=name, dataset_root=e_root, seed_labels=labels
+                    )
         return external_datasets
 
     def get_whitelist_datasets(self):
@@ -112,19 +109,15 @@ class LocalInterface(Harness):
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
             print("Loading external dataset", name)
-            labels = pd.read_feather(e / 'labels' / 'labels.feather')
-            if 'bbox' in labels.columns:
+            labels = pd.read_feather(e / "labels" / "labels.feather")
+            if "bbox" in labels.columns:
                 external_datasets[name] = ObjectDetectionDataset(
-                    self,
-                    dataset_root=e,
-                    dataset_name=name,
-                    seed_labels=labels)
+                    self, dataset_root=e, dataset_name=name, seed_labels=labels
+                )
             else:
                 external_datasets[name] = ImageClassificationDataset(
-                    self,
-                    dataset_root=e,
-                    dataset_name=name,
-                    seed_labels=labels)
+                    self, dataset_root=e, dataset_name=name, seed_labels=labels
+                )
 
         return external_datasets
 
@@ -142,12 +135,12 @@ class LocalInterface(Harness):
             # check the dataset to make sure that the budgets don't exceed the available
             # labels
             total_avaialble_labels = target_dataset.unlabeled_size
-            for index, budget in enumerate(stage_metadata['label_budget']):
+            for index, budget in enumerate(stage_metadata["label_budget"]):
                 if budget > total_avaialble_labels:
-                    stage_metadata['label_budget'][index] = total_avaialble_labels
-                total_avaialble_labels -= stage_metadata['label_budget'][index]
+                    stage_metadata["label_budget"][index] = total_avaialble_labels
+                total_avaialble_labels -= stage_metadata["label_budget"][index]
 
-            return stage_metadata['label_budget']
+            return stage_metadata["label_budget"]
 
         else:
             print("Missing stage metadata for", stage)
@@ -177,12 +170,13 @@ class LocalInterface(Harness):
         # move to the next checkpoint and move its budget into the current budget.
         stage_metadata = self.get_stage_metadata(stage_name)
         self.current_checkpoint_index = checkpoint_num
-        if self.current_checkpoint_index >= len(stage_metadata['label_budget']):
+        if self.current_checkpoint_index >= len(stage_metadata["label_budget"]):
             print("Out of checkpoints, cant start a new checkpoint")
             exit(1)
 
-        self.current_budget = stage_metadata['label_budget'][
-            self.current_checkpoint_index]
+        self.current_budget = stage_metadata["label_budget"][
+            self.current_checkpoint_index
+        ]
         if target_dataset.unlabeled_size < self.current_budget:
             self.current_budget = target_dataset.unlabeled_size
 
@@ -215,19 +209,23 @@ class LocalInterface(Harness):
         """
         import torchvision
 
-        if dataset_name == 'mnist':
-            dataset = torchvision.datasets.MNIST(dataset_path,
-                                                 train=True,
-                                                 transform=None,
-                                                 target_transform=None,
-                                                 download=True)
+        if dataset_name == "mnist":
+            dataset = torchvision.datasets.MNIST(
+                dataset_path,
+                train=True,
+                transform=None,
+                target_transform=None,
+                download=True,
+            )
             self.create_dataset(dataset, dataset_name, dataset_path)
 
-            dataset = torchvision.datasets.MNIST(dataset_path,
-                                                 train=False,
-                                                 transform=None,
-                                                 target_transform=None,
-                                                 download=True)
+            dataset = torchvision.datasets.MNIST(
+                dataset_path,
+                train=False,
+                transform=None,
+                target_transform=None,
+                download=True,
+            )
 
             self.create_dataset(dataset, dataset_name, dataset_path)
 
@@ -247,32 +245,32 @@ class LocalInterface(Harness):
 
         """
         dataset_coco = dict()
-        dataset_root = dataset_path / 'images'
-        dataset_coco['root'] = str(dataset_root)
-        dataset_coco['classes'] = dataset.classes
-        dataset_coco['class_to_idx'] = dataset.class_to_idx
+        dataset_root = dataset_path / "images"
+        dataset_coco["root"] = str(dataset_root)
+        dataset_coco["classes"] = dataset.classes
+        dataset_coco["class_to_idx"] = dataset.class_to_idx
         # using prefix to seperate out the images
-        split = 'test'
+        split = "test"
         if dataset.train:
-            split = 'train'
+            split = "train"
         images = []
 
         for itx, data in enumerate(dataset):
             img, label = data
-            img_name = dataset_root / f'{split}_{itx}.png'
+            img_name = dataset_root / f"{split}_{itx}.png"
             img.save(img_name)
 
             # Add record for coco
             record = dict()
-            record['file_name'] = str(img_name)
-            record['height'] = img.height
-            record['width'] = img.width
-            record['image_id'] = itx
-            record['category_id'] = label
+            record["file_name"] = str(img_name)
+            record["height"] = img.height
+            record["width"] = img.width
+            record["image_id"] = itx
+            record["category_id"] = label
             images.append(record)
 
-        dataset_coco['images'] = images
-        coco_filename = dataset_path / f'{dataset_name}_{split}.coco'
+        dataset_coco["images"] = images
+        coco_filename = dataset_path / f"{dataset_name}_{split}.coco"
         json_obj = json.dumps(dataset_coco, indent=4)
         with open(coco_filename, "w") as json_file:
             json_file.write(json_obj)
@@ -291,19 +289,20 @@ class LocalInterface(Harness):
         stage_metadata = self.get_stage_metadata(stage_name)
         dataset_name = stage_metadata["datasets"][dataset_split]
         if stage_metadata:
-            dataset_path = (Path( self.metadata['development_dataset_location'] /
-                            dataset_name) )
+            dataset_path = Path(
+                self.metadata["development_dataset_location"] / dataset_name
+            )
         else:
             print("Missing stage metadata for", stage_name)
             exit(1)
 
-        if not (dataset_path / f'{dataset_name}.coco').exists():
+        if not (dataset_path / f"{dataset_name}.coco").exists():
             print("Downloading the Dataset")
-            (dataset_path / 'images').mkdir(parents=True, exist_ok=True)
+            (dataset_path / "images").mkdir(parents=True, exist_ok=True)
             self.download_dataset(dataset_name, dataset_path)
 
-        labels = pd.read_feather(dataset_path / 'labels' / 'labels.feather')
-        name = dataset_name + '_' + dataset_split
+        labels = pd.read_feather(dataset_path / "labels" / "labels.feather")
+        name = dataset_name + "_" + dataset_split
         # translate the labels provided by pandas into a dict keyed on the filename
         # while we are at it, build the seed labels as well.
         self.label_sets[name] = dict()
@@ -314,7 +313,7 @@ class LocalInterface(Harness):
         # class.
         # TODO: make the method of determining which labels are seed labels
         #  configurable.
-        self.seed_labels[name] = labels.drop_duplicates(subset='class')
+        self.seed_labels[name] = labels.drop_duplicates(subset="class")
         self.label_sets_pd[dataset_name] = labels
 
         for label in labels.values:
@@ -323,16 +322,20 @@ class LocalInterface(Harness):
             # this will be needed by get_more_labels later.
             self.label_sets[dataset_name][label[1]] = label[0]
 
-        if self.metadata['problem_type'] == "image_classification":
-            return ImageClassificationDataset(self,
-                                              dataset_root=dataset_path,
-                                              dataset_name=name,
-                                              categories=categories)
+        if self.metadata["problem_type"] == "image_classification":
+            return ImageClassificationDataset(
+                self,
+                dataset_root=dataset_path,
+                dataset_name=name,
+                categories=categories,
+            )
         else:
-            return ObjectDetectionDataset(self,
-                                          dataset_root=dataset_path,
-                                          dataset_name=name,
-                                          categories=categories)
+            return ObjectDetectionDataset(
+                self,
+                dataset_root=dataset_path,
+                dataset_name=name,
+                categories=categories,
+            )
 
     def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
         """
@@ -351,16 +354,20 @@ class LocalInterface(Harness):
         # TODO: Get this working for the local example
         stage_metadata = self.get_stage_metadata(stage_name)
         current_dataset = stage_metadata["datasets"][dataset_split]
-        if dataset_split == 'eval':
-            dataset_split = 'test'
+        if dataset_split == "eval":
+            dataset_split = "test"
 
-        dataset_root = (f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
-                        f'{current_dataset}_full/{dataset_split}')
-        label_file = (f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
-                      f'labels_full/labels_{dataset_split}.feather')
+        dataset_root = (
+            f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
+            f"{current_dataset}_full/{dataset_split}"
+        )
+        label_file = (
+            f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
+            f"labels_full/labels_{dataset_split}.feather"
+        )
 
         labels = pd.read_feather(label_file)
-        name = current_dataset + '_' + dataset_split
+        name = current_dataset + "_" + dataset_split
         # translate the labels provided by pandas into a dict keyed on the filename
         # while we are at it, build the seed labels as well.
         self.label_sets[name] = dict()
@@ -371,7 +378,7 @@ class LocalInterface(Harness):
         # class.
         # TODO: make the method of determining which labels are seed labels
         #  configurable.
-        self.seed_labels[name] = labels.drop_duplicates(subset='class')
+        self.seed_labels[name] = labels.drop_duplicates(subset="class")
         self.label_sets_pd[name] = labels
 
         for label in labels.values:
@@ -380,16 +387,20 @@ class LocalInterface(Harness):
             # this will be needed by get_more_labels later.
             self.label_sets[name][label[1]] = label[0]
 
-        if self.metadata['problem_type'] == "image_classification":
-            return ImageClassificationDataset(self,
-                                              dataset_root=dataset_root,
-                                              dataset_name=name,
-                                              categories=categories)
+        if self.metadata["problem_type"] == "image_classification":
+            return ImageClassificationDataset(
+                self,
+                dataset_root=dataset_root,
+                dataset_name=name,
+                categories=categories,
+            )
         else:
-            return ObjectDetectionDataset(self,
-                                          dataset_root=dataset_root,
-                                          dataset_name=name,
-                                          categories=categories)
+            return ObjectDetectionDataset(
+                self,
+                dataset_root=dataset_root,
+                dataset_name=name,
+                categories=categories,
+            )
 
     def get_more_labels(self, fnames, dataset_name):
         """
@@ -416,7 +427,7 @@ class LocalInterface(Harness):
             print("Too many labels requested, not enough budget.")
             exit(1)
 
-        mask =  self.label_sets_pd[dataset_name]['id'].isin(fnames)
+        mask = self.label_sets_pd[dataset_name]["id"].isin(fnames)
         new_labels = self.label_sets_pd[dataset_name][mask]
         return new_labels.to_dict()
 
@@ -448,32 +459,39 @@ class LocalInterface(Harness):
         # this will need to do more processing in the future.
         self.current_budget = None
         predictions_formatted = dataset.format_predictions(
-            predictions[0], predictions[1])
+            predictions[0], predictions[1]
+        )
 
-        predicitons_filename = self.metadata['results_file']
+        predicitons_filename = self.metadata["results_file"]
         json_obj = json.dumps(predictions_formatted, indent=4)
         with open(predicitons_filename, "w") as json_file:
             json_file.write(json_obj)
 
-        gt = self.label_sets_pd[dataset.name].sort_values('id')
-        pred = pd.DataFrame(predictions_formatted).sort_values('id')
-        if self.metadata['problem_type'] == 'image_classification':
+        gt = self.label_sets_pd[dataset.name].sort_values("id")
+        pred = pd.DataFrame(predictions_formatted).sort_values("id")
+        if self.metadata["problem_type"] == "image_classification":
             # Ensure that this is true and all classes are aligned.
-            assert ((gt['id'].values != pred['id'].values).sum() == 0)
-            acc2 = (gt['class'].values == pred['class'].values).mean()
+            assert (gt["id"].values != pred["id"].values).sum() == 0
+            acc2 = (gt["class"].values == pred["class"].values).mean()
 
             from .metrics import accuracy
-            acc = accuracy(pred, gt)
-            print(f'Accuracy for Stage:{stage_id} '
-                  f'Checkpoint: {self.current_checkpoint_index} is '
-                  f'{100 * acc:.02f}%')
 
-        elif self.metadata['problem_type'] == 'object_detection':
+            acc = accuracy(pred, gt)
+            print(
+                f"Accuracy for Stage:{stage_id} "
+                f"Checkpoint: {self.current_checkpoint_index} is "
+                f"{100 * acc:.02f}%"
+            )
+
+        elif self.metadata["problem_type"] == "object_detection":
             from .metrics import mAP
+
             acc = mAP(pred, gt)
-            print(f'Accuracy for Stage:{stage_id} '
-                  f'Checkpoint: {self.current_checkpoint_index} is '
-                  f'mAP: {100 * acc:.02f}')
+            print(
+                f"Accuracy for Stage:{stage_id} "
+                f"Checkpoint: {self.current_checkpoint_index} is "
+                f"mAP: {100 * acc:.02f}"
+            )
 
     def get_problem_metadata(self, task_id):
         """
@@ -505,7 +523,7 @@ class LocalInterface(Harness):
 
         # search through the list of stages for one that has a matching name.
         for stage in self.metadata["stages"]:
-            if stage['name'] == stagename:
+            if stage["name"] == stagename:
                 return stage
         return None
 
@@ -521,7 +539,7 @@ class LocalInterface(Harness):
                str: Formatted String of Status
          """
         info = json.dumps(self.metadata, indent=4)
-        return '\n'.join(['Problem/Task Status:', info, ''])
+        return "\n".join(["Problem/Task Status:", info, ""])
 
     def get_stages(self):
         """
@@ -530,6 +548,7 @@ class LocalInterface(Harness):
             none
         """
         return self.stagenames
+
     def get_task_ids(self):
         """
         return a list of tasks
@@ -537,4 +556,3 @@ class LocalInterface(Harness):
             none
         """
         return self.task_ids
-

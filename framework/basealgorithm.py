@@ -1,5 +1,5 @@
-
 import abc
+
 """
 .. _basealgorithm.py:
 
@@ -31,9 +31,10 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
         "GetPretrainedModelList"
 
     """
+
     def __init__(self, toolset):
         if isinstance(toolset, dict):
-            self.toolset= toolset
+            self.toolset = toolset
         elif toolset:
             print("Algorithms must be constructed with dictionary toolset")
             exit(1)
@@ -57,5 +58,3 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
                  function to call in the derived algorithm class.
         """
         raise NotImplementedError
-
-

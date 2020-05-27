@@ -8,11 +8,9 @@ import solver
 
 
 class ImageClassifierAlgorithm(ImageClassifierAdapter):
-
     def __init__(self, toolset):
         # def __init__(self, problem, base_dataset, adapt_dataset, arguments):
         ImageClassifierAdapter.__init__(self, toolset)
-
 
         self.config = dict()
 
@@ -37,14 +35,15 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         self.config["backbone"] = "Conf4S"
         self.config["start_epoch"] = 0
         self.config["end_epoch"] = 25
-        self.config['num_classes'] = self.toolset["target_dataset"].num_cats
+        self.config["num_classes"] = self.toolset["target_dataset"].num_cats
         self.CloserLookFewShot_config["checkpoint_dir"] = "./checkpoints"
 
         # model = solver.get_model(self.arguments["backbone"])
         model = self.toolset["source_network"]
         # TODO: Generalize the feature extraction network input
-        self.task_model = model.BaselineTrain(model, self.num_classes,
-                                              self.arguments['cuda'])
+        self.task_model = model.BaselineTrain(
+            model, self.num_classes, self.arguments["cuda"]
+        )
 
     def domain_adapt_training(self):
         # ###################  Creating the Labeled DataLoader ###############
@@ -74,9 +73,10 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         labeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=labeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].labeled_size,
-                           int(self.config["batch_size"])
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].labeled_size,
+                int(self.config["batch_size"]),
+            ),
             num_workers=int(self.num_workers),
             collate_fn=self.toolset["target_dataset"].collate_batch,
             drop_last=True,
@@ -90,16 +90,17 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         unlabeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].unlabeled_size,
-                           int(self.config["batch_size"])
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].unlabeled_size,
+                int(self.config["batch_size"]),
+            ),
             num_workers=int(self.num_workers),
             drop_last=False,
         )
 
-        acc, self.task_model = solver.train(self.config,
-                                            labeled_dataloader,
-                                            self.task_model)
+        acc, self.task_model = solver.train(
+            self.config, labeled_dataloader, self.task_model
+        )
 
     def inference(self):
         """
@@ -122,7 +123,7 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
         eval_dataloader = data.DataLoader(
             self.toolset["eval_dataset"],
             batch_size=int(self.config["batch_size"]),
-            drop_last=False
+            drop_last=False,
         )
 
         preds = []
@@ -138,10 +139,6 @@ class ImageClassifierAlgorithm(ImageClassifierAdapter):
             preds += torch.argmax(preds_, dim=1).cpu().numpy().tolist()
             indices += inds.numpy().tolist()
 
-        preds, indices = self.toolset["eval_dataset"].dummy_data(
-                                                       'image_classification')
+        preds, indices = self.toolset["eval_dataset"].dummy_data("image_classification")
 
         return preds, indices
-
-
-

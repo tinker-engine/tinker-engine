@@ -11,7 +11,7 @@ class AdversarySampler:
         all_preds = []
         all_indices = []
 
-        for images, _, indices in ub.ProgIter(data, desc='VAE sampling'):
+        for images, _, indices in ub.ProgIter(data, desc="VAE sampling"):
             if cuda:
                 images = images.cuda()
 

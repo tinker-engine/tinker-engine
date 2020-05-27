@@ -24,15 +24,19 @@ class Learn(JPLInterface, BaseProtocol):
         within the framework, and requires no external server to function.
 
     """
+
     def __init__(self, algorithmsdirectory):
         BaseProtocol.__init__(self, algorithmsdirectory)
-        JPLInterface.__init__(self,
-                              apikey="adab5090-39a9-47f3-9fc2-3d65e0fee9a2",
-                              url='https://api-dev.lollllz.com/')
+        JPLInterface.__init__(
+            self,
+            apikey="adab5090-39a9-47f3-9fc2-3d65e0fee9a2",
+            url="https://api-dev.lollllz.com/",
+        )
 
         # Location of the dataset
-        self.dataset_dir = \
+        self.dataset_dir = (
             "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets"
+        )
 
     def run_protocol(self):
         """ run_protocol is called from the framework and represents that initial
@@ -41,13 +45,12 @@ class Learn(JPLInterface, BaseProtocol):
         task_ids = self.get_task_ids()
 
         for task in task_ids:
-            if self.get_problem_metadata(task)['problem_type'] \
-                    == 'machine_translation':
+            if self.get_problem_metadata(task)["problem_type"] == "machine_translation":
                 continue
             try:
                 self.run_task(task)
             except:
-                print(f'error on {self.get_problem_metadata(task)}')
+                print(f"error on {self.get_problem_metadata(task)}")
 
     def run_task(self, task_id):
 
@@ -55,23 +58,25 @@ class Learn(JPLInterface, BaseProtocol):
 
         self.toolset["whitelist_datasets"] = self.get_whitelist_datasets()
 
-        domain_select_algo = self.get_algorithm("domainNetworkSelection.py",
-                                                self.toolset)
-        algo_select_algo = self.get_algorithm("algoSelection.py",
-                                              self.toolset)
+        domain_select_algo = self.get_algorithm(
+            "domainNetworkSelection.py", self.toolset
+        )
+        algo_select_algo = self.get_algorithm("algoSelection.py", self.toolset)
 
-        for stage in ['base', 'adapt']:
+        for stage in ["base", "adapt"]:
             self.stage_id = stage
             self.toolset["target_dataset"] = self.get_target_dataset()
 
             source_network, source_dataset = domain_select_algo.execute(
-                self.toolset, "SelectNetworkAndDataset")
+                self.toolset, "SelectNetworkAndDataset"
+            )
 
             self.toolset["source_dataset"] = source_dataset
             self.toolset["source_network"] = source_network
 
             query_algo_id, adapt_algo_id = algo_select_algo.execute(
-                self.toolset, "SelectAlgorithms")
+                self.toolset, "SelectAlgorithms"
+            )
 
             # TODO: Move config to inits of algorithms
             # The following line incorrectly uses the self.CloserLookFewShot_config
@@ -92,7 +97,7 @@ class Learn(JPLInterface, BaseProtocol):
             checkpoints = self.get_budget_checkpoints()
 
             for _ in checkpoints:
-                self.toolset["budget"] = self.status['budget_left_until_checkpoint']
+                self.toolset["budget"] = self.status["budget_left_until_checkpoint"]
                 # call the query_algo to update the dataset with new labels
                 query_algo.execute(self.toolset, "SelectAndLabelData")
 

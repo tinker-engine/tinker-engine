@@ -12,8 +12,8 @@ https://gitlab.lollllz.com/lwll/lwll_api/-/blob/devel/lwll_api/classes/metrics.p
 
 def accuracy(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
     _validate_input_ids_one_to_one(df, actuals)
-    _df = df.set_index('id')
-    _actuals = actuals.set_index('id')
+    _df = df.set_index("id")
+    _actuals = actuals.set_index("id")
     joined = pd.merge(_df, _actuals, left_index=True, right_index=True)
     joined.iloc[:, 0] = joined.iloc[:, 0].astype(str)
     joined.iloc[:, 1] = joined.iloc[:, 1].astype(str)
@@ -31,22 +31,33 @@ def mAP(df: pd.DataFrame, actuals: pd.DataFrame) -> float:
 
 def _validate_input_ids_one_to_one(df: pd.DataFrame, actuals: pd.DataFrame) -> None:
     # Check lengths of dataframes are the same
-    if len(df['id']) != len(actuals['id']):
-        raise Exception(f"Hitting condition: `len(df['id']) != len(actuals['id'])`\nThis probably means that you are missing some test ids")
+    if len(df["id"]) != len(actuals["id"]):
+        raise Exception(
+            f"Hitting condition: `len(df['id']) != len(actuals['id'])`\nThis probably means that you are missing some test ids"
+        )
     # Check all test labels are accounted for in one to one relationship
-    if len(set(df['id'].tolist()).difference(set(actuals['id'].tolist()))) != 0:
+    if len(set(df["id"].tolist()).difference(set(actuals["id"].tolist()))) != 0:
         raise Exception(
             f"Hitting condition: `len(set(df['id'].tolist()).difference(set(actuals['id'].tolist()))) != 0`\nThis probably means that you are \
-            missing some test ids")
+            missing some test ids"
+        )
     return
 
 
 def _validate_input_ids_many_to_many(df: pd.DataFrame, actuals: pd.DataFrame) -> None:
     # Check all test labels are accounted for in a possible many to many relationship
-    if len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0:
+    if (
+        len(
+            set(df["id"].unique().tolist()).difference(
+                set(actuals["id"].unique().tolist())
+            )
+        )
+        != 0
+    ):
         raise Exception(
             f"Hitting condition: `len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0`\nThis \
-            probably means that you are missing some test ids")
+            probably means that you are missing some test ids"
+        )
     return
 
 
@@ -59,7 +70,10 @@ as well as trying to group logical pieces of initial script. I think the person 
 is a Matlap person hence why the code style is not consistent with the rest of this code base. - MH 12/15/19
 """
 
-def log_average_miss_rate(precision: np.array, fp_cumsum: np.array, num_images: int) -> Tuple[float, float, float]:
+
+def log_average_miss_rate(
+    precision: np.array, fp_cumsum: np.array, num_images: int
+) -> Tuple[float, float, float]:
     """
         log-average miss rate:
             Calculated by averaging miss rates at 9 evenly spaced FPPI points
@@ -82,7 +96,7 @@ def log_average_miss_rate(precision: np.array, fp_cumsum: np.array, num_images: 
         return lamr, mr, fppi
 
     fppi = fp_cumsum / float(num_images)
-    mr = (1 - precision)
+    mr = 1 - precision
 
     fppi_tmp = np.insert(fppi, 0, -1.0)
     mr_tmp = np.insert(mr, 0, 1.0)
@@ -109,15 +123,15 @@ def voc_ap(rec: list, prec: list) -> Tuple[float, list, list]:
     mpre = prec[:]
     # This part makes the precision monotonically decreasing
 
-    for i in range(len(mpre)-2, -1, -1):
-        mpre[i] = max(mpre[i], mpre[i+1])
+    for i in range(len(mpre) - 2, -1, -1):
+        mpre[i] = max(mpre[i], mpre[i + 1])
     """
      This part creates a list of indexes where the recall changes
         matlab: i=find(mrec(2:end)~=mrec(1:end-1))+1;
     """
     i_list = []
     for i in range(1, len(mrec)):
-        if mrec[i] != mrec[i-1]:
+        if mrec[i] != mrec[i - 1]:
             i_list.append(i)  # if it was matlab would be i + 1
     """
      The Average Precision (AP) is the area under the curve
@@ -126,7 +140,7 @@ def voc_ap(rec: list, prec: list) -> Tuple[float, list, list]:
     """
     ap = 0.0
     for i in i_list:
-        ap += ((mrec[i]-mrec[i-1])*mpre[i])
+        ap += (mrec[i] - mrec[i - 1]) * mpre[i]
     return ap, mrec, mpre
 
 
@@ -139,17 +153,21 @@ def populate_gt_stats(ground_truth_labels: list) -> Tuple[dict, dict, dict, list
 
     unique_images = sorted(set([line[0] for line in ground_truth_labels]))
     for file_id in unique_images:
-        lines_list = [
-            line for line in ground_truth_labels if line[0] == file_id]
+        lines_list = [line for line in ground_truth_labels if line[0] == file_id]
 
         # create ground-truth dictionary
         bounding_boxes = []
         already_seen_classes: list = []
         for line in lines_list:
-            class_name, left, top, right, bottom = line[1], line[2], line[3], line[4], line[5]
+            class_name, left, top, right, bottom = (
+                line[1],
+                line[2],
+                line[3],
+                line[4],
+                line[5],
+            )
             bbox = f"{left} {top} {right} {bottom}"
-            bounding_boxes.append(
-                {"class_name": class_name, "bbox": bbox})
+            bounding_boxes.append({"class_name": class_name, "bbox": bbox})
             # count that object
             if class_name in gt_counter_per_class:
                 gt_counter_per_class[class_name] += 1
@@ -172,7 +190,13 @@ def populate_gt_stats(ground_truth_labels: list) -> Tuple[dict, dict, dict, list
         gt_classes = sorted(gt_classes)
         n_classes = len(gt_classes)
 
-    return out_dict, gt_counter_per_class, counter_images_per_class, gt_classes, n_classes
+    return (
+        out_dict,
+        gt_counter_per_class,
+        counter_images_per_class,
+        gt_classes,
+        n_classes,
+    )
 
 
 def prep_preds(preds_list: list, gt_classes: list) -> dict:
@@ -185,16 +209,24 @@ def prep_preds(preds_list: list, gt_classes: list) -> dict:
         for file_id in unique_files:
             lines = [line for line in preds_list if line[0] == file_id]
             for line in lines:
-                file_id, tmp_class_name, confidence, left, top, right, bottom = line[
-                    0], line[1], line[2], line[3], line[4], line[5], line[6]
+                file_id, tmp_class_name, confidence, left, top, right, bottom = (
+                    line[0],
+                    line[1],
+                    line[2],
+                    line[3],
+                    line[4],
+                    line[5],
+                    line[6],
+                )
                 if tmp_class_name == class_name:
                     # print("match")
                     bbox = f"{left} {top} {right} {bottom}"
                     bounding_boxes.append(
-                        {"confidence": confidence, "file_id": file_id, "bbox": bbox})
+                        {"confidence": confidence, "file_id": file_id, "bbox": bbox}
+                    )
                     # print(bounding_boxes)
         # sort detection-results by decreasing confidence
-        bounding_boxes.sort(key=lambda x: float(x['confidence']), reverse=True)
+        bounding_boxes.sort(key=lambda x: float(x["confidence"]), reverse=True)
         out_preds[class_name] = bounding_boxes
 
     return out_preds
@@ -205,14 +237,21 @@ def _add_used_var_to_bboxes(out_dict: dict) -> dict:
     for key, val in out_dict.items():
         new_list = []
         for row in val:
-            row['used'] = False
+            row["used"] = False
             new_list.append(row)
         _to_return[key] = new_list
     return _to_return
 
 
-def calculate_mAP(out_dict: dict, out_preds: dict, gt_classes: list, counter_images_per_class: dict,
-                  gt_counter_per_class: dict, n_classes: int, min_overlap: float = 0.5) -> float:
+def calculate_mAP(
+    out_dict: dict,
+    out_preds: dict,
+    gt_classes: list,
+    counter_images_per_class: dict,
+    gt_counter_per_class: dict,
+    n_classes: int,
+    min_overlap: float = 0.5,
+) -> float:
     """
     Calculate the AP for each class
     """
@@ -250,13 +289,21 @@ def calculate_mAP(out_dict: dict, out_preds: dict, gt_classes: list, counter_ima
                 # look for a class_name match
                 if obj["class_name"] == class_name:
                     bbgt = [float(x) for x in obj["bbox"].split()]
-                    bi = [max(bb[0], bbgt[0]), max(bb[1], bbgt[1]),
-                          min(bb[2], bbgt[2]), min(bb[3], bbgt[3])]
+                    bi = [
+                        max(bb[0], bbgt[0]),
+                        max(bb[1], bbgt[1]),
+                        min(bb[2], bbgt[2]),
+                        min(bb[3], bbgt[3]),
+                    ]
                     iw = bi[2] - bi[0] + 1
                     ih = bi[3] - bi[1] + 1
                     if iw > 0 and ih > 0:
                         # compute overlap (IoU) = area of intersection / area of union
-                        ua = (bb[2] - bb[0] + 1) * (bb[3] - bb[1] + 1) + (bbgt[2] - bbgt[0] + 1) * (bbgt[3] - bbgt[1] + 1) - iw * ih
+                        ua = (
+                            (bb[2] - bb[0] + 1) * (bb[3] - bb[1] + 1)
+                            + (bbgt[2] - bbgt[0] + 1) * (bbgt[3] - bbgt[1] + 1)
+                            - iw * ih
+                        )
                         ov = iw * ih / ua
                         # print(f"Overlap: {ov}")
                         if ov > ovmax:
@@ -301,20 +348,34 @@ def calculate_mAP(out_dict: dict, out_preds: dict, gt_classes: list, counter_ima
         ap_dictionary[class_name] = ap
 
         n_images = counter_images_per_class[class_name]
-        lamr, mr, fppi = log_average_miss_rate(
-            np.array(rec), np.array(fp), n_images)
+        lamr, mr, fppi = log_average_miss_rate(np.array(rec), np.array(fp), n_images)
         lamr_dictionary[class_name] = lamr
 
     mAP = round(sum_AP / n_classes, 2)
     return mAP
 
 
-def mean_average_precision(ground_truth: list, predictions: list, overlap: float = 0.5) -> float:
+def mean_average_precision(
+    ground_truth: list, predictions: list, overlap: float = 0.5
+) -> float:
 
-    out_dict, gt_counter_per_class, counter_images_per_class, gt_classes, n_classes = populate_gt_stats(
-        ground_truth)
+    (
+        out_dict,
+        gt_counter_per_class,
+        counter_images_per_class,
+        gt_classes,
+        n_classes,
+    ) = populate_gt_stats(ground_truth)
     out_preds = prep_preds(predictions, gt_classes)
-    mAP = calculate_mAP(out_dict, out_preds, gt_classes, counter_images_per_class, gt_counter_per_class, n_classes, min_overlap=overlap)
+    mAP = calculate_mAP(
+        out_dict,
+        out_preds,
+        gt_classes,
+        counter_images_per_class,
+        gt_counter_per_class,
+        n_classes,
+        min_overlap=overlap,
+    )
 
     return mAP
 
@@ -323,18 +384,18 @@ def format_obj_detection_data(inp: pd.DataFrame) -> list:
     """
     Takes our DataFrame format input and converts to the appropriate list of lists format
     """
-    new = inp['bbox'].str.split(",", n=4, expand=True)
-    new.columns = ['xmin', 'ymin', 'xmax', 'ymax']
+    new = inp["bbox"].str.split(",", n=4, expand=True)
+    new.columns = ["xmin", "ymin", "xmax", "ymax"]
     inp = inp.merge(new, left_index=True, right_index=True)
 
-    if 'confidence' in inp.columns:
-        inp = inp[['id', 'class', 'confidence', 'xmin', 'ymin', 'xmax', 'ymax']]
+    if "confidence" in inp.columns:
+        inp = inp[["id", "class", "confidence", "xmin", "ymin", "xmax", "ymax"]]
     else:
-        inp = inp[['id', 'class', 'xmin', 'ymin', 'xmax', 'ymax']]
+        inp = inp[["id", "class", "xmin", "ymin", "xmax", "ymax"]]
 
-    inp.loc[:, 'xmin'] = inp['xmin'].apply(lambda x: int(x))
-    inp.loc[:, 'ymin'] = inp['ymin'].apply(lambda x: int(x))
-    inp.loc[:, 'xmax'] = inp['xmax'].apply(lambda x: int(x))
-    inp.loc[:, 'ymax'] = inp['ymax'].apply(lambda x: int(x))
+    inp.loc[:, "xmin"] = inp["xmin"].apply(lambda x: int(x))
+    inp.loc[:, "ymin"] = inp["ymin"].apply(lambda x: int(x))
+    inp.loc[:, "xmax"] = inp["xmax"].apply(lambda x: int(x))
+    inp.loc[:, "ymax"] = inp["ymax"].apply(lambda x: int(x))
     outp: list = inp.to_numpy().tolist()
     return outp

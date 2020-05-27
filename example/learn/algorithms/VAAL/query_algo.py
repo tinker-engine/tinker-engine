@@ -19,9 +19,9 @@ class DomainNetworkSelection(BaseAlgorithm):
         # of altering the internal model. Available resources for training can be
         # retrieved using the BaseAlgorithm functions.
         self.toolset = toolset
-        if step_descriptor == 'Initialize':
+        if step_descriptor == "Initialize":
             self.select_and_label_data()
-        if step_descriptor == 'SelectAndLabelData':
+        if step_descriptor == "SelectAndLabelData":
             self.select_and_label_data()
 
         pass
@@ -40,7 +40,6 @@ class DomainNetworkSelection(BaseAlgorithm):
         self.config["num_adv_steps"] = 1
         self.config["adversary_param"] = 1
         self.config["beta"] = 1
-
 
         self.vaal = solver.Solver(self.config, None)
         self.cuda = self.config["cuda"] and torch.cuda.is_available()
@@ -79,9 +78,10 @@ class DomainNetworkSelection(BaseAlgorithm):
         labeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=labeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].labeled_size,
-                           int(self.config["batch_size"])
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].labeled_size,
+                int(self.config["batch_size"]),
+            ),
             num_workers=int(self.num_workers),
             collate_fn=self.toolset["target_dataset"].collate_batch,
             drop_last=True,
@@ -95,9 +95,10 @@ class DomainNetworkSelection(BaseAlgorithm):
         unlabeled_dataloader = torch.utils.data.DataLoader(
             self.toolset["target_dataset"],
             sampler=unlabeled_sampler,
-            batch_size=min(self.toolset["target_dataset"].unlabeled_size,
-                           int(self.config["batch_size"])
-                           ),
+            batch_size=min(
+                self.toolset["target_dataset"].unlabeled_size,
+                int(self.config["batch_size"]),
+            ),
             num_workers=int(self.num_workers),
             drop_last=False,
         )
@@ -123,8 +124,7 @@ class DomainNetworkSelection(BaseAlgorithm):
             # ##################  ACTIVE LEARNING... Finally. #####################
             #  Figure out the current budget left before checkpoint/evaluation from
             #  the status
-            budget = self.toolset['budget']
-
+            budget = self.toolset["budget"]
 
             #  This approach sets the budget for how many images that they want
             #  labeled.
@@ -134,7 +134,8 @@ class DomainNetworkSelection(BaseAlgorithm):
             # dataset to ensure the correct indices and tracking inside their
             # function (the dataset getitem returns the index)
             sampled_indices = self.vaal.sample_for_labeling(
-                vae, discriminator, unlabeled_dataloader)
+                vae, discriminator, unlabeled_dataloader
+            )
 
             #  ########### Query for labels -- Kitware managed ################
             #  This function is handled by Kitware and takes the indices from the
@@ -142,7 +143,6 @@ class DomainNetworkSelection(BaseAlgorithm):
             #  the dataset and the labeled/unlabeled indices are updated
 
             self.toolset["target_dataset"].get_more_labels(sampled_indices)
-
 
     #        #  Note: you don't have to request the entire budget, but
     #        #      you shouldn't end the function until the budget is exhausted

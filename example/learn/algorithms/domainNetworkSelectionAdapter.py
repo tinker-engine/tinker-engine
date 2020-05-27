@@ -35,5 +35,3 @@ class DomainNetworkSelectionAdapter(BaseAlgorithm):
             implement a part of the algorithm itself.
         """
         raise NotImplementedError
-
-    
