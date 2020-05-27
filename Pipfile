@@ -34,5 +34,5 @@ allow_prereleases = true
 
 [scripts]
 lint = "flake8"
-format = "black ."
+format = "black --line-length=120 ."
 typecheck = "mypy -p framework --disallow-untyped-defs"
