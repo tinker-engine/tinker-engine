@@ -39,9 +39,7 @@ def basic_transformer():
     Returns:
         torch.Tensor: image in CHW
     """
-    return torchvision.transforms.Compose(
-        [torchvision.transforms.Resize([32, 32]), torchvision.transforms.ToTensor()]
-    )
+    return torchvision.transforms.Compose([torchvision.transforms.Resize([32, 32]), torchvision.transforms.ToTensor()])
 
 
 def pil_loader(path):
@@ -197,12 +195,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         self.targets = [None] * self.num_images
         self.labeled_indices = set()
         self.unlabeled_indices = set(np.arange(self.num_images).tolist())
-        self.index_to_image_fname = dict(
-            zip(np.arange(self.num_images).tolist(), self.image_fnames)
-        )
-        self.image_fname_to_index = dict(
-            zip(self.image_fnames, np.arange(self.num_images).tolist())
-        )
+        self.index_to_image_fname = dict(zip(np.arange(self.num_images).tolist(), self.image_fnames))
+        self.image_fname_to_index = dict(zip(self.image_fnames, np.arange(self.num_images).tolist()))
 
         # check to make sure number of images is consistent with problem metadata
         self.indices = set(np.arange(self.num_images))
@@ -290,9 +284,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         # Check to make sure not already labeled
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
-        new_data = self.problem.get_more_labels(
-            self._indices_to_fnames(unlabeled_indices), self.name
-        )
+        new_data = self.problem.get_more_labels(self._indices_to_fnames(unlabeled_indices), self.name)
 
         columns = ["class", "id"]
         new_data = pd.DataFrame(new_data, columns=columns)
@@ -318,9 +310,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         """
         if seed_labels is None:
-            seed_labels = pd.DataFrame(
-                self.problem.get_seed_labels(self.name, num_seed_calls)
-            )
+            seed_labels = pd.DataFrame(self.problem.get_seed_labels(self.name, num_seed_calls))
 
         cat_labels = seed_labels["class"].tolist()
 
@@ -395,9 +385,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         self.unlabeled_size = len(self.unlabeled_indices)
 
         if num_labeled != n:
-            warnings.warn(
-                f"{num_labeled}/{n} labels added!  Some already labeled", UserWarning
-            )
+            warnings.warn(f"{num_labeled}/{n} labels added!  Some already labeled", UserWarning)
 
         return num_labeled
 
@@ -409,12 +397,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             seed_labels (list[str]): list of seed category names
         """
         self.categories = np.unique(seed_labels)
-        self.category_to_category_index = dict(
-            zip(self.categories, np.arange(len(self.categories)))
-        )
-        self.category_index_to_category = dict(
-            zip(np.arange(len(self.categories)), self.categories)
-        )
+        self.category_to_category_index = dict(zip(self.categories, np.arange(len(self.categories))))
+        self.category_index_to_category = dict(zip(np.arange(len(self.categories)), self.categories))
 
     def _fnames_to_indices(self, fnames):
         """
@@ -497,11 +481,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
                 storage = elem.storage()._new_shared(numel)
                 out = elem.new(storage)
             return torch.stack(batch, 0, out=out)
-        elif (
-            elem_type.__module__ == "numpy"
-            and elem_type.__name__ != "str_"
-            and elem_type.__name__ != "string_"
-        ):
+        elif elem_type.__module__ == "numpy" and elem_type.__name__ != "str_" and elem_type.__name__ != "string_":
             elem = batch[0]
             if elem_type.__name__ == "ndarray":
                 return self.collate_batch([torch.as_tensor(b) for b in batch])
@@ -583,13 +563,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         """Initialize."""
 
         super(ObjectDetectionDataset, self).__init__(
-            problem,
-            dataset_name,
-            dataset_root,
-            transform,
-            target_transform,
-            categories,
-            seed_labels,
+            problem, dataset_name, dataset_root, transform, target_transform, categories, seed_labels,
         )
 
     def get_more_labels(self, indices):
@@ -613,9 +587,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         # Check to make sure not already labeled
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
-        new_data = self.problem.get_more_labels(
-            self._indices_to_fnames(unlabeled_indices), self.name
-        )
+        new_data = self.problem.get_more_labels(self._indices_to_fnames(unlabeled_indices), self.name)
 
         columns = ["id", "bbox", "class"]
 
@@ -668,9 +640,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
                 unique = True
                 if check_redundant:
                     for t in self.targets[ind]:
-                        if new_lab["category"] == t["category"] and all(
-                            new_lab["bbox"] == t["bbox"]
-                        ):
+                        if new_lab["category"] == t["category"] and all(new_lab["bbox"] == t["bbox"]):
                             unique = False
                 if unique:
                     self.targets[ind].append(new_lab)
@@ -684,9 +654,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         self.unlabeled_size = len(self.unlabeled_indices)
 
         if num_labeled != n:
-            warnings.warn(
-                f"{num_labeled}/{n} labels added!  Some already labeled", UserWarning
-            )
+            warnings.warn(f"{num_labeled}/{n} labels added!  Some already labeled", UserWarning)
 
         return num_labeled
 
@@ -709,9 +677,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         classes = predictions[2]
 
         classes = self._category_index_to_category_name(classes)
-        df = pd.DataFrame(
-            {"id": fnames, "bbox": bbox, "confidence": confidence, "class": classes}
-        )
+        df = pd.DataFrame({"id": fnames, "bbox": bbox, "confidence": confidence, "class": classes})
 
         # Enforce that the labels are strings
         df["class"] = df["class"].astype(str)

@@ -51,14 +51,7 @@ def _validate_input_ids_one_to_one(df: pd.DataFrame, actuals: pd.DataFrame) -> N
 
 def _validate_input_ids_many_to_many(df: pd.DataFrame, actuals: pd.DataFrame) -> None:
     # Check all test labels are accounted for in a possible many to many relationship
-    if (
-        len(
-            set(df["id"].unique().tolist()).difference(
-                set(actuals["id"].unique().tolist())
-            )
-        )
-        != 0
-    ):
+    if len(set(df["id"].unique().tolist()).difference(set(actuals["id"].unique().tolist()))) != 0:
         raise Exception(
             "Hitting condition: `len(set(df['id'].unique().tolist()).difference(set(actuals['id'].unique().tolist()))) != 0`\nThis \
             probably means that you are missing some test ids"
@@ -76,9 +69,7 @@ is a Matlap person hence why the code style is not consistent with the rest of t
 """
 
 
-def log_average_miss_rate(
-    precision: np.array, fp_cumsum: np.array, num_images: int
-) -> Tuple[float, float, float]:
+def log_average_miss_rate(precision: np.array, fp_cumsum: np.array, num_images: int) -> Tuple[float, float, float]:
     """
     Compute the log-average miss rate.
 
@@ -233,9 +224,7 @@ def prep_preds(preds_list: list, gt_classes: list) -> dict:
                 )
                 if tmp_class_name == class_name:
                     bbox = f"{left} {top} {right} {bottom}"
-                    bounding_boxes.append(
-                        {"confidence": confidence, "file_id": file_id, "bbox": bbox}
-                    )
+                    bounding_boxes.append({"confidence": confidence, "file_id": file_id, "bbox": bbox})
         # sort detection-results by decreasing confidence
         bounding_boxes.sort(key=lambda x: float(x["confidence"]), reverse=True)
         out_preds[class_name] = bounding_boxes
@@ -356,27 +345,13 @@ def calculate_mAP(
     return mAP
 
 
-def mean_average_precision(
-    ground_truth: list, predictions: list, overlap: float = 0.5
-) -> float:
+def mean_average_precision(ground_truth: list, predictions: list, overlap: float = 0.5) -> float:
     """Compute mean average precision."""
 
-    (
-        out_dict,
-        gt_counter_per_class,
-        counter_images_per_class,
-        gt_classes,
-        n_classes,
-    ) = populate_gt_stats(ground_truth)
+    (out_dict, gt_counter_per_class, counter_images_per_class, gt_classes, n_classes,) = populate_gt_stats(ground_truth)
     out_preds = prep_preds(predictions, gt_classes)
     mAP = calculate_mAP(
-        out_dict,
-        out_preds,
-        gt_classes,
-        counter_images_per_class,
-        gt_counter_per_class,
-        n_classes,
-        min_overlap=overlap,
+        out_dict, out_preds, gt_classes, counter_images_per_class, gt_counter_per_class, n_classes, min_overlap=overlap,
     )
 
     return mAP

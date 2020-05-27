@@ -31,9 +31,7 @@ class JPLInterface(Harness):
         self.apikey = apikey
         self.headers = {"user_secret": self.apikey}
         self.url = url
-        self.dataset_dir = (
-            "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets/"
-        )
+        self.dataset_dir = "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets/"
 
         self.task_id = ""
         self.stage_id = ""
@@ -71,9 +69,7 @@ class JPLInterface(Harness):
             "data_type": self.data_type,
             "task_id": task_id,
         }
-        r = requests.post(
-            f"{self.url}/auth/create_session", headers=self.headers, json=_json
-        )
+        r = requests.post(f"{self.url}/auth/create_session", headers=self.headers, json=_json)
         r.raise_for_status()
 
         self.sessiontoken = r.json()["session_token"]
@@ -127,8 +123,7 @@ class JPLInterface(Harness):
         whitelist_not_found = set(whitelist) - whitelist_found
         if len(whitelist_not_found) > 0:
             print(
-                "Warning: The following items are on the whitelist but "
-                "not found on the computer: ",
+                "Warning: The following items are on the whitelist but " "not found on the computer: ",
                 whitelist_not_found,
             )
         return external_datasets
@@ -365,27 +360,16 @@ class JPLInterface(Harness):
         if dataset_split == "eval":
             dataset_split = "test"
 
-        dataset_root = (
-            f"{self.dataset_dir}/development/{current_dataset}/"
-            f"{current_dataset}_full/{dataset_split}"
-        )
+        dataset_root = f"{self.dataset_dir}/development/{current_dataset}/" f"{current_dataset}_full/{dataset_split}"
 
         name = current_dataset + "_" + dataset_split
 
         if self.metadata["problem_type"] == "image_classification":
             return ImageClassificationDataset(
-                self,
-                dataset_root=dataset_root,
-                dataset_name=name,
-                categories=categories,
+                self, dataset_root=dataset_root, dataset_name=name, categories=categories,
             )
         else:
-            return ObjectDetectionDataset(
-                self,
-                dataset_root=dataset_root,
-                dataset_name=name,
-                categories=categories,
-            )
+            return ObjectDetectionDataset(self, dataset_root=dataset_root, dataset_name=name, categories=categories,)
 
     def get_dataset(self, stage_name, dataset_name, categories=None):
         """
@@ -441,11 +425,7 @@ class JPLInterface(Harness):
         Return:
             list: (list[tuple(str,str)]): newly labeled image filenames and classes
         """
-        r = requests.post(
-            f"{self.url}/query_labels",
-            json={"example_ids": fnames},
-            headers=self.headers,
-        )
+        r = requests.post(f"{self.url}/query_labels", json={"example_ids": fnames}, headers=self.headers,)
         r.raise_for_status()
         new_data = r.json()
 
@@ -469,11 +449,7 @@ class JPLInterface(Harness):
 
         predictions = dataset.format_predictions(predictions[0], predictions[1])
 
-        r = requests.post(
-            f"{self.url}/submit_predictions",
-            json={"predictions": predictions},
-            headers=self.headers,
-        )
+        r = requests.post(f"{self.url}/submit_predictions", json={"predictions": predictions}, headers=self.headers,)
         r.raise_for_status()
         self.status = r.json()["Session_Status"]
         return self.status
@@ -529,11 +505,7 @@ class JPLInterface(Harness):
         r.raise_for_status()
         active_sessions = r.json()["active_sessions"]
         for act_sess in active_sessions:
-            r = requests.post(
-                f"{self.url}/deactivate_session",
-                json={"session_token": act_sess},
-                headers=self.headers,
-            )
+            r = requests.post(f"{self.url}/deactivate_session", json={"session_token": act_sess}, headers=self.headers,)
             r.raise_for_status()
             print(r.json())
 
@@ -550,9 +522,7 @@ class JPLInterface(Harness):
         active_sessions = r.json()["active_sessions"]
         if self.sessiontoken in active_sessions:
             r = requests.post(
-                f"{self.url}/deactivate_session",
-                json={"session_token": self.sessiontoken},
-                headers=self.headers,
+                f"{self.url}/deactivate_session", json={"session_token": self.sessiontoken}, headers=self.headers,
             )
             r.raise_for_status()
             print("Deactivated improperly ended session")

@@ -163,9 +163,7 @@ class LocalInterface(Harness):
             print("Out of checkpoints, cant start a new checkpoint")
             exit(1)
 
-        self.current_budget = stage_metadata["label_budget"][
-            self.current_checkpoint_index
-        ]
+        self.current_budget = stage_metadata["label_budget"][self.current_checkpoint_index]
         if target_dataset.unlabeled_size < self.current_budget:
             self.current_budget = target_dataset.unlabeled_size
 
@@ -201,20 +199,12 @@ class LocalInterface(Harness):
 
         if dataset_name == "mnist":
             dataset = torchvision.datasets.MNIST(
-                dataset_path,
-                train=True,
-                transform=None,
-                target_transform=None,
-                download=True,
+                dataset_path, train=True, transform=None, target_transform=None, download=True,
             )
             self.create_dataset(dataset, dataset_name, dataset_path)
 
             dataset = torchvision.datasets.MNIST(
-                dataset_path,
-                train=False,
-                transform=None,
-                target_transform=None,
-                download=True,
+                dataset_path, train=False, transform=None, target_transform=None, download=True,
             )
 
             self.create_dataset(dataset, dataset_name, dataset_path)
@@ -280,9 +270,7 @@ class LocalInterface(Harness):
         stage_metadata = self.get_stage_metadata(stage_name)
         dataset_name = stage_metadata["datasets"][dataset_split]
         if stage_metadata:
-            dataset_path = Path(
-                self.metadata["development_dataset_location"] / dataset_name
-            )
+            dataset_path = Path(self.metadata["development_dataset_location"] / dataset_name)
         else:
             print("Missing stage metadata for", stage_name)
             exit(1)
@@ -314,18 +302,10 @@ class LocalInterface(Harness):
 
         if self.metadata["problem_type"] == "image_classification":
             return ImageClassificationDataset(
-                self,
-                dataset_root=dataset_path,
-                dataset_name=name,
-                categories=categories,
+                self, dataset_root=dataset_path, dataset_name=name, categories=categories,
             )
         else:
-            return ObjectDetectionDataset(
-                self,
-                dataset_root=dataset_path,
-                dataset_name=name,
-                categories=categories,
-            )
+            return ObjectDetectionDataset(self, dataset_root=dataset_path, dataset_name=name, categories=categories,)
 
     def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
         """
@@ -344,8 +324,7 @@ class LocalInterface(Harness):
             dataset_split = "test"
 
         dataset_root = (
-            f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
-            f"{current_dataset}_full/{dataset_split}"
+            f'{self.metadata["external_dataset_location"]}/{current_dataset}/' f"{current_dataset}_full/{dataset_split}"
         )
         label_file = (
             f'{self.metadata["external_dataset_location"]}/{current_dataset}/'
@@ -374,18 +353,10 @@ class LocalInterface(Harness):
 
         if self.metadata["problem_type"] == "image_classification":
             return ImageClassificationDataset(
-                self,
-                dataset_root=dataset_root,
-                dataset_name=name,
-                categories=categories,
+                self, dataset_root=dataset_root, dataset_name=name, categories=categories,
             )
         else:
-            return ObjectDetectionDataset(
-                self,
-                dataset_root=dataset_root,
-                dataset_name=name,
-                categories=categories,
-            )
+            return ObjectDetectionDataset(self, dataset_root=dataset_root, dataset_name=name, categories=categories,)
 
     def get_more_labels(self, fnames, dataset_name):
         """
@@ -440,9 +411,7 @@ class LocalInterface(Harness):
         # TODO: Currently this simply writes the results to the results_file
         # this will need to do more processing in the future.
         self.current_budget = None
-        predictions_formatted = dataset.format_predictions(
-            predictions[0], predictions[1]
-        )
+        predictions_formatted = dataset.format_predictions(predictions[0], predictions[1])
 
         predicitons_filename = self.metadata["results_file"]
         json_obj = json.dumps(predictions_formatted, indent=4)

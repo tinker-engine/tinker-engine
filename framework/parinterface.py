@@ -36,13 +36,7 @@ class ParInterface(Harness):
             print("Server error: ", response.status_code)
             exit(1)
 
-    def test_ids_request(
-        self,
-        protocol: str,
-        domain: str,
-        detector_seed: str,
-        test_assumptions: str = "{}",
-    ) -> str:
+    def test_ids_request(self, protocol: str, domain: str, detector_seed: str, test_assumptions: str = "{}",) -> str:
         """
         Request Test Identifiers as part of a series of individual tests.
 
@@ -65,18 +59,14 @@ class ParInterface(Harness):
 
         response = requests.get(
             f"{self.api_url}/test/ids",
-            files={
-                "test_requirements": io.StringIO(json.dumps(payload)),
-                "test_assumptions": io.StringIO(contents),
-            },
+            files={"test_requirements": io.StringIO(json.dumps(payload)), "test_assumptions": io.StringIO(contents),},
         )
 
         self._check_response(response)
 
         header = response.headers["Content-Disposition"]
         header_dict = {
-            x[0].strip(): x[1].strip(" \"'")
-            for x in [part.split("=") for part in header.split(";") if "=" in part]
+            x[0].strip(): x[1].strip(" \"'") for x in [part.split("=") for part in header.split(";") if "=" in part]
         }
 
         filename = os.path.abspath(os.path.join(self.folder, header_dict["filename"]))
@@ -85,9 +75,7 @@ class ParInterface(Harness):
 
         return filename
 
-    def session_request(
-        self, test_ids: list, protocol: str, novelty_detector_version: str
-    ):
+    def session_request(self, test_ids: list, protocol: str, novelty_detector_version: str):
         """
         Create a new session to evaluate the detector using an empirical protocol.
 
@@ -106,8 +94,7 @@ class ParInterface(Harness):
         ids = "\n".join(test_ids) + "\n"
 
         response = requests.post(
-            f"{self.api_url}/session",
-            files={"test_ids": ids, "configuration": io.StringIO(json.dumps(payload))},
+            f"{self.api_url}/session", files={"test_ids": ids, "configuration": io.StringIO(json.dumps(payload))},
         )
 
         self._check_response(response)
@@ -126,19 +113,14 @@ class ParInterface(Harness):
         """
         response = requests.get(
             f"{self.api_url}/session/dataset",
-            params={
-                "session_id": self.session_id,
-                "test_id": test_id,
-                "round_id": round_id,
-            },
+            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id,},
         )
 
         self._check_response(response)
 
         header = response.headers["Content-Disposition"]
         header_dict = {
-            x[0].strip(): x[1].strip(" \"'")
-            for x in [part.split("=") for part in header.split(";") if "=" in part]
+            x[0].strip(): x[1].strip(" \"'") for x in [part.split("=") for part in header.split(";") if "=" in part]
         }
         filename = os.path.abspath(os.path.join(self.folder, header_dict["filename"]))
         with open(filename, "wb") as f:
@@ -156,8 +138,7 @@ class ParInterface(Harness):
         with open(dataset_path, "r") as orig_dataset:
             image_names = orig_dataset.readlines()
             image_paths = [
-                os.path.join(self.configuration_data["data_location"], image_name)
-                for image_name in image_names
+                os.path.join(self.configuration_data["data_location"], image_name) for image_name in image_names
             ]
         new_dataset_file = f"{self.session_id}_{test_id}.csv"
         new_dataset_path = os.path.join(os.getcwd(), new_dataset_file)
@@ -194,9 +175,7 @@ class ParInterface(Harness):
 
         return response.json()
 
-    def post_results(
-        self, result_files: Dict[str, str], test_id: UUID, round_id: int,
-    ) -> None:
+    def post_results(self, result_files: Dict[str, str], test_id: UUID, round_id: int,) -> None:
         """
         Post client detector predictions for the dataset.
 
@@ -240,19 +219,14 @@ class ParInterface(Harness):
         """
         response = requests.get(
             f"{self.api_url}/session/evaluations",
-            params={
-                "session_id": self.session_id,
-                "test_id": test_id,
-                "round_id": round_id,
-            },
+            params={"session_id": self.session_id, "test_id": test_id, "round_id": round_id,},
         )
 
         self._check_response(response)
 
         header = response.headers["Content-Disposition"]
         header_dict = {
-            x[0].strip(): x[1].strip(" \"'")
-            for x in [part.split("=") for part in header.split(";") if "=" in part]
+            x[0].strip(): x[1].strip(" \"'") for x in [part.split("=") for part in header.split(";") if "=" in part]
         }
 
         filename = os.path.abspath(os.path.join(self.folder, header_dict["filename"]))
@@ -270,9 +244,7 @@ class ParInterface(Harness):
         Returns:
             metadata json
         """
-        response = requests.get(
-            f"{self.api_url}/test/metadata", params={"test_id": test_id},
-        )
+        response = requests.get(f"{self.api_url}/test/metadata", params={"test_id": test_id},)
 
         self._check_response(response)
         return response.json()
@@ -284,9 +256,7 @@ class ParInterface(Harness):
         Arguments:
         Returns: No return
         """
-        response = requests.delete(
-            f"{self.api_url}/session", params={"session_id": self.session_id}
-        )
+        response = requests.delete(f"{self.api_url}/session", params={"session_id": self.session_id})
 
         self._check_response(response)
         self.session_id = None

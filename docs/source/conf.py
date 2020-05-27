@@ -140,13 +140,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (
-        master_doc,
-        "learn_framework.tex",
-        u"LEARN framework Documentation",
-        u"Kitware, Inc.",
-        "manual",
-    ),
+    (master_doc, "learn_framework.tex", u"LEARN framework Documentation", u"Kitware, Inc.", "manual",),
 ]
 
 latex_elements = {"extraclassoptions": "openany,oneside"}
@@ -155,9 +149,7 @@ latex_elements = {"extraclassoptions": "openany,oneside"}
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "learn_framework", u"learn_framework Documentation", [author], 1)
-]
+man_pages = [(master_doc, "learn_framework", u"learn_framework Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------
@@ -208,15 +200,7 @@ def patched_make_field(self, types, domain, items, **kw):
                 typename = typename.replace("long", "python:long")
                 typename = typename.replace("float", "python:float")
                 typename = typename.replace("type", "python:type")
-                par.extend(
-                    self.make_xrefs(
-                        self.typerolename,
-                        domain,
-                        typename,
-                        addnodes.literal_emphasis,
-                        **kw
-                    )
-                )
+                par.extend(self.make_xrefs(self.typerolename, domain, typename, addnodes.literal_emphasis, **kw))
             else:
                 par += fieldtype
             par += nodes.Text(")")

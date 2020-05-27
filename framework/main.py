@@ -49,8 +49,7 @@ def _safe_load(entry_point: EntryPoint):
 
 
 discovered_plugins = {
-    entry_point.name: _safe_load(entry_point)
-    for entry_point in pkg_resources.iter_entry_points("framework")
+    entry_point.name: _safe_load(entry_point) for entry_point in pkg_resources.iter_entry_points("framework")
 }
 
 
@@ -61,17 +60,10 @@ def execute():
     parser = argparse.ArgumentParser()
     parser.add_argument("protocol_file", help="protocol python file", type=str)
     parser.add_argument(
-        "-a",
-        "--algorithms",
-        help="root of the algorithms directory",
-        type=str,
-        default=".",
+        "-a", "--algorithms", help="root of the algorithms directory", type=str, default=".",
     )
     parser.add_argument(
-        "-g",
-        "--generate",
-        help="Generate template algorithm files",
-        action="store_true",
+        "-g", "--generate", help="Generate template algorithm files", action="store_true",
     )
     parser.add_argument(
         "-i",
@@ -81,10 +73,7 @@ def execute():
         default="LocalInterface",
     )
     parser.add_argument(
-        "-l",
-        "--list_interfaces",
-        help="Print the list of available interfaces",
-        action="store_true",
+        "-l", "--list_interfaces", help="Print the list of available interfaces", action="store_true",
     )
 
     args = parser.parse_args()
@@ -160,11 +149,7 @@ def execute():
     # as a last resort, look for the interface in the framework itself.
     if harness is None:
         for name, obj in inspect.getmembers(sys.modules[__name__]):
-            if (
-                args.interface == name
-                and inspect.isclass(obj)
-                and issubclass(obj, Harness)
-            ):
+            if args.interface == name and inspect.isclass(obj) and issubclass(obj, Harness):
                 harness = obj("configuration.json", protocol_file_path)
 
     if harness is None:
