@@ -423,7 +423,6 @@ class LocalInterface(Harness):
         if self.metadata["problem_type"] == "image_classification":
             # Ensure that this is true and all classes are aligned.
             assert (gt["id"].values != pred["id"].values).sum() == 0
-            acc2 = (gt["class"].values == pred["class"].values).mean()
 
             from .metrics import accuracy
 

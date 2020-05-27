@@ -268,7 +268,7 @@ def calculate_mean_avg_prec(
 ) -> float:
     """Calculate the AP for each class."""
     out_dict = _add_used_var_to_bboxes(out_dict)
-    sum_AP = 0.0
+    sum_avg_prec = 0.0
     ap_dictionary = {}
     lamr_dictionary = {}
     # open file to store the results
@@ -348,14 +348,14 @@ def calculate_mean_avg_prec(
             prec[idx] = float(tp[idx]) / (fp[idx] + tp[idx])  # type: ignore
 
         ap, mrec, mprec = voc_ap(rec[:], prec[:])
-        sum_AP += ap
+        sum_avg_prec += ap
         ap_dictionary[class_name] = ap
 
         n_images = counter_images_per_class[class_name]
         lamr, mr, fppi = log_average_miss_rate(np.array(rec), np.array(fp), n_images)
         lamr_dictionary[class_name] = lamr
 
-    return round(sum_AP / n_classes, 2)
+    return round(sum_avg_prec / n_classes, 2)
 
 
 def mean_average_precision(ground_truth: list, predictions: list, overlap: float = 0.5) -> float:
