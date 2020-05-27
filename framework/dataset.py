@@ -283,10 +283,11 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         # Check to make sure not already labeled
         unlabeled_indices = list(self.unlabeled_indices & set(indices))
         # Ask for new labels
-        new_data = self.problem.get_more_labels(
-                self._indices_to_fnames(unlabeled_indices), self.name )
-
-        columns = ['class', 'id']
+        new_data = self.problem.get_more_labels(self._indices_to_fnames(unlabeled_indices), self.name)
+        # Now we need to infer the column order since it turns out that it can switch...randomly.
+        columns = ['id', 'class']
+        if has_file_allowed_extension(new_data[0][1]):
+            columns = ['class', 'id']
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
@@ -498,6 +499,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     def dummy_data(self, type):
         """
         Create dummy data for evaluation
+
         Args:
             type (str): either image_classification or object_detection
             test_imgs (list[str]): list of image names to create fake data for
@@ -537,6 +539,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         df['class'] = df['class'].astype(str)
 
         return df.to_dict()
+
 
 class ObjectDetectionDataset(ImageClassificationDataset):
     """
