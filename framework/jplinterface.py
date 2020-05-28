@@ -1,7 +1,4 @@
-"""
-JPL Interface
--------------
-"""
+"""JPL Interface."""
 import requests
 import json
 from framework.harness import Harness
@@ -13,50 +10,51 @@ import pandas as pd
 
 class JPLInterface(Harness):
     """
-    JPL Interface - This interface handles the backend for integration with the
-    JPL test harness.  It handles all the rest calls.
-    """
-    def __init__(self,
-                 apikey="",
-                 url=""):
-        """ Constructs the JPL problem and get list of tasks. Args will be moved to
-        config
+    JPL Interface.
 
+    This interface handles the backend for integration with the JPL test
+    harness.  It handles all the rest calls.
+    """
+
+    def __init__(self, apikey="", url=""):
+        """
+        Construct the JPL problem and get list of tasks.
+
+        Args will be moved to config.
         """
         # TODO: define the data_type
         self.data_type = "full"
 
-
         # TODO: The setting of these is too confusing and VERY unclear, hardcoding these now
         apikey = "adab5090-39a9-47f3-9fc2-3d65e0fee9a2"
-        # url = 'https://api-dev.lollllz.com/'
-        url = 'https://api-staging.lollllz.com/'
+        url = "https://api-staging.lollllz.com/"
         self.apikey = apikey
-        self.headers = {'user_secret': self.apikey}
+        self.headers = {"user_secret": self.apikey}
         self.url = url
         self.dataset_dir = "/mnt/b8ca6451-1728-40f1-b62f-b9e07d00d3ff/data/lwll_datasets/"
 
         self.task_id = ""
         self.stage_id = ""
         self.sessiontoken = ""
-        self.status = dict()
-        self.metadata = dict()
-
+        self.status = {}
+        self.metadata = {}
 
         # Change url during evaluation on DMC servers (changes paths to eval datasets)
         self.evaluate = False
         print("Using this URL:", self.url)
         r = requests.get(f"{self.url}/list_tasks", headers=self.headers)
         r.raise_for_status()
-        self.task_ids = r.json()['tasks']
+        self.task_ids = r.json()["tasks"]
 
-        self.stagenames = ['base', 'adapt']
+        self.stagenames = ["base", "adapt"]
         self.checkpoint_num = 0
 
     def initialize_session(self, task_id: str) -> None:
         """
-        Get the session token from JPL's server.  This should only be run once
-        per task. The session token defines the instance of the problem being run.
+        Get the session token from JPL's server.
+
+        This should only be run once per task. The session token defines the
+        instance of the problem being run.
 
         Args:
             task_id (str): Name of the task you would like to start
@@ -66,93 +64,89 @@ class JPLInterface(Harness):
 
         """
         self.task_id = task_id
-        _json = {'session_name': 'testing',
-                 'data_type': self.data_type,
-                 'task_id': task_id}
-        r = requests.post(
-            f"{self.url}/auth/create_session",
-            headers=self.headers,
-            json=_json
-        )
+        _json = {
+            "session_name": "testing",
+            "data_type": self.data_type,
+            "task_id": task_id,
+        }
+        r = requests.post(f"{self.url}/auth/create_session", headers=self.headers, json=_json)
         r.raise_for_status()
 
-        self.sessiontoken = r.json()['session_token']
+        self.sessiontoken = r.json()["session_token"]
 
         # prep the headers for easier use in the future.
-        self.headers['session_token'] = self.sessiontoken
+        self.headers["session_token"] = self.sessiontoken
 
         # load and store the session status and metadata.
         self.status = self.get_current_status()
 
         self.metadata = self.get_problem_metadata()
 
-        out_obj = json.dumps(self.metadata, indent=4)
-
-        self.problem_type = self.metadata['problem_type']
+        self.problem_type = self.metadata["problem_type"]
 
     def get_whitelist_datasets_jpl(self):
-        """ Get all the whitelisted datasets requested in the task if they are on
-        disk.  Warn if they aren't on disk.
+        """
+        Get all the whitelisted datasets requested in the task from disk.
+
+        Warn if they aren't on disk.
 
         Returns:
             dict[framework.dataset]: dictionary of datasets
         """
-        whitelist = self.metadata['whitelist']
+        whitelist = self.metadata["whitelist"]
         print("Get whitelist datasets:", whitelist)
-        external_dataset_root = f'{self.dataset_dir}/external/'
+        external_dataset_root = f"{self.dataset_dir}/external/"
         p = Path(external_dataset_root)
         # TODO: Iter whitelist rather than ones on disk.  This is fine for now.
-        external_datasets = dict()
+        external_datasets = {}
         whitelist_found = set()
         for e in [x for x in p.iterdir() if x.is_dir()]:
             name = e.parts[-1]
             # If not on whitelist
             if name not in whitelist:
-                print(f'Skipping {name}, not on whitelist')
+                print(f"Skipping {name}, not on whitelist")
                 continue
 
-            print(f'Loading {name}')
+            print(f"Loading {name}")
             whitelist_found.add(name)
-            for split in ['train', 'test']:
-                labels = pd.read_feather(
-                    e / 'labels_full' / f'labels_{split}.feather')
-                e_root = e / f'{name}_full' / split
-                if 'bbox' in labels.columns:
-                    external_datasets[f'{name}_{split}'] = ObjectDetectionDataset(
-                        self,
-                        dataset_name=name,
-                        dataset_root=e_root,
-                        seed_labels=labels)
+            for split in ["train", "test"]:
+                labels = pd.read_feather(e / "labels_full" / f"labels_{split}.feather")
+                e_root = e / f"{name}_full" / split
+                if "bbox" in labels.columns:
+                    external_datasets[f"{name}_{split}"] = ObjectDetectionDataset(
+                        self, dataset_name=name, dataset_root=e_root, seed_labels=labels
+                    )
                 else:
-                    external_datasets[f'{name}_{split}'] = ImageClassificationDataset(
-                        self,
-                        dataset_name=name,
-                        dataset_root=e_root,
-                        seed_labels=labels)
+                    external_datasets[f"{name}_{split}"] = ImageClassificationDataset(
+                        self, dataset_name=name, dataset_root=e_root, seed_labels=labels
+                    )
         whitelist_not_found = set(whitelist) - whitelist_found
         if len(whitelist_not_found) > 0:
-            print('Warning: The following items are on the whitelist but '
-                  'not found on the computer: ', whitelist_not_found)
+            print(
+                "Warning: The following items are on the whitelist but " "not found on the computer: ",
+                whitelist_not_found,
+            )
         return external_datasets
 
     def get_whitelist_datasets(self):
+        """Get datasets."""
         self.get_whitelist_datasets_jpl()
 
     def get_budget_checkpoints(self, stage, target_dataset):
         """
-        Find and return the budget checkpoints from the previously loaded metadata
+        Find and return the budget checkpoints from the previously loaded metadata.
 
         Args:
             stage (str): current stage
             target_dataset (framework.dataset): dataset from which you want
                 the budget
         """
-        if stage == 'base':
-            para = 'base_label_budget_full'
-        elif stage == 'adapt':
-            para = 'adaptation_label_budget_full'
+        if stage == "base":
+            para = "base_label_budget_full"
+        elif stage == "adapt":
+            para = "adaptation_label_budget_full"
         else:
-            raise NotImplementedError('{} not implemented'.format(self.stage_id))
+            raise NotImplementedError("{} not implemented".format(self.stage_id))
 
         total_available_labels = target_dataset.unlabeled_size
         for index, budget in enumerate(self.metadata[para]):
@@ -163,8 +157,8 @@ class JPLInterface(Harness):
         return self.metadata[para]
 
     def start_checkpoint(self, stage, target_dataset, checkpoint_num):
-        """  Update status and get second seed labels if on 2nd checkpoint
-        (counting from 1)
+        """
+        Update status and get second seed labels if on 2nd checkpoint (counting from 1).
 
         Args:
             stage (str): name of stage (not used here)
@@ -172,9 +166,6 @@ class JPLInterface(Harness):
                 (used to get secondary seed labels)
             checkpoint_num: the current number of the checkpoint
                 Only calls secondary seed labels
-
-        Returns:
-
         """
         if checkpoint_num == 1:
             target_dataset.get_seed_labels(None, 1)
@@ -182,7 +173,8 @@ class JPLInterface(Harness):
         self.status = self.get_current_status()
 
     def get_remaining_budget(self) -> int:
-        """ Update the status and then use it to return the current budget
+        """
+        Update the status and return the current budget.
 
         Returns:
             Current budget
@@ -190,11 +182,11 @@ class JPLInterface(Harness):
         """
         # Make sure it's up to date
         status = self.get_current_status()
-        return status['budget_left_until_checkpoint']
+        return status["budget_left_until_checkpoint"]
 
     def post_results(self, stage_id, dataset, predictions):
         """
-        Submit prediction back to JPL for evaluation
+        Submit prediction back to JPL for evaluation.
 
         Args:
             stage_id (str): unused here.
@@ -206,8 +198,10 @@ class JPLInterface(Harness):
         return self.submit_predictions(predictions, dataset)
 
     def terminate_session(self):
-        """ clean up session and close if not closed yet
-        wipe the session id so that it can't be inadvertently used again
+        """
+        Clean up session and close if not closed yet.
+
+        Wipe the session id so that it can't be inadvertently used again.
 
         Returns:
             None
@@ -216,12 +210,13 @@ class JPLInterface(Harness):
         if self.sessiontoken is not None:
             self.deactivate_current_session()
             self.sessiontoken = None
-            del self.headers['session_token']
-        self.toolset = dict()
+            del self.headers["session_token"]
+        self.toolset = {}
 
     def get_current_status(self):
         """
         Get the current status of the session.
+
         This will tell you things like the number of images you can query
         before evaluation, location of the dataset, number of classes, etc.
 
@@ -263,7 +258,7 @@ class JPLInterface(Harness):
         """
         r = requests.get(f"{self.url}/session_status", headers=self.headers)
         r.raise_for_status()
-        status = r.json()['Session_Status']
+        status = r.json()["Session_Status"]
         self.status = status
 
         return status
@@ -340,15 +335,16 @@ class JPLInterface(Harness):
         """
         if task_id is None:
             task_id = self.task_id
-        r = requests.get(
-            f"{self.url}/task_metadata/{task_id}",
-            headers=self.headers)
+        r = requests.get(f"{self.url}/task_metadata/{task_id}", headers=self.headers)
         r.raise_for_status()
-        metadata = r.json()['task_metadata']
+        metadata = r.json()["task_metadata"]
         return metadata
 
     def get_dataset_jpl(self, stage_name, dataset_split, categories=None):
-        """ Get a dataset which has been downloaded from the JPL Repo and
+        """
+        Return a JPL dataset.
+
+        Gets a dataset which has been downloaded from the JPL Repo and
         return a framework.dataset with that data.
 
         Args:
@@ -360,28 +356,24 @@ class JPLInterface(Harness):
         Returns:
             requested datasets as a framework.dataset
         """
-        current_dataset = self.status['current_dataset']['name']
-        if dataset_split == 'eval':
-            dataset_split = 'test'
+        current_dataset = self.status["current_dataset"]["name"]
+        if dataset_split == "eval":
+            dataset_split = "test"
 
-        dataset_root = (f'{self.dataset_dir}/development/{current_dataset}/'
-                        f'{current_dataset}_full/{dataset_split}')
+        dataset_root = f"{self.dataset_dir}/development/{current_dataset}/" f"{current_dataset}_full/{dataset_split}"
 
-        name = current_dataset + '_' + dataset_split
+        name = current_dataset + "_" + dataset_split
 
-        if self.metadata['problem_type'] == "image_classification":
-            return ImageClassificationDataset(self,
-                                              dataset_root=dataset_root,
-                                              dataset_name=name,
-                                              categories=categories)
+        if self.metadata["problem_type"] == "image_classification":
+            return ImageClassificationDataset(
+                self, dataset_root=dataset_root, dataset_name=name, categories=categories,
+            )
         else:
-            return ObjectDetectionDataset(self,
-                                          dataset_root=dataset_root,
-                                          dataset_name=name,
-                                          categories=categories)
+            return ObjectDetectionDataset(self, dataset_root=dataset_root, dataset_name=name, categories=categories,)
 
     def get_dataset(self, stage_name, dataset_name, categories=None):
-        """ Load a dataset
+        """
+        Load a dataset.
 
         Wrapper right now for :meth:get_dataset_jpl
 
@@ -389,9 +381,6 @@ class JPLInterface(Harness):
             stage_name:
             dataset_name:
             categories:
-
-        Returns:
-
         """
         # TODO: right now assume jpl.  Need to make an automated way to tell if
         #       coco or jpl dataset.  Also, create func for loading coco
@@ -411,14 +400,14 @@ class JPLInterface(Harness):
                 a list of [filename, label] elements
         """
         if seed_level == 0:
-            call = 'seed_labels'
+            call = "seed_labels"
         elif seed_level == 1:
-            call = 'secondary_seed_labels'
+            call = "secondary_seed_labels"
 
         r = requests.get(f"{self.url}/{call}", headers=self.headers)
         r.raise_for_status()
         seed_labels = r.json()
-        return seed_labels['Labels']
+        return seed_labels["Labels"]
 
     def get_more_labels(self, fnames, dataset_name):
         """
@@ -436,18 +425,18 @@ class JPLInterface(Harness):
         Return:
             list: (list[tuple(str,str)]): newly labeled image filenames and classes
         """
-        r = requests.post(f"{self.url}/query_labels",
-                          json={'example_ids': fnames},
-                          headers=self.headers)
+        r = requests.post(f"{self.url}/query_labels", json={"example_ids": fnames}, headers=self.headers,)
         r.raise_for_status()
         new_data = r.json()
 
-        self.status = new_data['Session_Status']
-        return new_data['Labels']
+        self.status = new_data["Session_Status"]
+        return new_data["Labels"]
 
     def submit_predictions(self, predictions: dict, dataset) -> dict:
         """
-        Submit prediction back to JPL for evaluation.  Look at
+        Submit prediction back to JPL for evaluation.
+
+        Look at
         ..:meth: framework.dataset.format_predictions for formatting info
 
         Args:
@@ -458,20 +447,16 @@ class JPLInterface(Harness):
             dict for status
         """
 
-        predictions = dataset.format_predictions(
-            predictions[0], predictions[1])
+        predictions = dataset.format_predictions(predictions[0], predictions[1])
 
-        r = requests.post(f"{self.url}/submit_predictions",
-                          json={'predictions': predictions},
-                          headers=self.headers)
+        r = requests.post(f"{self.url}/submit_predictions", json={"predictions": predictions}, headers=self.headers,)
         r.raise_for_status()
-        self.status = r.json()['Session_Status']
+        self.status = r.json()["Session_Status"]
         return self.status
 
     def format_status(self, update=False):
         """
-        Update and return formatted string with the current status
-        of the problem/task
+        Return formatted string with the current status of the problem/task.
 
         Args:
             update (bool): should the status be updated
@@ -483,31 +468,34 @@ class JPLInterface(Harness):
             info = json.dumps(self.get_current_status(), indent=4)
         else:
             info = json.dumps(self.status, indent=4)
-        return '\n'.join(['Problem/Task Status:', info, ''])
+        return "\n".join(["Problem/Task Status:", info, ""])
 
     def format_task_metadata(self):
         """
-        Returns formatted string of the task/problem metadata
+        Return formatted string of the task/problem metadata.
 
         Returns:
               str: Formatted String of Metadata
         """
         self.metadata = self.get_problem_metadata()
         info = json.dumps(self.metadata, indent=4)
-        return '\n'.join(['Problem/Task Metadata:', info, ''])
+        return "\n".join(["Problem/Task Metadata:", info, ""])
 
     def __repr__(self):
         """
+        Format self as a string.
 
         Returns:
             str: Formatted String of metadata and status
         """
 
-        return self.format_task_metadata() + '\n' + self.format_status()
+        return self.format_task_metadata() + "\n" + self.format_status()
 
     def deactivate_all_session(self):
-        """ Clean up by deactivating all active sessions
-        Only do this by and if necessary to clean up
+        """
+        Clean up by deactivating all active sessions.
+
+        Only do this by and if necessary to clean up.
 
         Returns:
             None
@@ -515,16 +503,15 @@ class JPLInterface(Harness):
 
         r = requests.get(f"{self.url}/list_active_sessions", headers=self.headers)
         r.raise_for_status()
-        active_sessions = r.json()['active_sessions']
+        active_sessions = r.json()["active_sessions"]
         for act_sess in active_sessions:
-            r = requests.post(f"{self.url}/deactivate_session",
-                              json={'session_token': act_sess},
-                              headers=self.headers)
+            r = requests.post(f"{self.url}/deactivate_session", json={"session_token": act_sess}, headers=self.headers,)
             r.raise_for_status()
             print(r.json())
 
     def deactivate_current_session(self):
-        """ Clean up by deactivating a session that was canceled early or do nothing
+        """
+        Clean up by deactivating a session that was canceled early or do nothing.
 
         Returns:
             None
@@ -532,31 +519,30 @@ class JPLInterface(Harness):
 
         r = requests.get(f"{self.url}/list_active_sessions", headers=self.headers)
         r.raise_for_status()
-        active_sessions = r.json()['active_sessions']
+        active_sessions = r.json()["active_sessions"]
         if self.sessiontoken in active_sessions:
-            r = requests.post(f"{self.url}/deactivate_session",
-                              json={'session_token': self.sessiontoken},
-                              headers=self.headers)
+            r = requests.post(
+                f"{self.url}/deactivate_session", json={"session_token": self.sessiontoken}, headers=self.headers,
+            )
             r.raise_for_status()
             print("Deactivated improperly ended session")
         else:
             print("Session Properly Deactivated")
 
-
     def get_stages(self):
         """
-        return a list of the stages in the current task
+        Return a list of the stages in the current task.
+
         Args:
             none
         """
         return self.stagenames
+
     def get_task_ids(self):
         """
-        return a list of tasks
+        Return a list of tasks.
+
         Args:
             none
         """
         return self.task_ids
-
-
-
