@@ -131,13 +131,8 @@ class ParInterface(Harness):
         )
 
         self._check_response(response)
-
-        header = response.headers["Content-Disposition"]
-        header_dict = {
-            x[0].strip(): x[1].strip(" \"'")
-            for x in [part.split("=") for part in header.split(";") if "=" in part]
-        }
-        filename = os.path.abspath(os.path.join(self.folder, header_dict["filename"]))
+    
+        filename = os.path.abspath(os.path.join(self.folder, f'{self.session_id}.{test_id}.{round_id}.csv'))
         with open(filename, "wb") as f:
             f.write(response.content)
 
