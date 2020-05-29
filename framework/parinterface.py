@@ -72,13 +72,7 @@ class ParInterface(Harness):
 
         self._check_response(response)
 
-        header = response.headers["Content-Disposition"]
-        header_dict = {
-            x[0].strip(): x[1].strip(" \"'")
-            for x in [part.split("=") for part in header.split(";") if "=" in part]
-        }
-
-        filename = os.path.abspath(os.path.join(self.folder, header_dict["filename"]))
+        filename = os.path.abspath(os.path.join(self.folder, f'{protocol}.{domain}.{detector_seed}.csv'))
         with open(filename, "w") as f:
             f.write(response.content.decode("utf-8"))
 
@@ -187,7 +181,9 @@ class ParInterface(Harness):
 
         self._check_response(response)
 
-        return response.json()
+        filename = os.path.abspath(os.path.join(self.folder, f'{self.session_id}.{test_id}.{round_id}_{feedback_type}.csv'))
+
+        return filename
 
     def post_results( self, result_files: Dict[str, str], test_id: UUID, round_id: int,) -> None:
         """
@@ -238,13 +234,8 @@ class ParInterface(Harness):
 
         self._check_response(response)
 
-        header = response.headers["Content-Disposition"]
-        header_dict = {
-            x[0].strip(): x[1].strip(" \"'")
-            for x in [part.split("=") for part in header.split(";") if "=" in part]
-        }
+        filename = os.path.abspath(os.path.join(self.folder,f'{self.session_id}.{test_id}.{round_id}_evaluation.csv'))
 
-        filename = os.path.abspath(os.path.join(self.folder, header_dict["filename"]))
         with open(filename, "w") as f:
             f.write(response.content.decode("utf-8"))
 
