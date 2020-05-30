@@ -210,8 +210,15 @@ class ParInterface(Harness):
 
         for r_type in result_files:
             with open(result_files[r_type], "r") as f:
-                contents = f.read()
-                files[f"{r_type}_file"] = io.StringIO(contents)
+                contents = f.readlines()
+                data = ""
+                for line in contents:
+                    # strip the leading self.configuration_data['data_location'] off
+                    if line.startswith(self.configuration_data['data_location']):
+                        line = line[len(self.configuration_data['data_location'])+1:]
+                    data += line
+
+                files[f"{r_type}_file"] = io.StringIO(data)
 
         response = requests.post(f"{self.api_url}/session/results", files=files)
 
