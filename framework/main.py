@@ -36,6 +36,10 @@ import os
 from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
+from framework.localinterface import LocalInterface
+from framework.jplinterface import JPLInterface
+from framework.parinterface import ParInterface
+
 
 
 def _safe_load(entry_point: EntryPoint):
@@ -113,8 +117,10 @@ def execute():
     harness = None
     if args.list_interfaces:
         # print the interfaces included with the framework.
+        print("start framework")
         for name, obj in inspect.getmembers(sys.modules[__name__]):
             print_interface(name, obj)
+        print("end framework")
 
         # print the interfaces in the protocol directory
         check_directory_for_interface(protocol_file_path, args.interface, True)
@@ -209,6 +215,7 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
 def print_interface(name, obj):
     """Print out information about an interface."""
     if inspect.isclass(obj):
+        print("this objct:", name )
 
         if issubclass(obj, Harness) and not name == "Harness":
             print(name, obj)
