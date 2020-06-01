@@ -2,52 +2,47 @@
 
 import requests
 import json
-from json import JSONDecodeError
 import io
 import os
 
 from framework.harness import Harness
-from typing import Any, Generator, Optional, Dict
+from typing import Any, Dict
 from requests import Response
 from uuid import UUID
 
+
 class ParInterface(Harness):
-    def __init__(self, configfile, configfolder ) -> None:
+    """Interface to PAR server."""
+
+    def __init__(self, configfile, configfolder) -> None:
         """
         Initialize a client connection object.
 
         :param api_url: url for where server is hosted
         """
-        Harness.__init__(self, configfile, configfolder )
-        self.api_url = self.configuration_data['url']
+        Harness.__init__(self, configfile, configfolder)
+        self.api_url = self.configuration_data["url"]
         self.folder = configfolder
 
     def _check_response(self, response: Response) -> None:
         """
         Produce appropriate output on error.
-    
+
         :param response:
         :return: True
         """
         if response.status_code != 200:
-            #TODO: print more thorough information here
-            print( "Server error: ", response.status_code )
+            # TODO: print more thorough information here
+            print("Server error: ", response.status_code)
             exit(1)
 
-
-    def test_ids_request(
-        self,
-        protocol: str,
-        domain: str,
-        detector_seed: str,
-        test_assumptions: str = "{}",
-    ) -> str:
+    def test_ids_request(self, protocol: str, domain: str, detector_seed: str, test_assumptions: str = "{}",) -> str:
         """
         Request Test Identifiers as part of a series of individual tests.
 
         Arguments:
             -protocol   : string indicating which protocol is being evaluated
-            -domain     : 
+            -domain     :
             -detector_seed
             -test_assumptions
         Returns:
@@ -64,10 +59,7 @@ class ParInterface(Harness):
 
         response = requests.get(
             f"{self.api_url}/test/ids",
-            files={
-                "test_requirements": io.StringIO(json.dumps(payload)),
-                "test_assumptions": io.StringIO(contents),
-            },
+            files={"test_requirements": io.StringIO(json.dumps(payload)), "test_assumptions": io.StringIO(contents)},
         )
 
         self._check_response(response)
@@ -78,7 +70,7 @@ class ParInterface(Harness):
 
         return filename
 
-    def session_request( self, test_ids: list, protocol: str, novelty_detector_version: str):
+    def session_request(self, test_ids: list, protocol: str, novelty_detector_version: str):
         """
         Create a new session to evaluate the detector using an empirical protocol.
 
@@ -94,15 +86,10 @@ class ParInterface(Harness):
             "novelty_detector_version": novelty_detector_version,
         }
 
-        ids = '\n'.join(test_ids) + "\n"
-
+        ids = "\n".join(test_ids) + "\n"
 
         response = requests.post(
-            f"{self.api_url}/session",
-            files={
-                "test_ids": ids,
-                "configuration": io.StringIO(json.dumps(payload)),
-            },
+            f"{self.api_url}/session", files={"test_ids": ids, "configuration": io.StringIO(json.dumps(payload))},
         )
 
         self._check_response(response)
@@ -116,7 +103,7 @@ class ParInterface(Harness):
             -test_id    : the test being evaluated at this moment.
             -round_id   : the sequential number of the round being evaluated
         Returns:
-            -filename of a file containing a list of image files (including full path for each) 
+            -filename of a file containing a list of image files (including full path for each)
         """
         response = requests.get(
             f"{self.api_url}/session/dataset",
@@ -140,14 +127,13 @@ class ParInterface(Harness):
         with open(dataset_path, "r") as orig_dataset:
             image_names = orig_dataset.readlines()
             image_paths = [
-                os.path.join(self.configuration_data['data_location'], image_name) for image_name in image_names
+                os.path.join(self.configuration_data["data_location"], image_name) for image_name in image_names
             ]
         new_dataset_file = f"{session_id}_{test_id}.csv"
         new_dataset_path = os.path.join(os.getcwd(), new_dataset_file)
         with open(new_dataset_path, "w") as new_dataset:
             new_dataset.writelines(image_paths)
         return new_dataset_path
-
 
     def get_feedback_request(
         self,
@@ -200,7 +186,7 @@ class ParInterface(Harness):
             "session_id": session_id,
             "test_id": test_id,
             "round_id": round_id,
-            "result_types": "|".join(result_files.keys())
+            "result_types": "|".join(result_files.keys()),
         }
 
         files = {"test_identification": io.StringIO(json.dumps(payload))}
@@ -250,16 +236,14 @@ class ParInterface(Harness):
 
     def get_test_metadata(self, test_id: str) -> Dict[str, Any]:
         """
-        Retrieves the metadata json for the specified test
+        Retrieve the metadata json for the specified test.
+
         Arguments:
             -test_id
         Returns:
             metadata json
         """
-        response = requests.get(
-            f"{self.api_url}/test/metadata",
-            params={"test_id": test_id},
-        )
+        response = requests.get(f"{self.api_url}/test/metadata", params={"test_id": test_id},)
 
         self._check_response(response)
         return response.json()
@@ -274,4 +258,3 @@ class ParInterface(Harness):
         response = requests.delete(f"{self.api_url}/session", params={"session_id": session_id})
 
         self._check_response(response)
-

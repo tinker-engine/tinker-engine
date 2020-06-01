@@ -1,4 +1,6 @@
 """
+This file contains the main code to run the experiment.
+
 .. _main.py:
 
 main.py
@@ -30,16 +32,10 @@ Email Kitware if you think that this needs to be changed.
 import inspect
 import sys
 import argparse
-import json
 import os
-import requests
 from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
-from framework.localinterface import LocalInterface
-from framework.jplinterface import JPLInterface
-from framework.parinterface import ParInterface
-
 
 
 def _safe_load(entry_point: EntryPoint):
@@ -48,34 +44,37 @@ def _safe_load(entry_point: EntryPoint):
         return entry_point.load()
     except Exception as fault:
         print("Cannot load entrypoint")
-        print( fault )
+        print(fault)
         exit(1)
 
+
 discovered_plugins = {
-    entry_point.name: _safe_load(entry_point)
-    for entry_point in pkg_resources.iter_entry_points("framework")
+    entry_point.name: _safe_load(entry_point) for entry_point in pkg_resources.iter_entry_points("framework")
 }
 
+
 def execute():
+    """Run the main program."""
+
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
-    parser.add_argument("protocol_file",
-            help="protocol python file",
-            type= str)
-    parser.add_argument("-a", "--algorithms",
-            help="root of the algorithms directory",
-            type= str,
-            default = ".")
-    parser.add_argument("-g", "--generate",
-            help="Generate template algorithm files",
-            action='store_true')
-    parser.add_argument("-i", "--interface",
-            help="Name of the Interface class to use. Use '--list_interfaces' to show available interfaces",
-            type= str,
-            default = "LocalInterface")
-    parser.add_argument("-l", "--list_interfaces",
-            help="Print the list of available interfaces",
-            action='store_true')
+    parser.add_argument("protocol_file", help="protocol python file", type=str)
+    parser.add_argument(
+        "-a", "--algorithms", help="root of the algorithms directory", type=str, default=".",
+    )
+    parser.add_argument(
+        "-g", "--generate", help="Generate template algorithm files", action="store_true",
+    )
+    parser.add_argument(
+        "-i",
+        "--interface",
+        help="Name of the Interface class to use. Use '--list_interfaces' to show available interfaces",
+        type=str,
+        default="LocalInterface",
+    )
+    parser.add_argument(
+        "-l", "--list_interfaces", help="Print the list of available interfaces", action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -84,22 +83,22 @@ def execute():
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
-        print("given algorithm directory doesn't exist")
+        print(f"algorithm directory {algorithmsbasepath} doesn't exist")
         exit(1)
     if not os.path.isdir(algorithmsbasepath):
-        print("given algorithm path isn't a directory")
+        print(f"algorithm path {algorithmsbasepath} isn't a directory")
         exit(1)
     # deconstruct the path to the protocol so that we can construct the
     # object dynamically.
     protfilename = args.protocol_file
     if not os.path.exists(protfilename):
-        print("given protocol file does not exist")
+        print(f"protocol file {protfilename} does not exist")
         sys.exit(1)
 
     # split out the path to the protocol file from the filename so that we can add
     # the protocol directory
     # to the system path.
-    protocol_file_path, protfile = os.path.split(protfilename);
+    protocol_file_path, protfile = os.path.split(protfilename)
 
     # append the CWD and the protocol file directory to the sys path so that we can
     # import from those locations.
@@ -110,13 +109,12 @@ def execute():
         print("Invalid protocol file")
         exit(1)
 
-
     # list the available interfaces
     harness = None
     if args.list_interfaces:
         # print the interfaces included with the framework.
         for name, obj in inspect.getmembers(sys.modules[__name__]):
-            print_interface( name, obj)
+            print_interface(name, obj)
 
         # print the interfaces in the protocol directory
         check_directory_for_interface(protocol_file_path, args.interface, True)
@@ -126,10 +124,11 @@ def execute():
 
         # print any interfaces available in the plugins
         for name in discovered_plugins.keys():
-            print_interface( name, discovered_plugins[name] )
+            print_interface(name, discovered_plugins[name])
 
         # after printing the interfaces, there is nothing else to do.
         exit(0)
+
     # search for the desired interface in the various places it could be.
     if harness is None:
         # check the protocol directory for the desired interface class
@@ -142,15 +141,16 @@ def execute():
     if harness is None:
         obj = discovered_plugins.get(args.interface)
         if obj is not None:
-            harness = obj('configuration.json', protocol_file_path )
+            harness = obj("configuration.json", protocol_file_path)
+
     # as a last resort, look for the interface in the framework itself.
     if harness is None:
         for name, obj in inspect.getmembers(sys.modules[__name__]):
             if args.interface == name and inspect.isclass(obj) and issubclass(obj, Harness):
-                harness = obj('configuration.json', protocol_file_path)
+                harness = obj("configuration.json", protocol_file_path)
 
     if harness is None:
-        print( "Requested interface not found" )
+        print("Requested interface not found")
         exit(1)
 
     protbase, protext = os.path.splitext(protfile)
@@ -160,14 +160,14 @@ def execute():
         # import the file and get the object name. The object should go in the
         # protocol local object
         protocolimport = __import__(protbase, globals(), locals(), [], 0)
-        for name, obj in inspect.getmembers(protocolimport):
+        for _name, obj in inspect.getmembers(protocolimport):
             # This will get every class that is referenced within the file,
             # including base classes to ensure we get the right one, check for only
             # classes that are within the module defined by the protocol file.
             if inspect.isclass(obj):
-                foo = inspect.getmodule( obj )
+                foo = inspect.getmodule(obj)
                 if foo == protocolimport:
-                    #construct the protocol object
+                    # construct the protocol object
                     protocol = obj(discovered_plugins, algorithmsbasepath, harness)
     else:
         print("Invalid protocol file, must be a python3 source file")
@@ -178,8 +178,11 @@ def execute():
     else:
         print("protocol invalid")
 
-def check_directory_for_interface(file_path, interface_name, print_interfaces ):
+
+def check_directory_for_interface(file_path, interface_name, print_interfaces):
     """
+    Load Harness objects found on the Python path.
+
     Check the given file path for any python files containing classes that derive
     from the Harness class. If the print_interfaces flag is set, then print any that
     are found. If that flag is not set, then instantiate the interface name interface_name,
@@ -203,17 +206,19 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces ):
     return harness
 
 
-def print_interface( name, obj):
+def print_interface(name, obj):
+    """Print out information about an interface."""
     if inspect.isclass(obj):
 
-       if issubclass(obj, Harness) and not name == "Harness":
-           print(name, obj)
+        if issubclass(obj, Harness) and not name == "Harness":
+            print(name, obj)
 
-    
 
 def main():
-    """ Main to run the algorithm locally.  Just loads the input.json file and calls
-    the :meth:`main.execute` function.
+    """
+    Run the algorithm locally.
+
+    Just loads the input.json file and calls the :meth:`main.execute` function.
     """
     execute()
 
