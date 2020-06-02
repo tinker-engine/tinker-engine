@@ -1,9 +1,0 @@
-{
-    "batch_size": 128,
-    "num_workers": 8,
-    "cuda": true,
-    "backbone": "Conv4S",
-    "start_epoch": 0,
-    "end_epoch": 25,
-    "checkpoint_dir": "/Users/huijuan/Downloads/framework/checkpoints"
-}
