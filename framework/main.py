@@ -36,9 +36,6 @@ import os
 from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
-from framework.localinterface import LocalInterface
-from framework.jplinterface import JPLInterface
-from framework.parinterface import ParInterface
 
 
 
@@ -136,10 +133,10 @@ def execute():
     # search for the desired interface in the various places it could be.
     if harness is None:
         # check the protocol directory for the desired interface class
-        check_directory_for_interface(protocol_file_path, args.interface, False)
+        harness = check_directory_for_interface(protocol_file_path, args.interface, False)
     if harness is None:
         # check the current working directory for the desired interface class.
-        check_directory_for_interface(".", args.interface, False)
+        harness = check_directory_for_interface(".", args.interface, False)
 
     # check the plugins for a Harness that matches the interface argument
     if harness is None:
