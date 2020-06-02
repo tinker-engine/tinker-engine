@@ -202,7 +202,7 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
                             harness = obj('configuration.json', file_path)
     except:
         #ignore any import error, but leave the harness set to none to indicate failure
-        harness = none
+        harness = None
     return harness
 
 
