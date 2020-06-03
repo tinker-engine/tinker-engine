@@ -11,7 +11,7 @@ from framework.basealgorithm import BaseAlgorithm
 class BaseProtocol(metaclass=abc.ABCMeta):
     """Provide generic toolset storage and mechanism to retrieve algorithms given their filename."""
 
-    def __init__(self, discovered_plugins, algodirectory, harness):
+    def __init__(self, discovered_plugins, algodirectory, harness, config_file):
         """
         Initialize.
 
@@ -23,11 +23,13 @@ class BaseProtocol(metaclass=abc.ABCMeta):
                                 if the path doe snot contain the named algorithm to be loaded.
             harness:            The interface to use for harness functionality (dataset access, test metadata,
                                 etc...
+            config_file:        The path to a configuration file for the protocol run.
 
         """
         self.test_harness = harness
         self.algorithmsbase = algodirectory
         self.discovered_plugins = discovered_plugins
+        self.config_file = config_file
         self.toolset = {}
 
     @abc.abstractmethod

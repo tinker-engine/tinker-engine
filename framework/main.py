@@ -63,6 +63,7 @@ def execute():
     parser.add_argument(
         "-a", "--algorithms", help="root of the algorithms directory", type=str, default=".",
     )
+    parser.add_argument("-c", "--config", help="path to a config file", type=str, required=True)
     parser.add_argument(
         "-g", "--generate", help="Generate template algorithm files", action="store_true",
     )
@@ -80,6 +81,12 @@ def execute():
     args = parser.parse_args()
 
     # TODO: implement the --generate functionality
+
+    # Find the config file.
+    config_file = args.config
+    if not os.path.exists(config_file):
+        print(f"config file {config_file} doesn't exist", file=sys.stderr)
+        exit(1)
 
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
@@ -169,7 +176,7 @@ def execute():
                 foo = inspect.getmodule(obj)
                 if foo == protocolimport:
                     # construct the protocol object
-                    protocol = obj(discovered_plugins, algorithmsbasepath, harness)
+                    protocol = obj(discovered_plugins, algorithmsbasepath, harness, config_file)
     else:
         print("Invalid protocol file, must be a python3 source file")
         sys.exit(1)
