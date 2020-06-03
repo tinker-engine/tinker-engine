@@ -38,7 +38,6 @@ import pkg_resources
 from pkg_resources import EntryPoint
 
 
-
 def _safe_load(entry_point: EntryPoint):
     """Load algorithms from an entrypoint without raising exceptions."""
     try:
@@ -196,13 +195,13 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
             if fileext == ".py" and not filebase == "__init__" and not filebase == "setup":
                 interfaceimport = __import__(filebase, globals(), locals(), [], 0)
                 for name, obj in inspect.getmembers(interfaceimport):
-                    if inspect.isclass(obj) and interfaceimport == inspect.getmodule( obj ):
+                    if inspect.isclass(obj) and interfaceimport == inspect.getmodule(obj):
                         if print_interfaces:
-                            print_interface( name, obj)
+                            print_interface(name, obj)
                         elif name == interface_name and issubclass(obj, Harness):
-                            harness = obj('configuration.json', file_path)
+                            harness = obj("configuration.json", file_path)
         except:
-            #ignore any import error, but leave the harness set to none to indicate failure
+            # ignore any import error, but leave the harness set to none to indicate failure
             continue
     return harness
 
