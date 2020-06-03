@@ -190,8 +190,8 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
     and return the object.
     """
     harness = None
-    try:
-        for file in os.listdir(file_path):
+    for file in os.listdir(file_path):
+        try:
             filebase, fileext = os.path.splitext(file)
             if fileext == ".py" and not filebase == "__init__" and not filebase == "setup":
                 interfaceimport = __import__(filebase, globals(), locals(), [], 0)
@@ -201,9 +201,9 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
                             print_interface( name, obj)
                         elif name == interface_name and issubclass(obj, Harness):
                             harness = obj('configuration.json', file_path)
-    except:
-        #ignore any import error, but leave the harness set to none to indicate failure
-        harness = None
+        except:
+            #ignore any import error, but leave the harness set to none to indicate failure
+            continue
     return harness
 
 
