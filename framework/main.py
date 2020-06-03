@@ -63,7 +63,7 @@ def execute():
     parser.add_argument(
         "-a", "--algorithms", help="root of the algorithms directory", type=str, default=".",
     )
-    parser.add_argument("-c", "--config", help="path to a config file", type=str, required=True)
+    parser.add_argument("-p", "--protocol-config", help="path to a config file", type=str, required=True)
     parser.add_argument(
         "-g", "--generate", help="Generate template algorithm files", action="store_true",
     )
@@ -83,7 +83,7 @@ def execute():
     # TODO: implement the --generate functionality
 
     # Find the config file.
-    config_file = args.config
+    config_file = args.protocol_config
     if not os.path.exists(config_file):
         print(f"config file {config_file} doesn't exist", file=sys.stderr)
         exit(1)
