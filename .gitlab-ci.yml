@@ -12,3 +12,11 @@ pages:
     - public
   only:
   - master
+
+code-quality:
+  script:
+    - python --version
+    - pip install pipenv
+    - pipenv install -d
+    - pipenv run lint
+    - pipenv run typecheck
