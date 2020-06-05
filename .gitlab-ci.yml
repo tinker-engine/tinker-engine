@@ -13,7 +13,7 @@ pages:
   only:
   - master
 
-code-quality:
+lint:
   tags:
     - linux
   script:
@@ -21,4 +21,12 @@ code-quality:
     - pip install pipenv
     - pipenv install -d
     - pipenv run lint
+
+typecheck:
+  tags:
+    - linux
+  script:
+    - python --version
+    - pip install pipenv
+    - pipenv install -d
     - pipenv run typecheck
