@@ -20,6 +20,8 @@ pages:
 lint:
   tags:
     - linux
+    - docker
+    - build
   script:
     - *python-setup
     - pipenv run lint
@@ -27,6 +29,8 @@ lint:
 typecheck:
   tags:
     - linux
+    - docker
+    - build
   script:
     - *python-setup
     - pipenv run typecheck
