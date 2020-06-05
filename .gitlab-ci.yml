@@ -13,20 +13,20 @@ pages:
   only:
   - master
 
+.python-setup: &python-setup
+  - pip install pipenv
+  - pipenv install -d
+
 lint:
   tags:
     - linux
   script:
-    - python --version
-    - pip install pipenv
-    - pipenv install -d
+    - *python-setup
     - pipenv run lint
 
 typecheck:
   tags:
     - linux
   script:
-    - python --version
-    - pip install pipenv
-    - pipenv install -d
+    - *python-setup
     - pipenv run typecheck
