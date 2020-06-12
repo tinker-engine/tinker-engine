@@ -19,6 +19,9 @@ import warnings
 import ubelt as ub
 import torch
 
+from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Union
+
+
 IMG_EXTENSIONS = (
     ".jpg",
     ".jpeg",
@@ -32,7 +35,7 @@ IMG_EXTENSIONS = (
 )
 
 
-def basic_transformer():
+def basic_transformer() -> Any:
     """
     Resize the image to 32x32 and convert it to a tensor.
 
@@ -42,7 +45,7 @@ def basic_transformer():
     return torchvision.transforms.Compose([torchvision.transforms.Resize([32, 32]), torchvision.transforms.ToTensor()])
 
 
-def pil_loader(path):
+def pil_loader(path: str) -> Any:
     """
     Open an image using PIL.
 
@@ -59,7 +62,7 @@ def pil_loader(path):
         return img.convert("RGB")
 
 
-def has_file_allowed_extension(filename, extensions=IMG_EXTENSIONS):
+def has_file_allowed_extension(filename: str, extensions: Tuple[str, str, str, str, str, str, str, str, str]=IMG_EXTENSIONS) -> bool:
     """
     Check if a file is an allowed extension.
 
@@ -73,7 +76,7 @@ def has_file_allowed_extension(filename, extensions=IMG_EXTENSIONS):
     return filename.lower().endswith(extensions)
 
 
-def is_image_file(filename):
+def is_image_file(filename: str) -> bool:
     """Check if a file is an allowed image extension.
 
     Args:
@@ -85,7 +88,7 @@ def is_image_file(filename):
     return has_file_allowed_extension(filename, IMG_EXTENSIONS)
 
 
-def ensure_image_list(filelist):
+def ensure_image_list(filelist: List[str]) -> Iterator[str]:
     """
     Take a list of filenames and ensures that these have image extensions.
 
@@ -135,16 +138,20 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
     """
 
+    categories: List[str]
+    category_to_category_index: Dict[str, int]
+    category_index_to_category: Dict[int, str]
+
     def __init__(
         self,
-        problem,
-        dataset_name,
-        dataset_root,
-        transform=ub.NoParam,
-        target_transform=None,
-        categories=None,
-        seed_labels=None,
-    ):
+        problem: Any,
+        dataset_name: str,
+        dataset_root: str,
+        transform: Any=ub.NoParam,
+        target_transform: Optional[Callable]=None,
+        categories: Optional[List[str]]=None,
+        seed_labels: Optional[List[str]]=None,
+    ) -> None:
         """
         Initialize the dataset.
 
@@ -193,16 +200,16 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         # targets/label category indices for data
         self.targets = [None] * self.num_images
-        self.labeled_indices = set()
-        self.unlabeled_indices = set(np.arange(self.num_images).tolist())
+        self.labeled_indices: Set[int] = set()
+        self.unlabeled_indices: Set[int] = set(np.arange(self.num_images).tolist())
         self.index_to_image_fname = dict(zip(np.arange(self.num_images).tolist(), self.image_fnames))
         self.image_fname_to_index = dict(zip(self.image_fnames, np.arange(self.num_images).tolist()))
 
         # check to make sure number of images is consistent with problem metadata
         self.indices = set(np.arange(self.num_images))
-        self.categories = None
-        self.category_to_category_index = None
-        self.category_index_to_category = None
+        self.categories = []
+        self.category_to_category_index = {}
+        self.category_index_to_category = {}
 
         # TODO: fix the following to correctly initialize
         if categories is None:
@@ -210,7 +217,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         else:
             self.initialize_categories(categories)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Get length of unlabeled and labeled data.
 
@@ -219,7 +226,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return self.num_images
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Tuple[Any, int, int]:
         """
         Return an item by index.
 
@@ -248,7 +255,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         return img, target, index
 
-    def get_unlabeled_indices(self):
+    def get_unlabeled_indices(self) -> List[int]:
         """
         Return unlabeled indices.
 
@@ -258,7 +265,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return list(self.unlabeled_indices)
 
-    def get_labeled_indices(self):
+    def get_labeled_indices(self) -> List[int]:
         """
         Return labeled indices.
 
@@ -268,7 +275,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return list(self.labeled_indices)
 
-    def get_more_labels(self, indices):
+    def get_more_labels(self, indices: List[int]) -> None:
         """
         Ask LwLL class to interface with JPL server to query for indices.
 
@@ -297,7 +304,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
 
-    def get_seed_labels(self, seed_labels=None, num_seed_calls=0):
+    def get_seed_labels(self, seed_labels: Optional[pd.DataFrame]=None, num_seed_calls: int=0) -> None:
         """
         Get the seed labels from JPL and add them to the dataset.
 
@@ -324,7 +331,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
 
-    def _category_name_to_category_index(self, category_names):
+    def _category_name_to_category_index(self, category_names: List[str]) -> List[int]:
         """
         Given category names, return category indices.
 
@@ -337,7 +344,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return [self.category_to_category_index[cat] for cat in category_names]
 
-    def _category_index_to_category_name(self, category_indices):
+    def _category_index_to_category_name(self, category_indices: List[int]) -> List[str]:
         """
         Given category indices, return category names.
 
@@ -350,7 +357,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return [self.category_index_to_category[i] for i in category_indices]
 
-    def update_targets(self, new_labels, requested=None, check_redundant=False):
+    def update_targets(self, new_labels: Any, requested: List[int]=None, check_redundant: bool=False) -> int:
         """
         Update with new labels for targets.
 
@@ -391,7 +398,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         return num_labeled
 
-    def initialize_categories(self, seed_labels):
+    def initialize_categories(self, seed_labels: List[str]) -> None:
         """
         Given the seed labels, initialize the category names and indices.
 
@@ -402,7 +409,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         self.category_to_category_index = dict(zip(self.categories, np.arange(len(self.categories))))
         self.category_index_to_category = dict(zip(np.arange(len(self.categories)), self.categories))
 
-    def _fnames_to_indices(self, fnames):
+    def _fnames_to_indices(self, fnames: List[str]) -> List[int]:
         """
         Given filenames, return indices.
 
@@ -415,7 +422,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return [self.image_fname_to_index[fname] for fname in fnames]
 
-    def _indices_to_fnames(self, indices):
+    def _indices_to_fnames(self, indices: List[int]) -> List[str]:
         """
         Given indices, return filenames.
 
@@ -428,7 +435,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return [self.index_to_image_fname[i] for i in indices]
 
-    def extra_repr(self):
+    def extra_repr(self) -> str:
         """
         Add extra bit when printing out dataset.
 
@@ -440,7 +447,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             f"Number of Labeled Datapoints {self.labeled_size}"
         )
 
-    def show_example(self, index=0):
+    def show_example(self, index: int=0) -> None:
         """
         Given an index, show an example.
 
@@ -456,7 +463,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         plt.imshow(img)
         plt.title(f"Class: {out[1]}")
 
-    def collate_batch(self, batch):
+    def collate_batch(self, batch: List[Any]) -> Any:
         """
         Collate a batch.
 
@@ -504,7 +511,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         raise NotImplementedError
 
-    def dummy_data(self, task_type):
+    def dummy_data(self, task_type: str) -> Tuple[Union[Tuple[List[str], List[float], Any], Any], List[int]]:
         """
         Create dummy data for evaluation.
 
@@ -528,7 +535,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         else:
             raise NotImplementedError
 
-    def format_predictions(self, predictions, indices):
+    def format_predictions(self, predictions: Union[Tuple[List, List, List], List], indices: List[int]) -> dict:
         """
         Submit the prediction to JPL vial LwLL class.
 
@@ -554,21 +561,21 @@ class ObjectDetectionDataset(ImageClassificationDataset):
 
     def __init__(
         self,
-        problem,
-        dataset_name,
-        dataset_root,
-        transform=ub.NoParam,
-        target_transform=None,
-        categories=None,
-        seed_labels=None,
-    ):
+        problem: Any,
+        dataset_name: str,
+        dataset_root: str,
+        transform: Any=ub.NoParam,
+        target_transform: Optional[Callable]=None,
+        categories: Optional[List[str]]=None,
+        seed_labels: Optional[List[str]]=None,
+    ) -> None:
         """Initialize."""
 
         super(ObjectDetectionDataset, self).__init__(
             problem, dataset_name, dataset_root, transform, target_transform, categories, seed_labels,
         )
 
-    def get_more_labels(self, indices):
+    def get_more_labels(self, indices: List[int]) -> None:
         """
         Ask LwLL class to interface with JPL server to query for indices.
 
@@ -601,7 +608,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
 
-    def update_targets(self, new_labels, requested=None, check_redundant=False):
+    def update_targets(self, new_labels: Any, requested: Optional[List[int]]=None, check_redundant: bool=False) -> int:
         """
         Update with new labels for targets.
 
@@ -660,7 +667,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
 
         return num_labeled
 
-    def format_predictions(self, predictions, indices):
+    def format_predictions(self, predictions: Union[Tuple[List, List, List], List], indices: List[int]) -> dict:
         """
         Submit the prediction to JPL vial LwLL class.
 

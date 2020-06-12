@@ -37,8 +37,10 @@ from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
 
+from typing import Any, Optional
 
-def _safe_load(entry_point: EntryPoint):
+
+def _safe_load(entry_point: EntryPoint) -> Any:
     """Load algorithms from an entrypoint without raising exceptions."""
     try:
         return entry_point.load()
@@ -53,7 +55,7 @@ discovered_plugins = {
 }
 
 
-def execute():
+def execute() -> None:
     """Run the main program."""
 
     # Setup the argument parsing, and generate help information.
@@ -186,7 +188,7 @@ def execute():
         print("protocol invalid")
 
 
-def check_directory_for_interface(file_path, interface_name, print_interfaces):
+def check_directory_for_interface(file_path: str, interface_name: str, print_interfaces: bool) -> Optional[Harness]:
     """
     Load Harness objects found on the Python path.
 
@@ -213,14 +215,14 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
     return harness
 
 
-def print_interface(name, obj):
+def print_interface(name: str, obj: Any) -> None:
     """Print out information about an interface."""
     if inspect.isclass(obj):
         if issubclass(obj, Harness) and not name == "Harness":
             print(name, obj)
 
 
-def main():
+def main() -> None:
     """
     Run the algorithm locally.
 

@@ -6,12 +6,13 @@ import sys
 import inspect
 
 from framework.basealgorithm import BaseAlgorithm
-
+from framework.harness import Harness
+from typing import Any, Dict
 
 class BaseProtocol(metaclass=abc.ABCMeta):
     """Provide generic toolset storage and mechanism to retrieve algorithms given their filename."""
 
-    def __init__(self, discovered_plugins, algodirectory, harness, config_file):
+    def __init__(self, discovered_plugins: Dict[str, Any], algodirectory: str, harness: Harness, config_file: str) -> None:
         """
         Initialize.
 
@@ -30,14 +31,14 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         self.algorithmsbase = algodirectory
         self.discovered_plugins = discovered_plugins
         self.config_file = config_file
-        self.toolset = {}
+        self.toolset: Dict[str, Any] = {}
 
     @abc.abstractmethod
-    def run_protocol(self):
+    def run_protocol(self) -> None:
         """Run the protocol."""
         raise NotImplementedError
 
-    def get_algorithm(self, algotype, toolset):
+    def get_algorithm(self, algotype: str, toolset: Dict[str, Any]) -> BaseAlgorithm:
         """
         Load a single algorithm file and instantiate the relevant object therefrom.
 
@@ -78,7 +79,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             print(algotype, "not found in path, loading plugin")
             return self.load_from_plugin(algotype, toolset)
 
-    def load_from_file(self, algofile, toolset):
+    def load_from_file(self, algofile: str, toolset: Dict[str, Any]) -> BaseAlgorithm:
         """Load a protocol from a Python file."""
 
         # get the path to the algo file so that we can append it to the system path
@@ -105,7 +106,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
 
         return algorithm
 
-    def load_from_plugin(self, algotype, toolset):
+    def load_from_plugin(self, algotype: str, toolset: Dict[str, Any]) -> BaseAlgorithm:
         """Load an algorithm from a plugin."""
 
         algorithm = self.discovered_plugins.get(algotype)

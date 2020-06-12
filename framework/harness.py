@@ -2,11 +2,13 @@
 import os
 import json
 
+from typing import Any, Dict
+
 
 class Harness:
     """Harness."""
 
-    def __init__(self, json_configuration_file, interface_config_path):
+    def __init__(self, json_configuration_file: str, interface_config_path: str) -> None:
         """Initialize."""
 
         json_full_path = os.path.join(interface_config_path, json_configuration_file)
@@ -17,4 +19,4 @@ class Harness:
         with open(json_full_path) as json_file:
             self.configuration_data = json.load(json_file)
         self.metadata = None
-        self.toolset = {}
+        self.toolset: Dict[str, Any] = {}
