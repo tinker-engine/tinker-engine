@@ -489,8 +489,8 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
                 # If we're in a background process, concatenate directly into a
                 # shared memory tensor to avoid an extra copy
                 numel = sum(x.numel() for x in batch)
-                storage = elem.storage()._new_shared(numel)
-                out = elem.new(storage)
+                storage = elem.storage()._new_shared(numel)  # type: ignore
+                out = elem.new(storage)  # type: ignore
             return torch.stack(batch, 0, out=out)
         elif elem_type.__module__ == "numpy" and elem_type.__name__ != "str_" and elem_type.__name__ != "string_":
             elem = batch[0]
