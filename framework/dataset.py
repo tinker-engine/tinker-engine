@@ -141,6 +141,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
     categories: List[str]
     category_to_category_index: Dict[str, int]
     category_index_to_category: Dict[int, str]
+    targets: List[Optional[List[Dict[str, Any]]]]
 
     def __init__(
         self,
