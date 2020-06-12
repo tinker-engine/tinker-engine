@@ -63,7 +63,9 @@ def pil_loader(path: str) -> Any:
         return img.convert("RGB")
 
 
-def has_file_allowed_extension(filename: str, extensions: Tuple[str, str, str, str, str, str, str, str, str]=IMG_EXTENSIONS) -> bool:
+def has_file_allowed_extension(
+    filename: str, extensions: Tuple[str, str, str, str, str, str, str, str, str] = IMG_EXTENSIONS
+) -> bool:
     """
     Check if a file is an allowed extension.
 
@@ -149,10 +151,10 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         problem: Any,
         dataset_name: str,
         dataset_root: str,
-        transform: Any=ub.NoParam,
-        target_transform: Optional[Callable]=None,
-        categories: Optional[List[str]]=None,
-        seed_labels: Optional[List[str]]=None,
+        transform: Any = ub.NoParam,
+        target_transform: Optional[Callable] = None,
+        categories: Optional[List[str]] = None,
+        seed_labels: Optional[List[str]] = None,
     ) -> None:
         """
         Initialize the dataset.
@@ -306,7 +308,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
 
-    def get_seed_labels(self, seed_labels: Optional[pd.DataFrame]=None, num_seed_calls: int=0) -> None:
+    def get_seed_labels(self, seed_labels: Optional[pd.DataFrame] = None, num_seed_calls: int = 0) -> None:
         """
         Get the seed labels from JPL and add them to the dataset.
 
@@ -359,7 +361,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         return [self.category_index_to_category[i] for i in category_indices]
 
-    def update_targets(self, new_labels: Any, requested: List[int]=None, check_redundant: bool=False) -> int:
+    def update_targets(self, new_labels: Any, requested: List[int] = None, check_redundant: bool = False) -> int:
         """
         Update with new labels for targets.
 
@@ -449,7 +451,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
             f"Number of Labeled Datapoints {self.labeled_size}"
         )
 
-    def show_example(self, index: int=0) -> None:
+    def show_example(self, index: int = 0) -> None:
         """
         Given an index, show an example.
 
@@ -566,10 +568,10 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         problem: Any,
         dataset_name: str,
         dataset_root: str,
-        transform: Any=ub.NoParam,
-        target_transform: Optional[Callable]=None,
-        categories: Optional[List[str]]=None,
-        seed_labels: Optional[List[str]]=None,
+        transform: Any = ub.NoParam,
+        target_transform: Optional[Callable] = None,
+        categories: Optional[List[str]] = None,
+        seed_labels: Optional[List[str]] = None,
     ) -> None:
         """Initialize."""
 
@@ -610,7 +612,9 @@ class ObjectDetectionDataset(ImageClassificationDataset):
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
 
-    def update_targets(self, new_labels: Any, requested: Optional[List[int]]=None, check_redundant: bool=False) -> int:
+    def update_targets(
+        self, new_labels: Any, requested: Optional[List[int]] = None, check_redundant: bool = False
+    ) -> int:
         """
         Update with new labels for targets.
 

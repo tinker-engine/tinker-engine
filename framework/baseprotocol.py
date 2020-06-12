@@ -9,10 +9,13 @@ from framework.basealgorithm import BaseAlgorithm
 from framework.harness import Harness
 from typing import Any, Dict
 
+
 class BaseProtocol(metaclass=abc.ABCMeta):
     """Provide generic toolset storage and mechanism to retrieve algorithms given their filename."""
 
-    def __init__(self, discovered_plugins: Dict[str, Any], algodirectory: str, harness: Harness, config_file: str) -> None:
+    def __init__(
+        self, discovered_plugins: Dict[str, Any], algodirectory: str, harness: Harness, config_file: str
+    ) -> None:
         """
         Initialize.
 
