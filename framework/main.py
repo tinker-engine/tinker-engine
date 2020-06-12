@@ -209,7 +209,7 @@ def check_directory_for_interface(file_path: str, interface_name: str, print_int
                             print_interface(name, obj)
                         elif name == interface_name and issubclass(obj, Harness):
                             harness = obj("configuration.json", file_path)
-        except:
+        except Exception:
             # ignore any import error, but leave the harness set to none to indicate failure
             continue
     return harness
