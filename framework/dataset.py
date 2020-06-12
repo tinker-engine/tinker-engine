@@ -10,13 +10,13 @@ something in this file.
 """
 
 from __future__ import print_function
-import torchvision
-import numpy as np
+import torchvision  # type: ignore
+import numpy as np  # type: ignore
 import os
-import pandas as pd
-from PIL import Image
+import pandas as pd  # type: ignore
+from PIL import Image  # type: ignore
 import warnings
-import ubelt as ub
+import ubelt as ub  # type: ignore
 import torch
 
 from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Union
@@ -458,7 +458,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         """
         out = self[index]
         img = out[0].numpy().transpose(1, 2, 0)
-        import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt  # type: ignore
 
         plt.imshow(img)
         plt.title(f"Class: {out[1]}")
