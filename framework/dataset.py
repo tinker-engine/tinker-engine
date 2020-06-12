@@ -537,7 +537,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         else:
             raise NotImplementedError
 
-    def format_predictions(self, predictions: Union[Tuple[List, List, List], List], indices: List[int]) -> dict:
+    def format_predictions(self, predictions: List[int], indices: List[int]) -> dict:
         """
         Submit the prediction to JPL vial LwLL class.
 
