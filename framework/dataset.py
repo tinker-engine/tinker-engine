@@ -249,13 +249,13 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         img = self.transform(img)
 
         if self.target_transform is not None and target is not None:
-            target = self.target_transform(target)
+            target_val = self.target_transform(target)
 
         if target is None:
             # if nothing, make it -1 for the pytorch collate function
-            target = -1
+            target_val = -1
 
-        return img, target, index
+        return img, target_val, index
 
     def get_unlabeled_indices(self) -> List[int]:
         """
@@ -643,18 +643,19 @@ class ObjectDetectionDataset(ImageClassificationDataset):
                 "category": cat_labels[it],
                 "bbox": torch.tensor(list(map(float, bbox_labels[it].split(", ")))),
             }
-            if self.targets[ind] is None:
+            target = self.targets[ind]
+            if target is None:
                 self.targets[ind] = [new_lab]
                 num_labeled += 1
             else:
                 # Check if redundant, don't if it so don't add
                 unique = True
                 if check_redundant:
-                    for t in self.targets[ind]:
+                    for t in target:
                         if new_lab["category"] == t["category"] and all(new_lab["bbox"] == t["bbox"]):
                             unique = False
                 if unique:
-                    self.targets[ind].append(new_lab)
+                    target.append(new_lab)
                     num_labeled += 1
 
         # Update Ids
