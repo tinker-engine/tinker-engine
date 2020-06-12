@@ -18,6 +18,7 @@ from PIL import Image  # type: ignore
 import warnings
 import ubelt as ub  # type: ignore
 import torch
+import torch.utils.data
 
 from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Union
 
