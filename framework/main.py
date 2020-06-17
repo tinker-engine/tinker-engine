@@ -38,7 +38,6 @@ import pkg_resources
 from pkg_resources import EntryPoint
 
 
-
 def _safe_load(entry_point: EntryPoint):
     """Load algorithms from an entrypoint without raising exceptions."""
     try:
@@ -63,6 +62,7 @@ def execute():
     parser.add_argument(
         "-a", "--algorithms", help="root of the algorithms directory", type=str, default=".",
     )
+    parser.add_argument("-p", "--protocol-config", help="path to a config file", type=str, required=True)
     parser.add_argument(
         "-g", "--generate", help="Generate template algorithm files", action="store_true",
     )
@@ -80,6 +80,12 @@ def execute():
     args = parser.parse_args()
 
     # TODO: implement the --generate functionality
+
+    # Find the config file.
+    config_file = args.protocol_config
+    if not os.path.exists(config_file):
+        print(f"config file {config_file} doesn't exist", file=sys.stderr)
+        exit(1)
 
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
@@ -169,7 +175,7 @@ def execute():
                 foo = inspect.getmodule(obj)
                 if foo == protocolimport:
                     # construct the protocol object
-                    protocol = obj(discovered_plugins, algorithmsbasepath, harness)
+                    protocol = obj(discovered_plugins, algorithmsbasepath, harness, config_file)
     else:
         print("Invalid protocol file, must be a python3 source file")
         sys.exit(1)
@@ -196,13 +202,13 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
             if fileext == ".py" and not filebase == "__init__" and not filebase == "setup":
                 interfaceimport = __import__(filebase, globals(), locals(), [], 0)
                 for name, obj in inspect.getmembers(interfaceimport):
-                    if inspect.isclass(obj) and interfaceimport == inspect.getmodule( obj ):
+                    if inspect.isclass(obj) and interfaceimport == inspect.getmodule(obj):
                         if print_interfaces:
-                            print_interface( name, obj)
+                            print_interface(name, obj)
                         elif name == interface_name and issubclass(obj, Harness):
-                            harness = obj('configuration.json', file_path)
-        except:
-            #ignore any import error, but leave the harness set to none to indicate failure
+                            harness = obj("configuration.json", file_path)
+        except Exception:
+            # ignore any import error, but leave the harness set to none to indicate failure
             continue
     return harness
 
