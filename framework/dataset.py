@@ -23,7 +23,7 @@ import torch.utils.data
 from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Union
 
 
-IMG_EXTENSIONS = (
+IMG_EXTENSIONS = [
     ".jpg",
     ".jpeg",
     ".png",
@@ -33,7 +33,7 @@ IMG_EXTENSIONS = (
     ".tif",
     ".tiff",
     ".webp",
-)
+]
 
 
 def basic_transformer() -> Any:
@@ -63,9 +63,7 @@ def pil_loader(path: str) -> Any:
         return img.convert("RGB")
 
 
-def has_file_allowed_extension(
-    filename: str, extensions: Tuple[str, str, str, str, str, str, str, str, str] = IMG_EXTENSIONS
-) -> bool:
+def has_file_allowed_extension(filename: str, extensions: List[str] = IMG_EXTENSIONS) -> bool:
     """
     Check if a file is an allowed extension.
 
@@ -76,7 +74,7 @@ def has_file_allowed_extension(
     Returns:
         bool: True if the filename ends with one of given extensions
     """
-    return filename.lower().endswith(extensions)
+    return filename.lower().endswith(tuple(extensions))
 
 
 def is_image_file(filename: str) -> bool:
