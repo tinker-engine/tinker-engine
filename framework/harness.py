@@ -1,6 +1,7 @@
 """Test Harness."""
 import os
 import json
+import logging
 
 
 class Harness:
@@ -11,7 +12,7 @@ class Harness:
 
         json_full_path = os.path.join(interface_config_path, json_configuration_file)
         if not os.path.exists(json_full_path):
-            print("Given LocalInterface configuration file does not exist")
+            logging.critical("Given LocalInterface configuration file does not exist")
             exit(1)
 
         with open(json_full_path) as json_file:
