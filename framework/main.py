@@ -45,7 +45,7 @@ def _safe_load(entry_point: EntryPoint):
         return entry_point.load()
     except Exception as fault:
         logging.error("Cannot load entrypoint")
-        logging.error(fault)
+        logging.exception(fault)
         exit(1)
 
 
@@ -84,7 +84,7 @@ def execute():
         default="framework.log",
     )
 
-    parser.add_argument( "--log-level", default=logging.INFO, help="Logging level")
+    parser.add_argument( "--log-level", default=logging.INFO, help="Logging level", type=int)
 
     args = parser.parse_args()
 
