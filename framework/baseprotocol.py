@@ -73,10 +73,10 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         # load the algo from plugin
         algofile = os.path.join(self.algorithmsbase, algotype)
         if os.path.exists(algofile) and not os.path.isdir(algofile):
-            logging.info(algotype, "found in algorithms path, loading file")
+            logging.info( f"{algotype} found in algorithms path, loading file")
             return self.load_from_file(algofile, toolset)
         else:
-            logging.info(algotype, "not found in path, loading plugin")
+            logging.info(f"{algotype} not found in path, loading plugin")
             return self.load_from_plugin(algotype, toolset)
 
     def load_from_file(self, algofile, toolset):
@@ -114,6 +114,6 @@ class BaseProtocol(metaclass=abc.ABCMeta):
             logging.critical("Requested plugin not found")
             exit(1)
         if not issubclass(algorithm, BaseAlgorithm):
-            logging.critical("Requested plugin", algotype, "is not an algorithm")
+            logging.critical(f"Requested plugin {algotype} is not an algorithm")
             exit(1)
         return algorithm(toolset)

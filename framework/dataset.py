@@ -367,7 +367,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         fnames = new_labels["id"].tolist()
         indices = self._fnames_to_indices(fnames)
-        logging.debug("nidices", len(indices))
+        logging.debug(f"nidices {len(indices)}")
 
         cat_labels = new_labels["class"].tolist()
         cat_labels = self._category_name_to_category_index(cat_labels)
