@@ -40,7 +40,7 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
         if isinstance(toolset, dict):
             self.toolset = toolset
         elif toolset:
-            logging.critical("Algorithms must be constructed with dictionary toolset")
+            logging.error("Algorithms must be constructed with dictionary toolset")
             exit(1)
         else:
             toolset = {}

@@ -44,8 +44,8 @@ def _safe_load(entry_point: EntryPoint):
     try:
         return entry_point.load()
     except Exception as fault:
-        logging.critical("Cannot load entrypoint")
-        logging.critical(fault)
+        logging.error("Cannot load entrypoint")
+        logging.error(fault)
         exit(1)
 
 
@@ -99,22 +99,22 @@ def execute():
     # Find the config file.
     config_file = args.protocol_config
     if not os.path.exists(config_file):
-        logging.critical(f"config file {config_file} doesn't exist" )
+        logging.error(f"config file {config_file} doesn't exist" )
         exit(1)
 
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
-        logging.critical(f"algorithm directory {algorithmsbasepath} doesn't exist")
+        logging.error(f"algorithm directory {algorithmsbasepath} doesn't exist")
         exit(1)
     if not os.path.isdir(algorithmsbasepath):
-        logging.critical(f"algorithm path {algorithmsbasepath} isn't a directory")
+        logging.error(f"algorithm path {algorithmsbasepath} isn't a directory")
         exit(1)
     # deconstruct the path to the protocol so that we can construct the
     # object dynamically.
     protfilename = args.protocol_file
     if not os.path.exists(protfilename):
-        logging.critical(f"protocol file {protfilename} does not exist")
+        logging.error(f"protocol file {protfilename} does not exist")
         sys.exit(1)
 
     # split out the path to the protocol file from the filename so that we can add
@@ -128,7 +128,7 @@ def execute():
     if protocol_file_path:
         sys.path.append(protocol_file_path)
     else:
-        logging.critical("Invalid protocol file")
+        logging.error("Invalid protocol file")
         exit(1)
 
     # list the available interfaces
@@ -172,7 +172,7 @@ def execute():
                 harness = obj("configuration.json", protocol_file_path)
 
     if harness is None:
-        logging.critical("Requested interface not found")
+        logging.error("Requested interface not found")
         exit(1)
 
     protbase, protext = os.path.splitext(protfile)
@@ -192,13 +192,13 @@ def execute():
                     # construct the protocol object
                     protocol = obj(discovered_plugins, algorithmsbasepath, harness, config_file)
     else:
-        logging.critical("Invalid protocol file, must be a python3 source file")
+        logging.error("Invalid protocol file, must be a python3 source file")
         exit(1)
 
     if protocol:
         protocol.run_protocol()
     else:
-        logging.critical("protocol invalid")
+        logging.error("protocol invalid")
         exit(1)
 
 

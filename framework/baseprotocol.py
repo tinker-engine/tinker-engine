@@ -66,7 +66,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         # Validate the toolset is a dictionary or None
         if toolset:
             if not isinstance(toolset, dict):
-                logging.critical("toolset must be a dictionary")
+                logging.error("toolset must be a dictionary")
                 exit(1)
 
         # if the file exists, then load the algo from the file. If not, then
@@ -101,7 +101,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
                         # construct the algorithm object
                         algorithm = obj(toolset)
         else:
-            logging.critical("Given algorithm is not a python file, other types not supported")
+            logging.error("Given algorithm is not a python file, other types not supported")
             exit(1)
 
         return algorithm
@@ -111,9 +111,9 @@ class BaseProtocol(metaclass=abc.ABCMeta):
 
         algorithm = self.discovered_plugins.get(algotype)
         if algorithm is None:
-            logging.critical("Requested plugin not found")
+            logging.error("Requested plugin not found")
             exit(1)
         if not issubclass(algorithm, BaseAlgorithm):
-            logging.critical(f"Requested plugin {algotype} is not an algorithm")
+            logging.error(f"Requested plugin {algotype} is not an algorithm")
             exit(1)
         return algorithm(toolset)
