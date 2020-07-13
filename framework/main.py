@@ -37,7 +37,7 @@ from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
 import logging
-
+import time
 
 def _safe_load(entry_point: EntryPoint):
     """Load algorithms from an entrypoint without raising exceptions."""
@@ -81,7 +81,7 @@ def execute():
     parser.add_argument(
         "-r", "--report_file", help="Filename of the report file (logging output)",
         type=str,
-        default="framework.log",
+        default=f"framework_{time.asctime().replace(' ', '_')}.log",
     )
 
     parser.add_argument( "--log-level", default=logging.INFO, help="Logging level", type=int)
