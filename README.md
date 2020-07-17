@@ -22,7 +22,7 @@ If the framework needs to be run from somewhere other than the algorithms direct
 ```bash
 framework protocol_file -a alogorithms_path
 ```
-
+ 
 The framework can also be run with different harness interfaces. Use the -l flag to list the available interfaces. By default the framework uses the LocalInterface provided by the framework. An alternate can be selected using the -i \<interface name\> argument. User defined interfaces can also be used, but must derive from the Harness base class, and should be placed in the same folder with the protocol file. If everything is setup correctly, the -l flag will also print out the name of any user defined interfaces that are available.
 
 ## Running Learn
