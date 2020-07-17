@@ -13,6 +13,8 @@ template algorithm files for researchers to use.
 import abc
 import logging
 
+from typing import Any, Dict
+
 
 class BaseAlgorithm(metaclass=abc.ABCMeta):
     """
@@ -34,7 +36,7 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
 
     """
 
-    def __init__(self, toolset):
+    def __init__(self, toolset: Dict[str, Any]) -> None:
         """Initialize."""
 
         if isinstance(toolset, dict):
@@ -46,7 +48,7 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
             toolset = {}
 
     @abc.abstractmethod
-    def execute(self, toolset, step_descriptor):
+    def execute(self, toolset: Dict[str, Any], step_descriptor: str) -> None:
         """
         Execute general steps of an algorithm.
 

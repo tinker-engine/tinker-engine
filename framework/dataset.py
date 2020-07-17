@@ -1,3 +1,5 @@
+# type: ignore  # noqa: E800
+
 """
 Datasets.
 
