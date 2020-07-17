@@ -1,3 +1,5 @@
+# type: ignore  # noqa: E800
+
 """
 Datasets.
 
@@ -18,6 +20,7 @@ from PIL import Image
 import warnings
 import ubelt as ub
 import torch
+import logging
 
 IMG_EXTENSIONS = (
     ".jpg",
@@ -288,7 +291,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         new_data = pd.DataFrame(new_data)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
-        print(
+        logging.info(
             f"Added {n} more labels to the dataset: {self.labeled_size} "
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
@@ -315,7 +318,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         self.initialize_categories(cat_labels)
         n = self.update_targets(seed_labels)
 
-        print(
+        logging.info(
             f"Added {n} seed labels to the dataset: {self.labeled_size} "
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )
@@ -362,7 +365,7 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
 
         fnames = new_labels["id"].tolist()
         indices = self._fnames_to_indices(fnames)
-        print("nidices", len(indices))
+        logging.debug(f"nidices {len(indices)}")
 
         cat_labels = new_labels["class"].tolist()
         cat_labels = self._category_name_to_category_index(cat_labels)
@@ -592,7 +595,7 @@ class ObjectDetectionDataset(ImageClassificationDataset):
         new_data = pd.DataFrame(new_data, columns=columns)
         # Parse labels and filenames
         n = self.update_targets(new_data, requested=unlabeled_indices)
-        print(
+        logging.info(
             f"Added {n} seed labels to the dataset: {self.labeled_size} "
             f"files now labeled, {self.unlabeled_size} unlabeled "
         )

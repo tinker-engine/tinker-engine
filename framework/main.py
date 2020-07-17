@@ -36,15 +36,20 @@ import os
 from framework.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
+import logging
+import time
+import socket
+
+from typing import Any, Optional
 
 
-def _safe_load(entry_point: EntryPoint):
+def _safe_load(entry_point: EntryPoint) -> Any:
     """Load algorithms from an entrypoint without raising exceptions."""
     try:
         return entry_point.load()
     except Exception as fault:
-        print("Cannot load entrypoint")
-        print(fault)
+        logging.error("Cannot load entrypoint")
+        logging.exception(fault)
         exit(1)
 
 
@@ -53,7 +58,7 @@ discovered_plugins = {
 }
 
 
-def execute():
+def execute() -> None:
     """Run the main program."""
 
     # Setup the argument parsing, and generate help information.
@@ -77,29 +82,45 @@ def execute():
         "-l", "--list_interfaces", help="Print the list of available interfaces", action="store_true",
     )
 
+    parser.add_argument(
+        "-r",
+        "--report_file",
+        help="Filename of the report file (logging output)",
+        type=str,
+        default=f"framework_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
+    )
+
+    parser.add_argument("--log-level", default=logging.INFO, help="Logging level", type=int)
+
     args = parser.parse_args()
 
     # TODO: implement the --generate functionality
 
+    # open the log file
+    log_file = args.report_file
+    log_format = "%(asctime)s %(message)s"
+    logging.basicConfig(filename=log_file, filemode="w", level=args.log_level, format=log_format)
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
     # Find the config file.
     config_file = args.protocol_config
     if not os.path.exists(config_file):
-        print(f"config file {config_file} doesn't exist", file=sys.stderr)
+        logging.error(f"config file {config_file} doesn't exist")
         exit(1)
 
     # Check the algorithms path is minimally acceptable.
     algorithmsbasepath = args.algorithms
     if not os.path.exists(algorithmsbasepath):
-        print(f"algorithm directory {algorithmsbasepath} doesn't exist")
+        logging.error(f"algorithm directory {algorithmsbasepath} doesn't exist")
         exit(1)
     if not os.path.isdir(algorithmsbasepath):
-        print(f"algorithm path {algorithmsbasepath} isn't a directory")
+        logging.error(f"algorithm path {algorithmsbasepath} isn't a directory")
         exit(1)
     # deconstruct the path to the protocol so that we can construct the
     # object dynamically.
     protfilename = args.protocol_file
     if not os.path.exists(protfilename):
-        print(f"protocol file {protfilename} does not exist")
+        logging.error(f"protocol file {protfilename} does not exist")
         sys.exit(1)
 
     # split out the path to the protocol file from the filename so that we can add
@@ -113,7 +134,7 @@ def execute():
     if protocol_file_path:
         sys.path.append(protocol_file_path)
     else:
-        print("Invalid protocol file")
+        logging.error("Invalid protocol file")
         exit(1)
 
     # list the available interfaces
@@ -157,7 +178,7 @@ def execute():
                 harness = obj("configuration.json", protocol_file_path)
 
     if harness is None:
-        print("Requested interface not found")
+        logging.error("Requested interface not found")
         exit(1)
 
     protbase, protext = os.path.splitext(protfile)
@@ -177,16 +198,17 @@ def execute():
                     # construct the protocol object
                     protocol = obj(discovered_plugins, algorithmsbasepath, harness, config_file)
     else:
-        print("Invalid protocol file, must be a python3 source file")
-        sys.exit(1)
+        logging.error("Invalid protocol file, must be a python3 source file")
+        exit(1)
 
     if protocol:
         protocol.run_protocol()
     else:
-        print("protocol invalid")
+        logging.error("protocol invalid")
+        exit(1)
 
 
-def check_directory_for_interface(file_path, interface_name, print_interfaces):
+def check_directory_for_interface(file_path: str, interface_name: str, print_interfaces: bool) -> Optional[Harness]:
     """
     Load Harness objects found on the Python path.
 
@@ -213,14 +235,14 @@ def check_directory_for_interface(file_path, interface_name, print_interfaces):
     return harness
 
 
-def print_interface(name, obj):
+def print_interface(name: str, obj: Any) -> None:
     """Print out information about an interface."""
     if inspect.isclass(obj):
         if issubclass(obj, Harness) and not name == "Harness":
             print(name, obj)
 
 
-def main():
+def main() -> None:
     """
     Run the algorithm locally.
 

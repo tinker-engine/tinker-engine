@@ -4,14 +4,20 @@ import abc
 import os
 import sys
 import inspect
+import logging
 
 from framework.basealgorithm import BaseAlgorithm
+
+from typing import Any, Dict
+from framework.harness import Harness
 
 
 class BaseProtocol(metaclass=abc.ABCMeta):
     """Provide generic toolset storage and mechanism to retrieve algorithms given their filename."""
 
-    def __init__(self, discovered_plugins, algodirectory, harness, config_file):
+    def __init__(
+        self, discovered_plugins: Dict[str, Any], algodirectory: str, harness: Harness, config_file: str
+    ) -> None:
         """
         Initialize.
 
@@ -30,14 +36,14 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         self.algorithmsbase = algodirectory
         self.discovered_plugins = discovered_plugins
         self.config_file = config_file
-        self.toolset = {}
+        self.toolset: Dict[str, Any] = {}
 
     @abc.abstractmethod
-    def run_protocol(self):
+    def run_protocol(self) -> None:
         """Run the protocol."""
         raise NotImplementedError
 
-    def get_algorithm(self, algotype, toolset):
+    def get_algorithm(self, algotype: str, toolset: Dict[str, Any]) -> BaseAlgorithm:
         """
         Load a single algorithm file and instantiate the relevant object therefrom.
 
@@ -65,20 +71,20 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         # Validate the toolset is a dictionary or None
         if toolset:
             if not isinstance(toolset, dict):
-                print("toolset must be a dictionary")
+                logging.error("toolset must be a dictionary")
                 exit(1)
 
         # if the file exists, then load the algo from the file. If not, then
         # load the algo from plugin
         algofile = os.path.join(self.algorithmsbase, algotype)
         if os.path.exists(algofile) and not os.path.isdir(algofile):
-            print(algotype, "found in algorithms path, loading file")
+            logging.info(f"{algotype} found in algorithms path, loading file")
             return self.load_from_file(algofile, toolset)
         else:
-            print(algotype, "not found in path, loading plugin")
+            logging.info(f"{algotype} not found in path, loading plugin")
             return self.load_from_plugin(algotype, toolset)
 
-    def load_from_file(self, algofile, toolset):
+    def load_from_file(self, algofile: str, toolset: Dict[str, Any]) -> BaseAlgorithm:
         """Load a protocol from a Python file."""
 
         # get the path to the algo file so that we can append it to the system path
@@ -100,19 +106,19 @@ class BaseProtocol(metaclass=abc.ABCMeta):
                         # construct the algorithm object
                         algorithm = obj(toolset)
         else:
-            print("Given algorithm is not a python file, other types not supported")
+            logging.error("Given algorithm is not a python file, other types not supported")
             exit(1)
 
         return algorithm
 
-    def load_from_plugin(self, algotype, toolset):
+    def load_from_plugin(self, algotype: str, toolset: Dict[str, Any]) -> BaseAlgorithm:
         """Load an algorithm from a plugin."""
 
         algorithm = self.discovered_plugins.get(algotype)
         if algorithm is None:
-            print("Requested plugin not found")
+            logging.error("Requested plugin not found")
             exit(1)
         if not issubclass(algorithm, BaseAlgorithm):
-            print("Requested plugin", algotype, "is not an algorithm")
+            logging.error(f"Requested plugin {algotype} is not an algorithm")
             exit(1)
         return algorithm(toolset)
