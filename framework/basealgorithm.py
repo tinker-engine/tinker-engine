@@ -15,8 +15,6 @@ import logging
 
 from typing import Any, Dict
 
-from typing import Any, Dict
-
 
 class BaseAlgorithm(metaclass=abc.ABCMeta):
     """

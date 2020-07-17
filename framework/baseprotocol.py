@@ -10,9 +10,6 @@ from framework.basealgorithm import BaseAlgorithm
 from framework.harness import Harness
 from typing import Any, Dict
 
-from typing import Any, Dict
-from framework.harness import Harness
-
 
 class BaseProtocol(metaclass=abc.ABCMeta):
     """Provide generic toolset storage and mechanism to retrieve algorithms given their filename."""
