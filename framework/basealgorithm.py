@@ -11,6 +11,9 @@ template algorithm files for researchers to use.
 """
 
 import abc
+import logging
+
+from typing import Any, Dict
 
 from typing import Any, Dict
 
@@ -41,7 +44,7 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
         if isinstance(toolset, dict):
             self.toolset = toolset
         elif toolset:
-            print("Algorithms must be constructed with dictionary toolset")
+            logging.error("Algorithms must be constructed with dictionary toolset")
             exit(1)
         else:
             toolset = {}
