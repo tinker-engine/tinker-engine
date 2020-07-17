@@ -40,6 +40,7 @@ import logging
 import time
 import socket
 
+
 def _safe_load(entry_point: EntryPoint):
     """Load algorithms from an entrypoint without raising exceptions."""
     try:
@@ -80,12 +81,14 @@ def execute():
     )
 
     parser.add_argument(
-        "-r", "--report_file", help="Filename of the report file (logging output)",
+        "-r",
+        "--report_file",
+        help="Filename of the report file (logging output)",
         type=str,
         default=f"framework_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
     )
 
-    parser.add_argument( "--log-level", default=logging.INFO, help="Logging level", type=int)
+    parser.add_argument("--log-level", default=logging.INFO, help="Logging level", type=int)
 
     args = parser.parse_args()
 
@@ -94,13 +97,13 @@ def execute():
     # open the log file
     log_file = args.report_file
     log_format = "%(asctime)s %(message)s"
-    logging.basicConfig( filename=log_file, filemode="w", level=args.log_level, format=log_format )
+    logging.basicConfig(filename=log_file, filemode="w", level=args.log_level, format=log_format)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
     # Find the config file.
     config_file = args.protocol_config
     if not os.path.exists(config_file):
-        logging.error(f"config file {config_file} doesn't exist" )
+        logging.error(f"config file {config_file} doesn't exist")
         exit(1)
 
     # Check the algorithms path is minimally acceptable.

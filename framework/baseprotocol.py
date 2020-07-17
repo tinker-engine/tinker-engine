@@ -73,7 +73,7 @@ class BaseProtocol(metaclass=abc.ABCMeta):
         # load the algo from plugin
         algofile = os.path.join(self.algorithmsbase, algotype)
         if os.path.exists(algofile) and not os.path.isdir(algofile):
-            logging.info( f"{algotype} found in algorithms path, loading file")
+            logging.info(f"{algotype} found in algorithms path, loading file")
             return self.load_from_file(algofile, toolset)
         else:
             logging.info(f"{algotype} not found in path, loading plugin")
