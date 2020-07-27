@@ -7,9 +7,10 @@ Copied from JPL's code here:
 https://gitlab.lollllz.com/lwll/lwll_api/-/blob/devel/lwll_api/classes/metrics.py
 """
 
-import pandas as pd
+import pandas as pd  # type: ignore
 import math
-import numpy as np
+import numpy as np  # type: ignore
+
 from typing import Tuple
 
 

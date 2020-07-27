@@ -7,9 +7,8 @@ import inspect
 import logging
 
 from framework.basealgorithm import BaseAlgorithm
-
-from typing import Any, Dict
 from framework.harness import Harness
+from typing import Any, Dict
 
 
 class BaseProtocol(metaclass=abc.ABCMeta):
