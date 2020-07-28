@@ -4,7 +4,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = ">=3.7"
+flake8-black = "==0.2.0"
+flake8-bugbear = ">=20.1"
+flake8-builtins = ">=1.5"
+flake8-comprehensions = ">=3.2"
+flake8-docstrings = ">=1.5"
+flake8-eradicate = "==0.3.0"
+flake8-mutable = ">=1.2"
+flake8-mypy = ">=17.8"
+flake8-polyfill = ">=1.0"
+flake8-quotes = ">=3.0"
+pep8-naming = "==0.10.0"
+mypy = "==0.770"
 framework = {editable = true,path = "."}
+black = "==19.10b"
 
 [packages]
 requests = ">=2.23"
@@ -12,9 +26,15 @@ torch = ">=1.4"
 torchvision = "==0.6.0"
 pandas = ">=1.0"
 ubelt = "==0.9.1"
+pyarrow = "==0.17.0"
 
 [requires]
 python_version = "3.7"
 
 [pipenv]
 allow_prereleases = true
+
+[scripts]
+lint = "flake8"
+format = "black ."
+typecheck = "mypy -p framework --disallow-untyped-defs"

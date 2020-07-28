@@ -12,3 +12,25 @@ pages:
     - public
   only:
   - master
+
+.python-setup: &python-setup
+  - pip install pipenv
+  - pipenv install -d
+
+lint:
+  tags:
+    - linux
+    - docker
+    - build
+  script:
+    - *python-setup
+    - pipenv run lint
+
+typecheck:
+  tags:
+    - linux
+    - docker
+    - build
+  script:
+    - *python-setup
+    - pipenv run typecheck

@@ -1,11 +1,14 @@
 # Learn Framework
 
 ## Getting started
-To install the framework, use Pipenv to bootstrap a development virtual
-environment:
+
+This repository contains a development version of the framework package. To
+install it, make sure you are in your desired Python environment (e.g., by
+creating a virtual environment), enter the top level directory of this
+repository, and use `pip`:
+
 ```bash
-pipenv install
-pipenv shell
+pip install -e .
 ```
 
 Once this is complete, you can execute protocols using the framework using the following command
@@ -19,22 +22,24 @@ If the framework needs to be run from somewhere other than the algorithms direct
 ```bash
 framework protocol_file -a alogorithms_path
 ```
-
+ 
 The framework can also be run with different harness interfaces. Use the -l flag to list the available interfaces. By default the framework uses the LocalInterface provided by the framework. An alternate can be selected using the -i \<interface name\> argument. User defined interfaces can also be used, but must derive from the Harness base class, and should be placed in the same folder with the protocol file. If everything is setup correctly, the -l flag will also print out the name of any user defined interfaces that are available.
 
 ## Running Learn
 
-First, install framework (instructions above).  Then you will need 
-to you need to download all of the datasets and follow instructions from:
-https://gitlab.lollllz.com/lwll/dataset_prep.
+First, install framework (instructions above). Next, check out the Learn
+repository. Use the `pip` command to install the
+Learn package: if the `framework` and `learn` repositories are in side-by-side
+directories, and you are in the top-level directory of `framework`, then the
+appropriate command would be `pip install -e ../learn`.
 
-Once these are installed, please update the dataset directory in 
-`example/learn/protocol/learn.py`.  You can change parameters there.
+Then you will need to download all of the datasets and follow
+instructions from: https://gitlab.lollllz.com/lwll/dataset_prep. Make sure the
+`lwll_datasets` directory is in your current directory.
 
-
-To run learn, please run (from root of code):
+To run the learn protocol, invoke the `framework` command as follows:
 ```bash
-framework example/learn/protocol/learn.py -a example/learn/algorithms/
+framework ../learn/learn/protocol/learn_protocol.py -a ../learn/learn/algorithms
 ```
 
 ## System design
