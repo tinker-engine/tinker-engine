@@ -251,12 +251,13 @@ class ImageClassificationDataset(torchvision.datasets.VisionDataset):
         img = pil_loader(os.path.join(self.root, img_fname))
         img = self.transform(img)
 
-        if self.target_transform is not None and target is not None:
-            target_val = self.target_transform(target)
+        target_val = target
 
         if target is None:
             # if nothing, make it -1 for the pytorch collate function
             target_val = -1
+        elif self.target_transform is not None:
+            target_val = self.target_transform(target)
 
         return img, target_val, index
 
