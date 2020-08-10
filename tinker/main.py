@@ -33,7 +33,7 @@ import inspect
 import sys
 import argparse
 import os
-from framework.harness import Harness
+from tinker.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
 import logging
@@ -54,7 +54,7 @@ def _safe_load(entry_point: EntryPoint) -> Any:
 
 
 discovered_plugins = {
-    entry_point.name: _safe_load(entry_point) for entry_point in pkg_resources.iter_entry_points("framework")
+    entry_point.name: _safe_load(entry_point) for entry_point in pkg_resources.iter_entry_points("tinker")
 }
 
 
@@ -87,7 +87,7 @@ def execute() -> None:
         "--report_file",
         help="Filename of the report file (logging output)",
         type=str,
-        default=f"framework_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
+        default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
     )
 
     parser.add_argument("--log-level", default=logging.INFO, help="Logging level", type=int)
@@ -140,7 +140,7 @@ def execute() -> None:
     # list the available interfaces
     harness = None
     if args.list_interfaces:
-        # print the interfaces included with the framework.
+        # print the interfaces included with Tinker Engine.
         for name, obj in inspect.getmembers(sys.modules[__name__]):
             print_interface(name, obj)
 
@@ -171,7 +171,7 @@ def execute() -> None:
         if obj is not None:
             harness = obj("configuration.json", protocol_file_path)
 
-    # as a last resort, look for the interface in the framework itself.
+    # as a last resort, look for the interface in Tinker Engine itself.
     if harness is None:
         for name, obj in inspect.getmembers(sys.modules[__name__]):
             if args.interface == name and inspect.isclass(obj) and issubclass(obj, Harness):

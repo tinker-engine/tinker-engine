@@ -17,7 +17,7 @@ flake8-polyfill = ">=1.0"
 flake8-quotes = ">=3.0"
 pep8-naming = "==0.10.0"
 mypy = "==0.770"
-framework = {editable = true,path = "."}
+tinker-engine = {editable = true,path = "."}
 black = "==19.10b"
 
 [packages]
@@ -37,4 +37,4 @@ allow_prereleases = true
 [scripts]
 lint = "flake8"
 format = "black ."
-typecheck = "mypy -p framework --disallow-untyped-defs"
+typecheck = "mypy -p tinker --disallow-untyped-defs"
