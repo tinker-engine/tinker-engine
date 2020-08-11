@@ -19,6 +19,10 @@ pep8-naming = "==0.10.0"
 mypy = "==0.770"
 framework = {editable = true,path = "."}
 black = "==19.10b"
+sphinx-rtd-theme = "==0.5.0"
+m2r = "==0.2.1"
+mistune = "==0.8.4"
+sphinx = "==2.4.4"
 
 [packages]
 
