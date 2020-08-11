@@ -23,6 +23,7 @@ sphinx-rtd-theme = "==0.5.0"
 m2r = "==0.2.1"
 mistune = "==0.8.4"
 sphinx = "==2.4.4"
+sphinx-autobuild = "==0.7.1"
 
 [packages]
 
@@ -36,3 +37,5 @@ allow_prereleases = true
 lint = "flake8"
 format = "black ."
 typecheck = "mypy -p framework --disallow-untyped-defs"
+docs = "sphinx-build docs/source docs/build"
+docs-auto = "sphinx-autobuild docs/source docs/build"
