@@ -19,14 +19,13 @@ pep8-naming = "==0.10.0"
 mypy = "==0.770"
 tinker-engine = {editable = true,path = "."}
 black = "==19.10b"
+sphinx-rtd-theme = "==0.5.0"
+m2r = "==0.2.1"
+mistune = "==0.8.4"
+sphinx = "==2.4.4"
+sphinx-autobuild = "==0.7.1"
 
 [packages]
-requests = ">=2.23"
-torch = ">=1.4"
-torchvision = "==0.6.0"
-pandas = ">=1.0"
-ubelt = "==0.9.1"
-pyarrow = "==0.17.0"
 
 [requires]
 python_version = "3.7"
@@ -38,3 +37,6 @@ allow_prereleases = true
 lint = "flake8"
 format = "black ."
 typecheck = "mypy -p tinker --disallow-untyped-defs"
+docs = "sphinx-build docs/source docs/build"
+docs-auto = "sphinx-autobuild docs/source docs/build"
+docs-serve = "python -m http.server 3001 --bind 127.0.0.1 -d docs/build"
