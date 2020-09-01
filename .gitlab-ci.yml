@@ -1,4 +1,18 @@
-image: pytorch/pytorch:latest
+image: ubuntu:18.04
+
+variables:
+  LC_ALL: "C.UTF-8"
+  LANG: "C.UTF-8"
+
+.setup: &setup
+  - apt update
+  - apt install -y software-properties-common
+  - apt-add-repository -y ppa:deadsnakes/ppa
+  - apt update
+  - apt install -y python3.7 python3-pip
+  - python3.7 --version
+  - pip3 install pipenv
+  - pipenv --python=$(which python3.7) install -d
 
 pages:
   tags:
@@ -6,20 +20,14 @@ pages:
     - docker
     - build
   script:
-    - python --version
-    - conda install -y sphinx sphinx_rtd_theme pandas scikit-learn
-    - pip install m2r fire ubelt boto3
-    - (cd docs && make html)
+    - *setup
+    - pipenv run docs
     - mv docs/build/html/ public/
   artifacts:
     paths:
-    - public
+      - public
   only:
-  - master
-
-.python-setup: &python-setup
-  - pip install pipenv
-  - pipenv install -d
+    - master
 
 lint:
   tags:
@@ -27,7 +35,7 @@ lint:
     - docker
     - build
   script:
-    - *python-setup
+    - *setup
     - pipenv run lint
 
 typecheck:
@@ -36,5 +44,5 @@ typecheck:
     - docker
     - build
   script:
-    - *python-setup
+    - *setup
     - pipenv run typecheck
