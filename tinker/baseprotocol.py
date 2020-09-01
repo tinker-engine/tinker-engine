@@ -6,8 +6,8 @@ import sys
 import inspect
 import logging
 
-from framework.basealgorithm import BaseAlgorithm
-from framework.harness import Harness
+from tinker.basealgorithm import BaseAlgorithm
+from tinker.harness import Harness
 from typing import Any, Dict
 
 
