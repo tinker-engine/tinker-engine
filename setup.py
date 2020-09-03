@@ -30,6 +30,7 @@ setup(
     ],
     description="Framework for evaluating active learning algorithms.",
     entry_points={"console_scripts": ["tinker=tinker.main:main"]},
+    package_data={"tinker": ["py.typed"],},
     install_requires=requirements,
     long_description=readme,
     include_package_data=True,
