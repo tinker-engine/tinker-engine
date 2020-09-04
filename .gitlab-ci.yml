@@ -4,6 +4,9 @@ variables:
   LC_ALL: "C.UTF-8"
   LANG: "C.UTF-8"
 
+  # this is needed for proper version computation by setuptools_scm
+  GIT_DEPTH: 0
+
 .setup: &setup
   - apt update
   - apt install -y software-properties-common
