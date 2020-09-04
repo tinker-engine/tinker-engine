@@ -57,5 +57,6 @@ release:
     #- master
   script:
     - *setup
+    - apt install -y git
     - export
     - pipenv run python setup.py sdist
