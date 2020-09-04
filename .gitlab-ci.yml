@@ -46,3 +46,16 @@ typecheck:
   script:
     - *setup
     - pipenv run typecheck
+
+release:
+  tags:
+    - linux
+    - docker
+    - build
+  #only:
+    #- tags
+    #- master
+  script:
+    - *setup
+    - export
+    - pipenv run python setup.py sdist
