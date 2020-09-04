@@ -48,7 +48,7 @@ class BaseAlgorithm(metaclass=abc.ABCMeta):
             toolset = {}
 
     @abc.abstractmethod
-    def execute(self, toolset: Dict[str, Any], step_descriptor: str) -> None:
+    def execute(self, toolset: Dict[str, Any], step_descriptor: str) -> Any:
         """
         Execute general steps of an algorithm.
 
