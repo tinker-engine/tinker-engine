@@ -3,6 +3,7 @@
 
 """The setup script."""
 
+import os
 from setuptools import setup, find_packages
 
 with open("README.md") as readme_file:
@@ -14,6 +15,22 @@ with open("requirements.txt") as requirements_file:
 setup_requirements = []
 
 test_requirements = []
+
+def prerelease_local_scheme(version):
+    """
+    Return local scheme version unless building on master.
+
+    This function returns the local scheme version number
+    (e.g. 0.0.0.dev<N>+g<HASH>) unless building on CircleCI for a
+    pre-release in which case it ignores the hash and produces a
+    PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
+    """
+    from setuptools_scm.version import get_local_node_and_date
+
+    if os.getenv("CI_COMMIT_BRANCH") == 'master':
+        return ""
+    else:
+        return get_local_node_and_date(version)
 
 setup(
     author="Kitware, Inc.",
@@ -41,6 +58,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.kitware.com/darpa_learn/tinker/",
-    version="0.8.0",
+    use_scm_version={'local_scheme': prerelease_local_scheme},
     zip_safe=False,
 )
