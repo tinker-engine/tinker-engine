@@ -67,10 +67,12 @@ ubelt>=0.8.7
 
 ## Acknowledgement of Support and Disclaimer
 
-This material is based upon work supported by the Defense Advanced Research Projects Agency (DARPA) under Contract 
-No. HR001120C0055. Any opinions, findings and conclusions or recommendations expressed in this material are those of 
-the author(s) and do not necessarily reflect the views of the DARPA.  
+This material is based upon work supported by the Defense Advanced Research
+Projects Agency (DARPA) under Contract No. HR001120C0055. Any opinions, findings
+and conclusions or recommendations expressed in this material are those of the
+author(s) and do not necessarily reflect the views of the DARPA.  
 
-This material is based on research sponsored by DARPA under agreement number FA8750-19-1-0504. The U.S. Government is 
-authorized to reproduce and distribute reprints for Governmental purposes notwithstanding any copyright notation 
+This material is based on research sponsored by DARPA under agreement number
+FA8750-19-1-0504. The U.S. Government is authorized to reproduce and distribute
+reprints for Governmental purposes notwithstanding any copyright notation
 thereon.  
