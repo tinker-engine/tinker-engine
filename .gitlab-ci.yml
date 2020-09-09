@@ -49,9 +49,7 @@ typecheck:
 
 .dp-rule:
   rules:
-    - if: '$CI_PROJECT_ROOT_NAMESPACE == "darpa_learn"'
-      when: on_success
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_PROJECT_ROOT_NAMESPACE == "darpa_learn" && $CI_COMMIT_REF_NAME == "master"'
       when: on_success
 
 sailon-pipelines:
