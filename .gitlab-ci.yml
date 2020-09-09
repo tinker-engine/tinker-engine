@@ -51,3 +51,9 @@ sailon-pipelines:
   trigger:
     project: darpa-sail-on/sail-on-client
     strategy: depend
+
+learn-pipelines:
+  trigger:
+    project: darpa_learn/learn
+    strategy: depend
+  allow_failure: true
