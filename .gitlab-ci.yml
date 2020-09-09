@@ -51,15 +51,15 @@ sailon-pipelines:
   trigger:
     project: darpa-sail-on/sail-on-client
     strategy: depend
-  when: on_success
   rules:
     - if: '$CI_PROJECT_ROOT_NAMESPACE == "darpa_learn"'
+      when: on_success
 
 learn-pipelines:
   trigger:
     project: darpa_learn/learn
     strategy: depend
   allow_failure: true
-  when: on_success
   rules:
     - if: '$CI_PROJECT_ROOT_NAMESPACE == "darpa_learn"'
+      when: on_success
