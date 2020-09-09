@@ -46,3 +46,8 @@ typecheck:
   script:
     - *setup
     - pipenv run typecheck
+
+sailon-pipelines:
+  trigger:
+    project: darpa-sail-on/sail-on-client
+    strategy: depend
