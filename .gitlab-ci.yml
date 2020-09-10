@@ -46,3 +46,21 @@ typecheck:
   script:
     - *setup
     - pipenv run typecheck
+
+.dp-rule:
+  rules:
+    - if: '$CI_PROJECT_ROOT_NAMESPACE == "darpa_learn" && $CI_COMMIT_REF_NAME == "master"'
+      when: on_success
+
+sailon-pipelines:
+  trigger:
+    project: darpa-sail-on/sail-on-client
+    strategy: depend
+  extends: .dp-rule
+
+learn-pipelines:
+  trigger:
+    project: darpa_learn/learn
+    strategy: depend
+  allow_failure: true
+  extends: .dp-rule
