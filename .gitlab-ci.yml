@@ -3,6 +3,8 @@ image: ubuntu:18.04
 variables:
   LC_ALL: "C.UTF-8"
   LANG: "C.UTF-8"
+  TWINE_USERNAME: "__token__"
+  TWINE_PASSWORD: "hunter2"
 
   # this is needed for proper version computation by setuptools_scm
   GIT_DEPTH: 0
@@ -61,5 +63,7 @@ release:
   script:
     - *setup
     - apt install -y git
+    - pip install twine
     - export
     - pipenv run python setup.py sdist
+    - twine upload dist/*
