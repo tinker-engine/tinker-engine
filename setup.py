@@ -16,6 +16,7 @@ setup_requirements = []
 
 test_requirements = []
 
+
 def prerelease_local_scheme(version):
     """
     Return local scheme version unless building on master.
@@ -27,10 +28,11 @@ def prerelease_local_scheme(version):
     """
     from setuptools_scm.version import get_local_node_and_date
 
-    if os.getenv("CI_COMMIT_BRANCH") == 'master':
+    if os.getenv("CI_COMMIT_BRANCH") == "master":
         return ""
     else:
         return get_local_node_and_date(version)
+
 
 setup(
     author="Kitware, Inc.",
@@ -58,6 +60,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.kitware.com/darpa_learn/tinker/",
-    use_scm_version={'local_scheme': prerelease_local_scheme},
+    use_scm_version={"local_scheme": prerelease_local_scheme},
     zip_safe=False,
 )
