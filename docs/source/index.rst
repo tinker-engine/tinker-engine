@@ -11,8 +11,13 @@ experimental protocols. Tinker Engine gives you the power to design the
 protocols, gather existing and new algorithms, and manage your experimental
 configurations and input/output data all under a single framework.
 
+See the :ref:`overview` for a more detailed discussion of what Tinker Engine is,
+how it works, and what it can do for you. See the :ref:`getting_started` guide
+to jump in and start running your own experiments.
+
 .. toctree::
    :maxdepth: -1
 
-   intro
+   overview
+   getting_started
    code
