@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "LEARN Framework"
-copyright = "2019, Kitware Inc"
-author = "Christopher Funk and Doruk Ozturk"
+project = "Tinker Engine"
+copyright = "2019, Kitware Inc."
+author = "Kitware Inc."
 
 import os
 import sys
