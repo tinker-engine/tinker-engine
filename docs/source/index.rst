@@ -5,6 +5,12 @@
 Tinker Engine
 =============
 
+Welcome! Tinker Engine is a Python framework for running computational
+experiments that probe how various algorithms perform under different
+experimental protocols. Tinker Engine gives you the power to design the
+protocols, gather existing and new algorithms, and manage your experimental
+configurations and input/output data all under a single framework.
+
 .. toctree::
    :maxdepth: -1
 
