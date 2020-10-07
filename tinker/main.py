@@ -33,7 +33,6 @@ import inspect
 import sys
 import argparse
 import os
-from tinker.harness import Harness
 import pkg_resources
 from pkg_resources import EntryPoint
 import logging
@@ -58,43 +57,32 @@ discovered_plugins = {
 }
 
 
-def execute() -> None:
+def main() -> None:
     """Run the main program."""
 
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
-    parser.add_argument("protocol_file", help="protocol python file", type=str)
+    parser.add_argument("entrypoints", metavar="entrypoint", nargs="+", help="python file defining protocols/algorithms/etc.", type=str)
+    parser.add_argument("-c", "--config", help="config file", type=str, required=True)
     parser.add_argument(
-        "-a", "--algorithms", help="root of the algorithms directory", type=str, default=".",
-    )
-    parser.add_argument("-p", "--protocol-config", help="path to a config file", type=str, required=True)
-    parser.add_argument(
-        "-g", "--generate", help="Generate template algorithm files", action="store_true",
+        "--list-protocols", help="Print the available protocols"
     )
     parser.add_argument(
-        "-i",
-        "--interface",
-        help="Name of the Interface class to use. Use '--list_interfaces' to show available interfaces",
-        type=str,
-        default="LocalInterface",
+        "--list-algorithms", help="Print the available algorithms"
     )
     parser.add_argument(
-        "-l", "--list_interfaces", help="Print the list of available interfaces", action="store_true",
-    )
-
-    parser.add_argument(
-        "-r",
-        "--report_file",
-        help="Filename of the report file (logging output)",
+        "--log-file",
+        help="Path to log file",
         type=str,
         default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
     )
-
     parser.add_argument("--log-level", default=logging.INFO, help="Logging level", type=int)
 
     args = parser.parse_args()
 
-    # TODO: implement the --generate functionality
+    print(args)
+    return 0
+
 
     # open the log file
     log_file = args.report_file
@@ -208,7 +196,7 @@ def execute() -> None:
         exit(1)
 
 
-def check_directory_for_interface(file_path: str, interface_name: str, print_interfaces: bool) -> Optional[Harness]:
+def check_directory_for_interface(file_path: str, interface_name: str, print_interfaces: bool) -> Optional[Any]:
     """
     Load Harness objects found on the Python path.
 
@@ -240,15 +228,6 @@ def print_interface(name: str, obj: Any) -> None:
     if inspect.isclass(obj):
         if issubclass(obj, Harness) and not name == "Harness":
             print(name, obj)
-
-
-def main() -> None:
-    """
-    Run the algorithm locally.
-
-    Just loads the input.json file and calls the :meth:`main.execute` function.
-    """
-    execute()
 
 
 if __name__ == "__main__":
