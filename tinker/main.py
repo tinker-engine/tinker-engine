@@ -138,6 +138,21 @@ def main() -> None:
 
         return 0
 
+    # If there is a single protocol to run, then instantiate it and run it.
+    if len(protocols) == 1:
+        P = protocols.pop()
+        p = P()
+
+        try:
+            p.run()
+        except:
+            exc = sys.exc_info()[1]
+            logging.error(f"Protocol runtime error: {exc}")
+            return 1
+    else:
+        logging.error(f"Fatal error: no protocol specified")
+
+    return 0
 
 if __name__ == "__main__":
     main()
