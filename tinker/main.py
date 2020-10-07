@@ -80,50 +80,15 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    print(args)
-    return 0
-
-
-    # open the log file
-    log_file = args.report_file
-    log_format = "%(asctime)s %(message)s"
-    logging.basicConfig(filename=log_file, filemode="w", level=args.log_level, format=log_format)
+    # Set up the logger.
+    log_format = "[tinker-engine] %(asctime)s %(message)s"
+    logging.basicConfig(filename=args.log_file, filemode="w", level=args.log_level, format=log_format)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
     # Find the config file.
-    config_file = args.protocol_config
-    if not os.path.exists(config_file):
-        logging.error(f"config file {config_file} doesn't exist")
-        exit(1)
-
-    # Check the algorithms path is minimally acceptable.
-    algorithmsbasepath = args.algorithms
-    if not os.path.exists(algorithmsbasepath):
-        logging.error(f"algorithm directory {algorithmsbasepath} doesn't exist")
-        exit(1)
-    if not os.path.isdir(algorithmsbasepath):
-        logging.error(f"algorithm path {algorithmsbasepath} isn't a directory")
-        exit(1)
-    # deconstruct the path to the protocol so that we can construct the
-    # object dynamically.
-    protfilename = args.protocol_file
-    if not os.path.exists(protfilename):
-        logging.error(f"protocol file {protfilename} does not exist")
-        sys.exit(1)
-
-    # split out the path to the protocol file from the filename so that we can add
-    # the protocol directory
-    # to the system path.
-    protocol_file_path, protfile = os.path.split(protfilename)
-
-    # append the CWD and the protocol file directory to the sys path so that we can
-    # import from those locations.
-    sys.path.append(".")
-    if protocol_file_path:
-        sys.path.append(protocol_file_path)
-    else:
-        logging.error("Invalid protocol file")
-        exit(1)
+    if not os.path.exists(args.config):
+        logging.error(f"error: config file {args.config} doesn't exist")
+        return 1
 
     # list the available interfaces
     harness = None
