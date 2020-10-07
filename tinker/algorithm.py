@@ -11,9 +11,20 @@ template algorithm files for researchers to use.
 """
 
 import abc
+from abc import abstractmethod
 import logging
-
+import smqtk
 from typing import Any, Dict
+
+
+class Algorithm(smqtk.algorithms.SmqtkAlgorithm):
+    @classmethod
+    def is_usable(cls):
+        return True
+
+    @abstractmethod
+    def execute(self):
+        pass
 
 
 class BaseAlgorithm(metaclass=abc.ABCMeta):
