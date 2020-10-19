@@ -1,0 +1,2 @@
+scikit-build==0.8.0
+netharn==0.5.9
