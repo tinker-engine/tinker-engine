@@ -31,7 +31,6 @@ Email Kitware if you think that this needs to be changed.
 """
 import argparse
 import importlib
-import inspect
 import logging
 import os
 import pkg_resources
@@ -39,13 +38,15 @@ from pkg_resources import EntryPoint
 import socket
 import sys
 import time
-from typing import Any, Optional
+from typing import Any
 
 from . import algorithm
 from . import protocol
 
 
 def import_source(path: str) -> None:
+    """Import a module, identified by its path on disk."""
+
     # Extract the name portion of the path.
     basename = os.path.basename(path)
     module_name = os.path.splitext(basename)[0]
@@ -78,14 +79,12 @@ def main() -> None:
 
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
-    parser.add_argument("entrypoints", metavar="entrypoint", nargs="+", help="python file defining protocols/algorithms/etc.", type=str)
+    parser.add_argument(
+        "entrypoints", metavar="entrypoint", nargs="+", help="python file defining protocols/algorithms/etc.", type=str
+    )
     parser.add_argument("-c", "--config", help="config file", type=str, required=True)
-    parser.add_argument(
-        "--list-protocols", help="Print the available protocols", action="store_true"
-    )
-    parser.add_argument(
-        "--list-algorithms", help="Print the available algorithms", action="store_true"
-    )
+    parser.add_argument("--list-protocols", help="Print the available protocols", action="store_true")
+    parser.add_argument("--list-algorithms", help="Print the available algorithms", action="store_true")
     parser.add_argument(
         "--log-file",
         help="Path to log file",
@@ -140,19 +139,20 @@ def main() -> None:
 
     # If there is a single protocol to run, then instantiate it and run it.
     if len(protocols) == 1:
-        P = protocols.pop()
-        p = P()
+        protocol_cls = protocols.pop()
+        p = protocol_cls()
 
         try:
             p.run()
-        except:
+        except BaseException:
             exc = sys.exc_info()[1]
             logging.error(f"Protocol runtime error: {exc}")
             return 1
     else:
-        logging.error(f"Fatal error: no protocol specified")
+        logging.error("Fatal error: no protocol specified")
 
     return 0
+
 
 if __name__ == "__main__":
     main()
