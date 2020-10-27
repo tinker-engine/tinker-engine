@@ -29,9 +29,9 @@ Email Kitware if you think that this needs to be changed.
 (christopher.funk@kitware.com and eran.swears@kitware.com)
 
 """
+from importlib.abc import Loader
 import argparse
-import importlib
-import inspect
+import importlib.util
 import logging
 import os
 import pkg_resources
@@ -39,13 +39,15 @@ from pkg_resources import EntryPoint
 import socket
 import sys
 import time
-from typing import Any, Optional
+from typing import Any
 
 from . import algorithm
 from . import protocol
 
 
 def import_source(path: str) -> None:
+    """Import source from filepath location."""
+
     # Extract the name portion of the path.
     basename = os.path.basename(path)
     module_name = os.path.splitext(basename)[0]
@@ -53,6 +55,7 @@ def import_source(path: str) -> None:
     # Run the Python 3 recipe for programmatic importing of a source path (see
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly).
     spec = importlib.util.spec_from_file_location(module_name, path)
+    assert isinstance(spec.loader, Loader)
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
@@ -73,19 +76,17 @@ discovered_plugins = {
 }
 
 
-def main() -> None:
+def main() -> int:
     """Run the main program."""
 
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
-    parser.add_argument("entrypoints", metavar="entrypoint", nargs="+", help="python file defining protocols/algorithms/etc.", type=str)
+    parser.add_argument(
+        "entrypoints", metavar="entrypoint", nargs="+", help="python file defining protocols/algorithms/etc.", type=str
+    )
     parser.add_argument("-c", "--config", help="config file", type=str, required=True)
-    parser.add_argument(
-        "--list-protocols", help="Print the available protocols", action="store_true"
-    )
-    parser.add_argument(
-        "--list-algorithms", help="Print the available algorithms", action="store_true"
-    )
+    parser.add_argument("--list-protocols", help="Print the available protocols", action="store_true")
+    parser.add_argument("--list-algorithms", help="Print the available algorithms", action="store_true")
     parser.add_argument(
         "--log-file",
         help="Path to log file",
@@ -140,19 +141,20 @@ def main() -> None:
 
     # If there is a single protocol to run, then instantiate it and run it.
     if len(protocols) == 1:
-        P = protocols.pop()
-        p = P()
+        p = protocols.pop()
+        p = p()
 
         try:
             p.run()
-        except:
+        except BaseException:
             exc = sys.exc_info()[1]
             logging.error(f"Protocol runtime error: {exc}")
             return 1
     else:
-        logging.error(f"Fatal error: no protocol specified")
+        logging.error("Fatal error: no protocol specified")
 
     return 0
+
 
 if __name__ == "__main__":
     main()

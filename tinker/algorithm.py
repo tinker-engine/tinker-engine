@@ -13,17 +13,23 @@ template algorithm files for researchers to use.
 import abc
 from abc import abstractmethod
 import logging
-import smqtk
+import smqtk  # type: ignore
 from typing import Any, Dict
 
 
 class Algorithm(smqtk.algorithms.SmqtkAlgorithm):
+    """Base Algorithm."""
+
     @classmethod
-    def is_usable(cls):
+    def is_usable(cls) -> bool:
+        """Usable method from ``smqtk.utils.configuration.Configurable`` parent."""
+
         return True
 
     @abstractmethod
-    def execute(self):
+    def execute(self) -> None:
+        """Execute method by the ``smqtk.utils.configuration.Configurable`` parent."""
+
         pass
 
 
