@@ -1,5 +1,47 @@
 # tinker-engine
 
+## Developer setup
+
+### Build Tinker Enginer
+
+The easiest way to build Tinker Engine locally is by using Pipenv. These steps
+will create a Pipenv environment where Tinker Engine is built and installed and
+available for use.
+
+1. Clone this repository.
+2. Clone the [SMQTK
+   repository](https://kwgitlab.kitware.com/computer-vision/SMQTK/), making sure
+   to check out the `prr-diyai-20201015` tag (i.e., `git clone prr-diyai-20201015 -b prr-diyai-20201015`).
+3. In the `tinker-engine` repository, install the Pipenv dependencies with
+   `pipenv install -d`.
+4. Install the SMQTK dependency manually with `pipenv run pip install -e
+   ../smqtk` (substituting your local path to SMQTK).
+5. Activate the Pipenv shell: `pipenv shell`.
+6. Run Tinker Engine to ensure it works: `tinker --help`.
+
+### Running Tinker Engine
+
+There is an example protocol definition in
+[`examples/helloworld.py`](examples/helloworld.py). You can use this as a Tinker
+Engine entrypoint as follows:
+
+```
+$ tinker -c <any file that exists> examples/helloworld.py
+```
+
+(Currently, the config file argument is required, but isn't actually used by the
+system; hence, you must supply a file that exists in order for this to work.)
+
+Since Tinker Engine only finds a single protocol defined in the entrypoints
+supplied to it, it will automatically instantiate and run the one it has found.
+But you can also list the ones it knows about, like this:
+
+```
+$ tinker -c <any file that exists> examples/helloworld.py --list-protocols
+```
+
+# IGNORE EVERYTHING BELOW
+
 ## Getting started
 
 This repository contains a development version of the `tinker-engine` package.
