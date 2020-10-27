@@ -30,7 +30,7 @@ Email Kitware if you think that this needs to be changed.
 
 """
 import argparse
-import importlib
+import importlib.util
 import logging
 import os
 import pkg_resources
@@ -54,6 +54,11 @@ def import_source(path: str) -> None:
     # Run the Python 3 recipe for programmatic importing of a source path (see
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly).
     spec = importlib.util.spec_from_file_location(module_name, path)
+
+    # This is a typechecking workaround; see
+    # https://github.com/python/typeshed/issues/2793.
+    assert isinstance(spec.loader, importlib.abc.Loader)
+
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
@@ -74,7 +79,7 @@ discovered_plugins = {
 }
 
 
-def main() -> None:
+def main() -> int:
     """Run the main program."""
 
     # Setup the argument parsing, and generate help information.

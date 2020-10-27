@@ -1,7 +1,7 @@
 """Definition of Tinker protocol."""
 
 from abc import abstractmethod
-import smqtk
+import smqtk  # type: ignore
 
 
 class Protocol(smqtk.algorithms.SmqtkAlgorithm):
@@ -9,11 +9,11 @@ class Protocol(smqtk.algorithms.SmqtkAlgorithm):
 
     # Make these protocol objects usable by default.
     @classmethod
-    def is_usable(cls):
+    def is_usable(cls) -> bool:
         """Determine if this class will be detected by SMQTK's plugin utilities."""
         return True
 
     @abstractmethod
-    def run(self):
+    def run(self) -> None:
         """Run the protocol."""
         pass
