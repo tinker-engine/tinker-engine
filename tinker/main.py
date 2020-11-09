@@ -35,7 +35,7 @@ import logging
 import os
 import pkg_resources
 from pkg_resources import EntryPoint
-import smqtk
+import smqtk  # type: ignore
 import socket
 import sys
 import time
@@ -81,6 +81,7 @@ def _safe_load(entry_point: EntryPoint) -> Any:
 
 
 def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) -> None:
+    """Print out `objects` in a human-readable report."""
     print(f"{title}:")
     if not objects:
         print("  none found")
