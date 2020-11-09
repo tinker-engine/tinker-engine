@@ -45,7 +45,12 @@ from . import protocol
 
 
 def import_source(path: str) -> None:
-    """Import a module, identified by its path on disk."""
+    """
+    Import a module, identified by its path on disk.
+
+    Arguments:
+        path: Absolute or relative path to the file of the Python module to import.
+    """
 
     # Extract the name portion of the path.
     basename = os.path.basename(path)
