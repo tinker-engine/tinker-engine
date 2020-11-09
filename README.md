@@ -37,7 +37,7 @@ supplied to it, it will automatically instantiate and run the one it has found.
 But you can also list the ones it knows about, like this:
 
 ```
-$ tinker -c <any file that exists> examples/helloworld.py --list-protocols
+$ tinker -c examples/helloworld.yaml examples/helloworld.py --list-protocols
 ```
 
 # IGNORE EVERYTHING BELOW
