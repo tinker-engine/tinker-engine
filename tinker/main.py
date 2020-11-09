@@ -35,10 +35,11 @@ import logging
 import os
 import pkg_resources
 from pkg_resources import EntryPoint
+import smqtk
 import socket
 import sys
 import time
-from typing import Any
+from typing import Any, List
 
 from . import algorithm
 from . import protocol
@@ -77,6 +78,15 @@ def _safe_load(entry_point: EntryPoint) -> Any:
         logging.error("Cannot load entrypoint")
         logging.exception(fault)
         exit(1)
+
+
+def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) -> None:
+    print(f"{title}:")
+    if not objects:
+        print("  none found")
+    else:
+        for o in objects:
+            print(f"  {o.__module__}.{o.__name__}")
 
 
 discovered_plugins = {
@@ -130,20 +140,10 @@ def main() -> int:
     # Print out available protocols/algorithms if requested.
     if args.list_protocols or args.list_algorithms:
         if args.list_protocols:
-            print("Protocols:")
-            if not protocols:
-                print("  none found")
-            else:
-                for p in protocols:
-                    print(f"  {p.__module__}.{p.__name__}")
+            print_objects(protocols, "Protocols")
 
         if args.list_algorithms:
-            print("Algorithms:")
-            if not algorithms:
-                print("  none found")
-            else:
-                for p in algorithms:
-                    print(f"  {p.__module__}.{p.__name__}")
+            print_objects(algorithms, "Algorithms")
 
         return 0
 
