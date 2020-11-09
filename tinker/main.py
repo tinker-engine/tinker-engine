@@ -160,6 +160,7 @@ def main() -> int:
             return 1
     else:
         logging.error("Fatal error: no protocol specified")
+        return 1
 
     return 0
 
