@@ -14,6 +14,6 @@ class Protocol(smqtk.algorithms.SmqtkAlgorithm):
         return True
 
     @abstractmethod
-    def run(self) -> None:
+    def run_protocol(self) -> None:
         """Run the protocol."""
         pass

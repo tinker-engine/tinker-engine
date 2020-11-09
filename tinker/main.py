@@ -148,7 +148,7 @@ def main() -> int:
         p = protocol_cls()
 
         try:
-            p.run()
+            p.run_protocol()
         except BaseException:
             exc = sys.exc_info()[1]
             logging.error(f"Protocol runtime error: {exc}")
