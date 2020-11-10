@@ -101,7 +101,11 @@ def main() -> int:
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "protocol_files", metavar="protocol_file", nargs="+", help="python file defining protocols/algorithms/etc.", type=str
+        "protocol_files",
+        metavar="protocol_file",
+        nargs="+",
+        help="python file defining protocols/algorithms/etc.",
+        type=str,
     )
     parser.add_argument("-c", "--config", help="config file", type=str, required=True)
     parser.add_argument("--list-protocols", help="Print the available protocols", action="store_true")
