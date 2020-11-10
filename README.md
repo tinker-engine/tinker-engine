@@ -40,6 +40,40 @@ But you can also list the ones it knows about, like this:
 $ tinker -c examples/helloworld.yaml examples/helloworld.py --list-protocols
 ```
 
+### Command Line Documentation
+
+```
+usage: tinker [-h] -c CONFIG [--list-protocols] [--list-algorithms]
+              [--log-file LOG_FILE] [--log-level LOG_LEVEL]
+              protocol_file [protocol_file ...]
+
+positional arguments:
+  protocol_file         python file defining protocols/algorithms/etc.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        config file
+  --list-protocols      Print the available protocols
+  --list-algorithms     Print the available algorithms
+  --log-file LOG_FILE   Path to log file
+  --log-level LOG_LEVEL
+                        Logging level
+```
+
+Generally, you will use the `tinker` utility by supplying a configuration file
+with the `-c` option and at least one `protocol_file` listed as positional
+arguments. Tinker Engine will read in the configuration file and use it to
+instantiate a `Protocol` object defined in one of the `protocol_file`s listed.
+
+The `--log-file` option sets a filename to use as the log file; by default it
+will be a file named by the running computer's hostname and the current time.
+
+The `--list-protcols` and `--list-algorithms` options are diagnostics to show
+what has been detected by Tinker Engine. The options will, respectively, print
+out all the `Protocol` and `Algorithm` objects found by Tinker Engine. These are
+the objects available for use when Tinker Engine is run.
+
 # IGNORE EVERYTHING BELOW
 
 ## Getting started
