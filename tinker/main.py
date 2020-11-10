@@ -101,7 +101,7 @@ def main() -> int:
     # Setup the argument parsing, and generate help information.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "entrypoints", metavar="entrypoint", nargs="+", help="python file defining protocols/algorithms/etc.", type=str
+        "protocol_files", metavar="protocol_file", nargs="+", help="python file defining protocols/algorithms/etc.", type=str
     )
     parser.add_argument("-c", "--config", help="config file", type=str, required=True)
     parser.add_argument("--list-protocols", help="Print the available protocols", action="store_true")
@@ -126,10 +126,10 @@ def main() -> int:
         logging.error(f"error: config file {args.config} doesn't exist")
         return 1
 
-    # Load the entrypoints.
-    for ep in args.entrypoints:
+    # Load the protocol files.
+    for pf in args.protocol_files:
         try:
-            import_source(ep)
+            import_source(pf)
         except FileNotFoundError as e:
             logging.error(e)
             return 1
