@@ -2,7 +2,7 @@
 
 ## Developer setup
 
-### Build Tinker Enginer
+### Build Tinker Engine
 
 The easiest way to build Tinker Engine locally is by using Pipenv. These steps
 will create a Pipenv environment where Tinker Engine is built and installed and
@@ -22,11 +22,11 @@ available for use.
 ### Running Tinker Engine
 
 There is an example protocol definition in
-[`examples/helloworld.py`](examples/helloworld.py). You can use this as a Tinker
-Engine entrypoint as follows:
+[`examples/helloworld.py`](examples/helloworld.py). You can use this with Tinker
+Engine as follows:
 
 ```
-$ tinker -c <any file that exists> examples/helloworld.py
+$ tinker -c examples/helloworld.yaml examples/helloworld.py
 ```
 
 (Currently, the config file argument is required, but isn't actually used by the
