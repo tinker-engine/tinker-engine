@@ -1,5 +1,81 @@
 # tinker-engine
 
+## Developer setup
+
+### Build Tinker Engine
+
+The easiest way to build Tinker Engine locally is by using Pipenv. These steps
+will create a Pipenv environment where Tinker Engine is built and installed and
+available for use.
+
+1. Clone this repository.
+2. Clone the [SMQTK
+   repository](https://kwgitlab.kitware.com/computer-vision/SMQTK/), making sure
+   to check out the `prr-diyai-20201015` tag (i.e., `git clone prr-diyai-20201015 -b prr-diyai-20201015`).
+3. In the `tinker-engine` repository, install the Pipenv dependencies with
+   `pipenv install -d`.
+4. Install the SMQTK dependency manually with `pipenv run pip install -e
+   ../smqtk` (substituting your local path to SMQTK).
+5. Activate the Pipenv shell: `pipenv shell`.
+6. Run Tinker Engine to ensure it works: `tinker --help`.
+
+### Running Tinker Engine
+
+There is an example protocol definition in
+[`examples/helloworld.py`](examples/helloworld.py). You can use this with Tinker
+Engine as follows:
+
+```
+$ tinker -c examples/helloworld.yaml examples/helloworld.py
+```
+
+(Currently, the config file argument is required, but isn't actually used by the
+system; hence, you must supply a file that exists in order for this to work.)
+
+Since Tinker Engine only finds a single protocol defined in the entrypoints
+supplied to it, it will automatically instantiate and run the one it has found.
+But you can also list the ones it knows about, like this:
+
+```
+$ tinker -c examples/helloworld.yaml examples/helloworld.py --list-protocols
+```
+
+### Command Line Documentation
+
+```
+usage: tinker [-h] -c CONFIG [--list-protocols] [--list-algorithms]
+              [--log-file LOG_FILE] [--log-level LOG_LEVEL]
+              protocol_file [protocol_file ...]
+
+positional arguments:
+  protocol_file         python file defining protocols/algorithms/etc.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        config file
+  --list-protocols      Print the available protocols
+  --list-algorithms     Print the available algorithms
+  --log-file LOG_FILE   Path to log file
+  --log-level LOG_LEVEL
+                        Logging level
+```
+
+Generally, you will use the `tinker` utility by supplying a configuration file
+with the `-c` option and at least one `protocol_file` listed as positional
+arguments. Tinker Engine will read in the configuration file and use it to
+instantiate a `Protocol` object defined in one of the `protocol_file`s listed.
+
+The `--log-file` option sets a filename to use as the log file; by default it
+will be a file named by the running computer's hostname and the current time.
+
+The `--list-protcols` and `--list-algorithms` options are diagnostics to show
+what has been detected by Tinker Engine. The options will, respectively, print
+out all the `Protocol` and `Algorithm` objects found by Tinker Engine. These are
+the objects available for use when Tinker Engine is run.
+
+# IGNORE EVERYTHING BELOW
+
 ## Getting started
 
 This repository contains a development version of the `tinker-engine` package.
