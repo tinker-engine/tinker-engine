@@ -22,11 +22,11 @@ available for use.
 ### Running Tinker Engine
 
 There is an example protocol definition in
-[`examples/helloworld.py`](examples/helloworld.py). You can use this with Tinker
-Engine as follows:
+[`examples/helloworld/helloworld.py`](examples/helloworld/helloworld.py). You
+can use this with Tinker Engine as follows:
 
 ```
-$ tinker -c examples/helloworld.yaml examples/helloworld.py
+$ tinker -c examples/helloworld/helloworld.yaml examples/helloworld/helloworld.py
 ```
 
 (Currently, the config file argument is required, but isn't actually used by the
