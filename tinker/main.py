@@ -43,6 +43,7 @@ from typing import Any, List
 
 from . import algorithm
 from . import protocol
+from .configuration import parse_configuration
 
 
 def import_source(path: str) -> None:
@@ -130,6 +131,10 @@ def main() -> int:
         logging.error(f"error: config file {args.config} doesn't exist")
         return 1
 
+    # Parse the configuration from the file.
+    with open(args.config) as f:
+        configs = parse_configuration(f.read())
+
     # Load the protocol files.
     for pf in args.protocol_files:
         try:
@@ -153,21 +158,23 @@ def main() -> int:
         return 0
 
     # If there is a single protocol to run, then instantiate it and run it.
+    error = False
     if len(protocols) == 1:
         protocol_cls = protocols.pop()
         p = protocol_cls()
 
-        try:
-            p.run_protocol()
-        except BaseException:
-            exc = sys.exc_info()[1]
-            logging.error(f"Protocol runtime error: {exc}")
-            return 1
+        for config in configs:
+            try:
+                p.run_protocol(config)
+            except BaseException:
+                exc = sys.exc_info()[1]
+                logging.error(f"Protocol runtime error: {exc}")
+                error = True
     else:
         logging.error("Fatal error: no protocol specified")
         return 1
 
-    return 0
+    return 0 if not error else 1
 
 
 if __name__ == "__main__":
