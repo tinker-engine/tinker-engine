@@ -103,7 +103,10 @@ discovered_plugins = {
 @click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
 @click.argument("protocol-files", type=click.Path(exists=True), nargs=-1, required=True)
 def main(config, list_protocols, list_algorithms, log_file, log_level, protocol_files) -> int:
-    """Run the main program."""
+    """Run computational experiments via custom configuration and protocols.
+
+    PROTOCOL_FILES is one or more Python files defining protocols.
+    """
 
     # Set up the logger.
     log_format = "[tinker-engine] %(asctime)s %(message)s"
