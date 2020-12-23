@@ -113,11 +113,6 @@ def main(config, list_protocols, list_algorithms, log_file, log_level, protocol_
     logging.basicConfig(filename=log_file, filemode="w", level=log_level, format=log_format)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
-    # Find the config file.
-    if not os.path.exists(config):
-        logging.error(f"error: config file {config} doesn't exist")
-        return 1
-
     # Load the protocol files.
     for pf in protocol_files:
         try:
