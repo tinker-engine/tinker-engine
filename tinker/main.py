@@ -58,7 +58,7 @@ def import_source(path: str) -> None:
 
     # Extract the name portion of the path.
     basename = os.path.basename(path)
-    module_name = os.path.splitext(basename)[0]
+    module_name = f"tinker.{os.path.splitext(basename)[0]}"
 
     # Get an import spec from the runtime.
     spec = importlib.util.spec_from_file_location(module_name, path)
