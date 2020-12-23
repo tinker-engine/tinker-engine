@@ -57,12 +57,17 @@ def import_source(path: str) -> None:
     basename = os.path.basename(path)
     module_name = os.path.splitext(basename)[0]
 
-    # Run the Python 3 recipe for programmatic importing of a source path (see
-    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly).
+    # Get an import spec from the runtime.
     spec = importlib.util.spec_from_file_location(module_name, path)
 
-    # This is a typechecking workaround; see
-    # https://github.com/python/typeshed/issues/2793.
+    # `spec_from_file_location()` returns an Optional[_Loader] but there are
+    # some problems with the type definitions (see
+    # https://github.com/python/typeshed/issues/2793). This section performs
+    # manual typechecking to handle the case of `None`, and then to signal the
+    # proper type to the typechecker.
+    if spec is None:
+        raise RuntimeError(f"{path}: not a valid Python file")
+
     assert isinstance(spec.loader, importlib.abc.Loader)
 
     module = importlib.util.module_from_spec(spec)
