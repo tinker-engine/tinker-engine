@@ -49,6 +49,9 @@ def import_source(path: str) -> None:
     """
     Import a module, identified by its path on disk.
 
+    This function was adapted from the Python 3 recipe for recreating the Python
+    2 `import_source()` function, adapted to fit the immediate needs.
+
     Arguments:
         path: Absolute or relative path to the file of the Python module to import.
     """
@@ -70,6 +73,7 @@ def import_source(path: str) -> None:
 
     assert isinstance(spec.loader, importlib.abc.Loader)
 
+    # Perform the actual import.
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
