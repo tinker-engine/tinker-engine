@@ -70,16 +70,6 @@ def import_source(path: str) -> None:
     spec.loader.exec_module(module)
 
 
-def _safe_load(entry_point: EntryPoint) -> Any:
-    """Load algorithms from an entrypoint without raising exceptions."""
-    try:
-        return entry_point.load()
-    except Exception as fault:
-        logging.error("Cannot load entrypoint")
-        logging.exception(fault)
-        exit(1)
-
-
 def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) -> None:
     """Print out `objects` in a human-readable report."""
     print(f"{title}:")
@@ -88,11 +78,6 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
     else:
         for o in objects:
             print(f"  {o.__module__}.{o.__name__}")
-
-
-discovered_plugins = {
-    entry_point.name: _safe_load(entry_point) for entry_point in pkg_resources.iter_entry_points("tinker")
-}
 
 
 def main() -> int:
