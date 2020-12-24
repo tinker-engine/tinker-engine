@@ -1,34 +1,9 @@
 """
-This file contains the main code to run the experiment.
+The `tinker` CLI utility.
 
-.. _main.py:
-
-main.py
-==========
-
-This file contains the main code to run the experiment.  The execute function
-runs the entire LEARN problem including:
-
-    - Get the problem ID
-        - First one picked at the moment
-    - Initializes the problem as an :class:`problem.LwLL` class instance
-        - This will create the session and download the dataset
-    - Initializes the Base Datasets (both for training and evaluation)
-        - This will automatically get the seed labels in the init
-    - Initializes the algorithm
-        - Creates :class:`algorithm.Algorithm` object
-    - Runs Train Stage Loop
-        - Calls method :meth:`algorithm.Algorithm.train`
-    - Initializes Adapt Stage Datasets
-        - Sets up adapt datasets
-    - Runs Adapt Stage Loop
-        - Same as train, but uses :meth:`algorithm.Algorithm.adapt`
-
-This function runs the game and shouldn't be changed for any algorithm.
-Email Kitware if you think that this needs to be changed.
-(christopher.funk@kitware.com and eran.swears@kitware.com)
-
+For command line documentation, run `tinker --help`.
 """
+
 import argparse
 import importlib.util
 import logging
