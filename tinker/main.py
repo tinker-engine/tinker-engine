@@ -24,22 +24,31 @@ def import_source(path: str) -> None:
     """
     Import a module, identified by its path on disk.
 
+    This function was adapted from the Python 3 recipe for recreating the Python
+    2 `import_source()` function, adapted to fit the immediate needs.
+
     Arguments:
         path: Absolute or relative path to the file of the Python module to import.
     """
 
     # Extract the name portion of the path.
     basename = os.path.basename(path)
-    module_name = os.path.splitext(basename)[0]
+    module_name = f"tinker.{os.path.splitext(basename)[0]}"
 
-    # Run the Python 3 recipe for programmatic importing of a source path (see
-    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly).
+    # Get an import spec from the runtime.
     spec = importlib.util.spec_from_file_location(module_name, path)
 
-    # This is a typechecking workaround; see
-    # https://github.com/python/typeshed/issues/2793.
+    # `spec_from_file_location()` returns an Optional[_Loader] but there are
+    # some problems with the type definitions (see
+    # https://github.com/python/typeshed/issues/2793). This section performs
+    # manual typechecking to handle the case of `None`, and then to signal the
+    # proper type to the typechecker.
+    if spec is None:
+        raise RuntimeError(f"{path}: not a valid Python file")
+
     assert isinstance(spec.loader, importlib.abc.Loader)
 
+    # Perform the actual import.
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
