@@ -1,33 +1,7 @@
 """
-This file contains the main code to run the experiment.
+The `tinker` CLI utility.
 
-.. _main.py:
-
-main.py
-==========
-
-This file contains the main code to run the experiment.  The execute function
-runs the entire LEARN problem including:
-
-    - Get the problem ID
-        - First one picked at the moment
-    - Initializes the problem as an :class:`problem.LwLL` class instance
-        - This will create the session and download the dataset
-    - Initializes the Base Datasets (both for training and evaluation)
-        - This will automatically get the seed labels in the init
-    - Initializes the algorithm
-        - Creates :class:`algorithm.Algorithm` object
-    - Runs Train Stage Loop
-        - Calls method :meth:`algorithm.Algorithm.train`
-    - Initializes Adapt Stage Datasets
-        - Sets up adapt datasets
-    - Runs Adapt Stage Loop
-        - Same as train, but uses :meth:`algorithm.Algorithm.adapt`
-
-This function runs the game and shouldn't be changed for any algorithm.
-Email Kitware if you think that this needs to be changed.
-(christopher.funk@kitware.com and eran.swears@kitware.com)
-
+For command line documentation, run `tinker --help`.
 """
 import click
 import importlib.util
@@ -49,35 +23,34 @@ def import_source(path: str) -> None:
     """
     Import a module, identified by its path on disk.
 
+    This function was adapted from the Python 3 recipe for recreating the Python
+    2 `import_source()` function, adapted to fit the immediate needs.
+
     Arguments:
         path: Absolute or relative path to the file of the Python module to import.
     """
 
     # Extract the name portion of the path.
     basename = os.path.basename(path)
-    module_name = os.path.splitext(basename)[0]
+    module_name = f"tinker.{os.path.splitext(basename)[0]}"
 
-    # Run the Python 3 recipe for programmatic importing of a source path (see
-    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly).
+    # Get an import spec from the runtime.
     spec = importlib.util.spec_from_file_location(module_name, path)
 
-    # This is a typechecking workaround; see
-    # https://github.com/python/typeshed/issues/2793.
+    # `spec_from_file_location()` returns an Optional[_Loader] but there are
+    # some problems with the type definitions (see
+    # https://github.com/python/typeshed/issues/2793). This section performs
+    # manual typechecking to handle the case of `None`, and then to signal the
+    # proper type to the typechecker.
+    if spec is None:
+        raise RuntimeError(f"{path}: not a valid Python file")
+
     assert isinstance(spec.loader, importlib.abc.Loader)
 
+    # Perform the actual import.
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
-
-
-def _safe_load(entry_point: EntryPoint) -> Any:
-    """Load algorithms from an entrypoint without raising exceptions."""
-    try:
-        return entry_point.load()
-    except Exception as fault:
-        logging.error("Cannot load entrypoint")
-        logging.exception(fault)
-        exit(1)
 
 
 def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) -> None:
@@ -88,11 +61,6 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
     else:
         for o in objects:
             print(f"  {o.__module__}.{o.__name__}")
-
-
-discovered_plugins = {
-    entry_point.name: _safe_load(entry_point) for entry_point in pkg_resources.iter_entry_points("tinker")
-}
 
 
 @click.command()
