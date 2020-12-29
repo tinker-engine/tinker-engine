@@ -45,17 +45,32 @@ def config_walk(prefix: List[str], config: Dict) -> List[Iterator[Any]]:
     }
 
 
+def is_iterate(value):
+    return type(value) is dict and "iterate" in value
+
+
+def dict_permutations(d):
+    iterators = (zip(itertools.repeat(k), v) for k, v in d.items())
+    for combo in itertools.product(*iterators):
+        t = {}
+        for k, v in combo:
+            t[k] = v
+        yield t
+
+
+def config_generator(value):
+    if is_iterate(value):
+        return itertools.chain(*(config_generator(v) for v in value["iterate"]))
+    elif type(value) is dict:
+        t = {}
+        for k, v in value.items():
+            t[k] = config_generator(v)
+        return dict_permutations(t)
+    else:
+        return (x for x in [value])
+
+
 def parse_configuration(text: str) -> Dict:
     config = yaml.safe_load(text)
 
-    # Perform a recursive descent down the values in the config object, looking
-    # for signal words.
-    plan = config_walk([], config)
-
-    all_combos = itertools.product(*plan["replacers"])
-    for combo in all_combos:
-        config = dict(plan["skeleton"])
-        for replacement in combo:
-            set_dict_path(config, replacement[1], replacement[0])
-
-        yield(config)
+    return config_generator(config)
