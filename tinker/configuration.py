@@ -11,7 +11,7 @@ def is_iterate(value):
 
 
 def dict_permutations(d):
-    iterators = (zip(itertools.repeat(k), v) for k, v in d.items())
+    iterators = (zip(itertools.repeat(k), config_generator(v)) for k, v in d.items())
     for combo in itertools.product(*iterators):
         t = {}
         for k, v in combo:
@@ -19,16 +19,21 @@ def dict_permutations(d):
         yield t
 
 
+def singleton(v):
+    return (x for x in [v])
+
+
+def iterate_generator(iterates):
+    return itertools.chain(*(config_generator(i) for i in iterates))
+
+
 def config_generator(value):
     if is_iterate(value):
-        return itertools.chain(*(config_generator(v) for v in value["iterate"]))
+        return iterate_generator(value["iterate"])
     elif type(value) is dict:
-        t = {}
-        for k, v in value.items():
-            t[k] = config_generator(v)
-        return dict_permutations(t)
+        return dict_permutations(value)
     else:
-        return (x for x in [value])
+        return singleton(value)
 
 
 def parse_configuration(text: str) -> Dict:
