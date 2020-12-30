@@ -1,17 +1,31 @@
 """Utilities for managing Tinker meta-configuration files."""
 
 import itertools
-from typing import Dict, Any, Iterator, List
+from typing import Dict, Union, List, Any, Iterator, cast
 from typing_extensions import TypedDict
 import yaml
 
 
-def is_iterate(value):
+class IterateDirective(TypedDict):
+    """Type of iterate directive."""
+
+    # This `Any` should also be `ConfigEntry`; see comment below.
+    iterate: List[Any]
+
+
+# The two instances of `Any` should rightfully be `ConfigEntry`, but
+# unfortunately, mypy does not currently support recursive structural typing:
+# https://github.com/python/mypy/issues/731.
+ConfigEntry = Union[IterateDirective, Dict[str, Any], List[Any], str, int, float]
+Config = Dict[str, Any]
+
+
+def is_iterate(value: Any) -> bool:
     """Return `True` if `value` is an "iterate" directive."""
     return type(value) is dict and "iterate" in value
 
 
-def dict_permutations(d):
+def dict_permutations(d: Dict[str, ConfigEntry]) -> Iterator[Config]:
     """
     Generate all combinatorial permutations of a dict.
 
@@ -27,7 +41,7 @@ def dict_permutations(d):
         yield t
 
 
-def singleton(v):
+def singleton(v: ConfigEntry) -> Iterator[ConfigEntry]:
     """
     Create a singleton generator for a value.
 
@@ -39,7 +53,7 @@ def singleton(v):
     return (x for x in [v])
 
 
-def iterate_generator(iterates):
+def iterate_generator(iterates: List[ConfigEntry]) -> Iterator[ConfigEntry]:
     """
     Generate all values specificed by an "iterator" directive.
 
@@ -50,7 +64,7 @@ def iterate_generator(iterates):
     return itertools.chain(*(config_generator(i) for i in iterates))
 
 
-def config_generator(value):
+def config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     """
     Generate values for any type that may appear in the configuration object.
 
@@ -61,14 +75,21 @@ def config_generator(value):
     to them, invoking this function again as needed.
     """
     if is_iterate(value):
-        return iterate_generator(value["iterate"])
+        return iterate_generator(cast(IterateDirective, value)["iterate"])
     elif type(value) is dict:
-        return dict_permutations(value)
+        return dict_permutations(cast(Dict[str, Any], value))
     else:
         return singleton(value)
 
 
-def parse_configuration(text: str) -> Dict:
+def parse_configuration(text: str) -> Iterator[Config]:
     """Read in and process the contents of a configuration file."""
     config = yaml.safe_load(text)
-    return config_generator(config)
+
+    # This assert is for the typechecker.
+    #
+    # TODO: add schema validation for `config` so that an error occurs before
+    # this assert if the type of `config` is incorrect.
+    assert isinstance(config, dict)
+
+    return dict_permutations(config)
