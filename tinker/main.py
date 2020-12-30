@@ -65,7 +65,11 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
 @click.option("-c", "--config", required=True, type=click.Path(exists=True), help="config file")
 @click.option("--list-protocols", is_flag=True, help="Print the available protocols")
 @click.option("--list-algorithms", is_flag=True, help="Print the available algorithms")
-@click.option("--log-file", default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log", help="Path to log file")
+@click.option(
+    "--log-file",
+    default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
+    help="Path to log file",
+)
 @click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
 @click.argument("protocol-files", type=click.Path(exists=True), nargs=-1, required=True)
 def main(config, list_protocols, list_algorithms, log_file, log_level, protocol_files) -> int:
