@@ -7,13 +7,11 @@ import click
 import importlib.util
 import logging
 import os
-import pkg_resources
-from pkg_resources import EntryPoint
 import smqtk  # type: ignore
 import socket
 import sys
 import time
-from typing import Any, List
+from typing import List
 
 from . import algorithm
 from . import protocol

@@ -171,14 +171,6 @@
             "index": "pypi",
             "version": "==1.2.0"
         },
-        "flake8-mypy": {
-            "hashes": [
-                "sha256:47120db63aff631ee1f84bac6fe8e64731dc66da3efc1c51f85e15ade4a3ba18",
-                "sha256:cff009f4250e8391bf48990093cff85802778c345c8449d6498b62efefeebcbc"
-            ],
-            "index": "pypi",
-            "version": "==17.8.0"
-        },
         "flake8-polyfill": {
             "hashes": [
                 "sha256:12be6a34ee3ab795b19ca73505e7b55826d5f6ad7230d31b18e106400169b9e9",
