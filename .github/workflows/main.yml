@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-test:
+    name: Build package and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+
+      - name: Install Pipenv
+        run: pip install pipenv
+
+      - name: Capture pipenv version
+        run: echo "::set-output name=pipenv-version::$(pipenv --version | sed 's/,//g')"
+        id: pipenv-version
+
+      - name: Cache Pipenv environment
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: /home/runner/.local/share/virtualenvs/
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/tinker-engine/tinker-engine/Pipfile.lock') }}-${{ steps.pipenv-version.outputs.pipenv-version }}-pipenv-cache
+
+      - name: Install Pip dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pipenv install --dev --deploy
+
+      - name: Lint test
+        run: pipenv run lint
+
+      - name: Black formatting test
+        run: pipenv run format
+
+      - name: Typechecking test
+        run: pipenv run typecheck
