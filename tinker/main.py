@@ -3,8 +3,7 @@ The `tinker` CLI utility.
 
 For command line documentation, run `tinker --help`.
 """
-
-import argparse
+import click
 import importlib.util
 import logging
 import os
@@ -63,47 +62,36 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
             print(f"  {o.__module__}.{o.__name__}")
 
 
-def main() -> int:
-    """Run the main program."""
+@click.command()
+@click.option("-c", "--config", required=True, type=click.Path(exists=True), help="config file")
+@click.option("--list-protocols", is_flag=True, help="Print the available protocols")
+@click.option("--list-algorithms", is_flag=True, help="Print the available algorithms")
+@click.option(
+    "--log-file",
+    default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
+    help="Path to log file",
+)
+@click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
+@click.argument("protocol-files", type=click.Path(exists=True), nargs=-1, required=True)
+def main(
+    config: str, list_protocols: bool, list_algorithms: bool, log_file: str, log_level: int, protocol_files: List[str]
+) -> int:
+    """Run computational experiments via custom configuration and protocols.
 
-    # Setup the argument parsing, and generate help information.
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "protocol_files",
-        metavar="protocol_file",
-        nargs="+",
-        help="python file defining protocols/algorithms/etc.",
-        type=str,
-    )
-    parser.add_argument("-c", "--config", help="config file", type=str, required=True)
-    parser.add_argument("--list-protocols", help="Print the available protocols", action="store_true")
-    parser.add_argument("--list-algorithms", help="Print the available algorithms", action="store_true")
-    parser.add_argument(
-        "--log-file",
-        help="Path to log file",
-        type=str,
-        default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
-    )
-    parser.add_argument("--log-level", default=logging.INFO, help="Logging level", type=int)
-
-    args = parser.parse_args()
+    PROTOCOL_FILES is one or more Python files defining protocols.
+    """
 
     # Set up the logger.
     log_format = "[tinker-engine] %(asctime)s %(message)s"
-    logging.basicConfig(filename=args.log_file, filemode="w", level=args.log_level, format=log_format)
+    logging.basicConfig(filename=log_file, filemode="w", level=log_level, format=log_format)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
-    # Find the config file.
-    if not os.path.exists(args.config):
-        logging.error(f"error: config file {args.config} doesn't exist")
-        return 1
-
     # Parse the configuration from the file.
-    with open(args.config) as f:
+    with open(config) as f:
         configs = parse_configuration(f.read())
 
     # Load the protocol files.
-    for pf in args.protocol_files:
+    for pf in protocol_files:
         try:
             import_source(pf)
         except FileNotFoundError as e:
@@ -115,11 +103,11 @@ def main() -> int:
     algorithms = algorithm.Algorithm.get_impls(subclasses=True)
 
     # Print out available protocols/algorithms if requested.
-    if args.list_protocols or args.list_algorithms:
-        if args.list_protocols:
+    if list_protocols or list_algorithms:
+        if list_protocols:
             print_objects(protocols, "Protocols")
 
-        if args.list_algorithms:
+        if list_algorithms:
             print_objects(algorithms, "Algorithms")
 
         return 0
