@@ -74,7 +74,12 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
 @click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
 @click.argument("protocol-files", type=click.Path(exists=True), nargs=-1, required=True)
 def main(
-    config_file: str, list_protocols: bool, list_algorithms: bool, log_file: str, log_level: int, protocol_files: List[str]
+    config_file: str,
+    list_protocols: bool,
+    list_algorithms: bool,
+    log_file: str,
+    log_level: int,
+    protocol_files: List[str],
 ) -> int:
     """Run computational experiments via custom configuration and protocols.
 
