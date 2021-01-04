@@ -63,7 +63,7 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
 
 
 @click.command()
-@click.option("-c", "--config", required=True, type=click.Path(exists=True), help="config file")
+@click.option("-c", "--config", "config_file", required=True, type=click.Path(exists=True), help="config file")
 @click.option("--list-protocols", is_flag=True, help="Print the available protocols")
 @click.option("--list-algorithms", is_flag=True, help="Print the available algorithms")
 @click.option(
@@ -74,7 +74,7 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
 @click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
 @click.argument("protocol-files", type=click.Path(exists=True), nargs=-1, required=True)
 def main(
-    config: str, list_protocols: bool, list_algorithms: bool, log_file: str, log_level: int, protocol_files: List[str]
+    config_file: str, list_protocols: bool, list_algorithms: bool, log_file: str, log_level: int, protocol_files: List[str]
 ) -> int:
     """Run computational experiments via custom configuration and protocols.
 
@@ -87,7 +87,7 @@ def main(
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
     # Parse the configuration from the file.
-    with open(config) as f:
+    with open(config_file) as f:
         configs = parse_configuration(f.read())
 
     # Load the protocol files.
