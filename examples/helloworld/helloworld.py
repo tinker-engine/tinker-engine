@@ -10,6 +10,6 @@ class MyProtocol(protocol.Protocol):
         """Return a default configuration dictionary."""
         return {}
 
-    def run_protocol(self):
+    def run_protocol(self, config):
         """Run the protocol by printing a message."""
         print("hello, world")

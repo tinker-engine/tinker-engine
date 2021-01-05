@@ -15,6 +15,7 @@ from typing import List
 
 from . import algorithm
 from . import protocol
+from .configuration import parse_configuration
 
 
 def import_source(path: str) -> None:
@@ -62,7 +63,7 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
 
 
 @click.command()
-@click.option("-c", "--config", required=True, type=click.Path(exists=True), help="config file")
+@click.option("-c", "--config", "config_file", required=True, type=click.Path(exists=True), help="config file")
 @click.option("--list-protocols", is_flag=True, help="Print the available protocols")
 @click.option("--list-algorithms", is_flag=True, help="Print the available algorithms")
 @click.option(
@@ -73,7 +74,12 @@ def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) ->
 @click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
 @click.argument("protocol-files", type=click.Path(exists=True), nargs=-1, required=True)
 def main(
-    config: str, list_protocols: bool, list_algorithms: bool, log_file: str, log_level: int, protocol_files: List[str]
+    config_file: str,
+    list_protocols: bool,
+    list_algorithms: bool,
+    log_file: str,
+    log_level: int,
+    protocol_files: List[str],
 ) -> int:
     """Run computational experiments via custom configuration and protocols.
 
@@ -84,6 +90,10 @@ def main(
     log_format = "[tinker-engine] %(asctime)s %(message)s"
     logging.basicConfig(filename=log_file, filemode="w", level=log_level, format=log_format)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+    # Parse the configuration from the file.
+    with open(config_file) as f:
+        configs = parse_configuration(f.read())
 
     # Load the protocol files.
     for pf in protocol_files:
@@ -108,21 +118,23 @@ def main(
         return 0
 
     # If there is a single protocol to run, then instantiate it and run it.
+    error = False
     if len(protocols) == 1:
         protocol_cls = protocols.pop()
         p = protocol_cls()
 
-        try:
-            p.run_protocol()
-        except BaseException:
-            exc = sys.exc_info()[1]
-            logging.error(f"Protocol runtime error: {exc}")
-            return 1
+        for config in configs:
+            try:
+                p.run_protocol(config)
+            except BaseException:
+                exc = sys.exc_info()[1]
+                logging.error(f"Protocol runtime error: {exc}")
+                error = True
     else:
         logging.error("Fatal error: no protocol specified")
         return 1
 
-    return 0
+    return 0 if not error else 1
 
 
 if __name__ == "__main__":
