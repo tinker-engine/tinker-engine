@@ -1,6 +1,11 @@
+"""Test suite for configuration expansion."""
+
+
 def test_good():
-    assert True == True
+    """Demonstrate a passing test."""
+    assert 0 == 0
 
 
 def test_bad():
-    assert True == False
+    """Demonstrate a failing test."""
+    assert 0 == 1
