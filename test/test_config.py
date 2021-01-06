@@ -22,3 +22,25 @@ def test_iterate():
         }
 
         assert lines[i] == str(expected)
+
+
+def test_iterate_nested():
+    """Test nested `iterate` directive."""
+    runner = CliRunner()
+    result = runner.invoke(main, ["examples/config/show_config.py", "-c", "examples/config/iterate_nested.yaml"])
+
+    print(result.output)
+
+    # The operation should succeed.
+    assert result.exit_code == 0
+
+    # The expected config objects should appear in order.
+    lines = result.output.split("\n")
+    for i, (bar, baz) in enumerate(itertools.product([4, {"a": 10}, {"a": 12}, 6], [7, 8])):
+        expected = {
+            "foo": 3,
+            "bar": bar,
+            "baz": baz,
+        }
+
+        assert lines[i] == str(expected)

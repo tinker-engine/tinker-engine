@@ -11,14 +11,14 @@ import smqtk  # type: ignore
 import socket
 import sys
 import time
-from typing import List
+from typing import List, Set
 
 from . import algorithm
 from . import protocol
 from .configuration import parse_configuration
 
 
-def import_source(path: str) -> None:
+def import_source(path: str, paths: Set[str] = set()) -> None:
     """
     Import a module, identified by its path on disk.
 
@@ -28,6 +28,21 @@ def import_source(path: str) -> None:
     Arguments:
         path: Absolute or relative path to the file of the Python module to import.
     """
+
+    # Check to see whether the path is imported already; if it is, nothing left
+    # to do.
+    #
+    # This is needed for testing, where the same runtime may invoke this
+    # function multiple times with the same protocol paths.
+    #
+    # It is also needed for the case where a user supplies the same path
+    # multiple times on the command line. This could happen if, for example, the
+    # command line is being constructed programmatically from some other
+    # mechanism.
+    if path in paths:
+        return
+
+    paths.add(path)
 
     # Extract the name portion of the path.
     basename = os.path.basename(path)
