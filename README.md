@@ -60,6 +60,12 @@ $ tinker -c examples/config/iterate_nested.yaml examples/config/show_config.py
 
 demonstrates the semantics of nesting one `iterate` directive within another.
 
+When iteration is not needed, a "vanilla" configuration file will behave as
+expected:
+
+```
+$ tinker -c examples/config/vanilla.yaml examples/config/show_config.py
+```
 
 ### Command Line Documentation
 

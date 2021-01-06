@@ -4,6 +4,24 @@ import itertools
 from tinker.main import main
 
 
+def test_vanilla():
+    """Test "vanilla" configuration expansion."""
+    runner = CliRunner()
+    result = runner.invoke(main, ["examples/config/show_config.py", "-c", "examples/config/vanilla.yaml"])
+
+    # The operation should succeed.
+    assert result.exit_code == 0
+
+    # The expected config object should appear.
+    lines = result.output.strip().split("\n")
+    assert len(lines) == 1
+    assert lines[0] == str({
+        "foo": 3,
+        "bar": 4,
+        "baz": 5,
+    })
+
+
 def test_iterate():
     """Test basic `iterate` directive."""
     runner = CliRunner()
