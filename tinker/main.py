@@ -18,7 +18,7 @@ from . import protocol
 from .configuration import parse_configuration
 
 
-def import_source(path: str, paths: Set[str] = set()) -> None:
+def import_source(path: str, paths: Set[str] = set()) -> None:  # noqa: B006
     """
     Import a module, identified by its path on disk.
 

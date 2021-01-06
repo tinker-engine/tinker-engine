@@ -15,11 +15,7 @@ def test_vanilla():
     # The expected config object should appear.
     lines = result.output.strip().split("\n")
     assert len(lines) == 1
-    assert lines[0] == str({
-        "foo": 3,
-        "bar": 4,
-        "baz": 5,
-    })
+    assert lines[0] == str({"foo": 3, "bar": 4, "baz": 5})
 
 
 def test_iterate():
