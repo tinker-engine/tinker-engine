@@ -46,3 +46,6 @@ jobs:
 
       - name: Typechecking test
         run: pipenv run typecheck
+
+      - name: Test suite
+        run: pipenv run test
