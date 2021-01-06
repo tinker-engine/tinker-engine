@@ -30,8 +30,11 @@ def test_iterate():
     # The operation should succeed.
     assert result.exit_code == 0
 
+    # There should be six configurations.
+    lines = result.output.strip().split("\n")
+    assert len(lines) == 6
+
     # The expected config objects should appear in order.
-    lines = result.output.split("\n")
     for i, (bar, baz) in enumerate(itertools.product([4, 5, 6], [7, 8])):
         expected = {
             "foo": 3,
@@ -52,8 +55,11 @@ def test_iterate_nested():
     # The operation should succeed.
     assert result.exit_code == 0
 
+    # There should be eight configurations.
+    lines = result.output.strip().split("\n")
+    assert len(lines) == 8
+
     # The expected config objects should appear in order.
-    lines = result.output.split("\n")
     for i, (bar, baz) in enumerate(itertools.product([4, {"a": 10}, {"a": 12}, 6], [7, 8])):
         expected = {
             "foo": 3,
