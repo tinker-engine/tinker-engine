@@ -23,6 +23,7 @@ m2r = "==0.2.1"
 mistune = "==0.8.4"
 sphinx = "==2.4.4"
 sphinx-autobuild = "==0.7.1"
+pytest = ">=6.2"
 
 [packages]
 click = ">=7.1"
