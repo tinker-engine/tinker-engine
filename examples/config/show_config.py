@@ -3,7 +3,7 @@
 from tinker import protocol
 
 
-class MyProtocol(protocol.Protocol):
+class ShowConfig(protocol.Protocol):
     """A protocol demonstrating how meta-configurations work."""
 
     def get_config(self):

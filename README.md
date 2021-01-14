@@ -29,9 +29,6 @@ can use this with Tinker Engine as follows:
 $ tinker -c examples/helloworld/helloworld.yaml examples/helloworld/helloworld.py
 ```
 
-(Currently, the config file argument is required, but isn't actually used by the
-system; hence, you must supply a file that exists in order for this to work.)
-
 Since Tinker Engine only finds a single protocol defined in the entrypoints
 supplied to it, it will automatically instantiate and run the one it has found.
 But you can also list the ones it knows about, like this:
@@ -39,6 +36,30 @@ But you can also list the ones it knows about, like this:
 ```
 $ tinker -c examples/helloworld.yaml examples/helloworld.py --list-protocols
 ```
+
+### Other examples
+
+The `examples` directory contains several protocols and configurations that you
+can use to explore how Tinker Engine works.
+
+#### Configuration Directives
+
+The `examples/config` directory contains examples showing various configuration
+directives, using a protocol that simple prints out the configuration passed to
+it:
+
+```
+$ tinker -c examples/config/iterate.yaml examples/config/show_config.py
+```
+
+demonstrates how the `iterate` directive works combinatorially, and
+
+```
+$ tinker -c examples/config/iterate_nested.yaml examples/config/show_config.py
+```
+
+demonstrates the semantics of nesting one `iterate` directive within another.
+
 
 ### Command Line Documentation
 
