@@ -1,7 +1,7 @@
 """Definition of Tinker algorithm."""
 
 from abc import abstractmethod
-from smqtk_core import Configurable, Pluggable  # type: ignore
+from smqtk_core import Configurable, Pluggable
 
 
 class Algorithm(Configurable, Pluggable):

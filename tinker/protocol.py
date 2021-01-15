@@ -1,7 +1,7 @@
 """Definition of Tinker protocol."""
 
 from abc import abstractmethod
-from smqtk_core import Configurable, Pluggable  # type: ignore
+from smqtk_core import Configurable, Pluggable
 
 from typing import Dict, Any
 
