@@ -27,6 +27,7 @@ pytest = ">=6.2"
 
 [packages]
 click = ">=7.1"
+smqtk-core = "==0.15.0"
 
 [requires]
 python_version = "3.7"
