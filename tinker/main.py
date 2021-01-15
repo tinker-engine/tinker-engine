@@ -7,7 +7,6 @@ import click
 import importlib.util
 import logging
 import os
-import smqtk_core
 import socket
 import sys
 import time
