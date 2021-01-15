@@ -1,10 +1,12 @@
 """Definition of Tinker protocol."""
 
 from abc import abstractmethod
-import smqtk  # type: ignore
+from smqtk_core import Configurable, Pluggable  # type: ignore
+
+from typing import Dict, Any
 
 
-class Protocol(smqtk.algorithms.SmqtkAlgorithm):
+class Protocol(Configurable, Pluggable):
     """The Tinker protocol class, defined as a SMQTK algorithm with its own interface."""
 
     # Make these protocol objects usable by default.
@@ -14,6 +16,6 @@ class Protocol(smqtk.algorithms.SmqtkAlgorithm):
         return True
 
     @abstractmethod
-    def run_protocol(self) -> None:
+    def run_protocol(self, config: Dict[str, Any]) -> None:
         """Run the protocol."""
         pass

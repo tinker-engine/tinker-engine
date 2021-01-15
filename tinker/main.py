@@ -7,11 +7,11 @@ import click
 import importlib.util
 import logging
 import os
-import smqtk  # type: ignore
+import smqtk_core  # type: ignore
 import socket
 import sys
 import time
-from typing import List, Set
+from typing import List, Set, Union, Type
 
 from . import algorithm
 from . import protocol
@@ -67,7 +67,7 @@ def import_source(path: str, paths: Set[str] = set()) -> None:  # noqa: B006
     spec.loader.exec_module(module)
 
 
-def print_objects(objects: List[smqtk.algorithms.SmqtkAlgorithm], title: str) -> None:
+def print_objects(objects: Union[Set[Type[algorithm.Algorithm]], Set[Type[protocol.Protocol]]], title: str) -> None:
     """Print out `objects` in a human-readable report."""
     print(f"{title}:")
     if not objects:
@@ -119,8 +119,8 @@ def main(
             return 1
 
     # Get the list of Tinker protocols and Tinker algorithms.
-    protocols = protocol.Protocol.get_impls(subclasses=True)
-    algorithms = algorithm.Algorithm.get_impls(subclasses=True)
+    protocols = protocol.Protocol.get_impls()
+    algorithms = algorithm.Algorithm.get_impls()
 
     # Print out available protocols/algorithms if requested.
     if list_protocols or list_algorithms:
