@@ -1,10 +1,10 @@
 """Definition of Tinker algorithm."""
 
 from abc import abstractmethod
-import smqtk  # type: ignore
+from smqtk_core import Configurable, Pluggable
 
 
-class Algorithm(smqtk.algorithms.SmqtkAlgorithm):
+class Algorithm(Configurable, Pluggable):
     """The Tinker algorithm class, defined as a SMQTK algorithm with its own interface."""
 
     @classmethod
