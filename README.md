@@ -9,15 +9,10 @@ will create a Pipenv environment where Tinker Engine is built and installed and
 available for use.
 
 1. Clone this repository.
-2. Clone the [SMQTK
-   repository](https://kwgitlab.kitware.com/computer-vision/SMQTK/), making sure
-   to check out the `prr-diyai-20201015` tag (i.e., `git clone prr-diyai-20201015 -b prr-diyai-20201015`).
-3. In the `tinker-engine` repository, install the Pipenv dependencies with
+2. In the `tinker-engine` directory, install the Pipenv dependencies with
    `pipenv install -d`.
-4. Install the SMQTK dependency manually with `pipenv run pip install -e
-   ../smqtk` (substituting your local path to SMQTK).
-5. Activate the Pipenv shell: `pipenv shell`.
-6. Run Tinker Engine to ensure it works: `tinker --help`.
+3. Activate the Pipenv shell: `pipenv shell`.
+4. Run Tinker Engine to ensure it works: `tinker --help`.
 
 ### Running Tinker Engine
 
