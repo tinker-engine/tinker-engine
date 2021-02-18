@@ -1,0 +1,13 @@
+foo:
+    - smqtk: 
+        class: HelloWorldSmqtk
+        config:
+            foo: 21
+            bar: 22
+            baz: 23
+    - smqtk: 
+        class: HelloWorldSmqtk
+        config:
+            foo: 61
+            bar: 62
+            baz: 63
