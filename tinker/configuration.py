@@ -5,7 +5,7 @@ from typing import Dict, Union, List, Any, Iterator, cast
 from typing_extensions import TypedDict
 import yaml
 
-from smqtk_core import Pluggable
+from smqtk_core import Pluggable, Configurable
 
 
 class IterateDirective(TypedDict):
@@ -15,10 +15,17 @@ class IterateDirective(TypedDict):
     iterate: List[Any]
 
 
+class SMQTKDirective(TypedDict):
+    """Type of smqtk directive."""
+
+    # This `Any` should also be `ConfigEntry`; see comment below.
+    smqtk: Dict[str, Any]
+
+
 # The two instances of `Any` should rightfully be `ConfigEntry`, but
 # unfortunately, mypy does not currently support recursive structural typing:
 # https://github.com/python/mypy/issues/731.
-ConfigEntry = Union[IterateDirective, Dict[str, Any], List[Any], str, int, float]
+ConfigEntry = Union[SMQTKDirective, IterateDirective, Dict[str, Any], List[Any], str, int, float]
 Config = Dict[str, Any]
 
 
@@ -71,7 +78,7 @@ def is_smqtk(value: Any) -> bool:
     return type(value) is dict and "smqtk" in value
 
 
-def smqtk_generator(smqtk_def):
+def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
     r"""
     Find implementation of and instantiate a SMQTK class.
 
@@ -87,27 +94,32 @@ def smqtk_generator(smqtk_def):
 
     # check if our class matches any of the implementations
     class_name = smqtk_def["class"]
-    matched_class = None
+    matched_class = None  # TODO: can add typing here for matched_class
     for candidate in candidate_types:
         if candidate.__name__ == class_name:
             matched_class = candidate
+            # TODO: add some sort of error checking if multiple classes
+            # have the same name, so we don't have any unexpected
+            # behavior
             break
     if matched_class is None:
         raise ValueError("No SMQTK definition found: {}".format(class_name))
+
+    # explict check that matched_class is Configurable
+    if not isinstance(matched_class, Configurable):
+        raise ValueError("{} must be Configurable".format(class_name))
 
     # Check with is_usable (inherits from Pluggable)
     if not matched_class.is_usable():
         raise ValueError("SMQTK impl {} not usable".format(class_name))
 
-    # TODO: add explicit checks that inherits from Pluggable and Configurable
-    # rather than these implicit checks
-
     # TODO: maybe check to call is_valid_plugin
 
     smqtk_config = smqtk_def.get("config", {})
 
-    # needs to be as list so it is iterable
-    return [matched_class.from_config(smqtk_config)]
+    # needs to be an iterator to match type-checking
+    smqtk_impl = matched_class.from_config(smqtk_config)
+    return (x for x in [smqtk_impl])
 
 
 def config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
@@ -123,7 +135,7 @@ def config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     if is_iterate(value):
         return iterate_generator(cast(IterateDirective, value)["iterate"])
     elif is_smqtk(value):
-        return smqtk_generator(value["smqtk"])
+        return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
     elif type(value) is dict:
         return dict_permutations(cast(Dict[str, Any], value))
     else:
