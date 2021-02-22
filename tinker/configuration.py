@@ -7,6 +7,7 @@ import yaml
 
 from smqtk_core import Pluggable
 
+
 class IterateDirective(TypedDict):
     """Type of iterate directive."""
 
@@ -24,6 +25,7 @@ Config = Dict[str, Any]
 def is_iterate(value: Any) -> bool:
     """Return `True` if `value` is an "iterate" directive."""
     return type(value) is dict and "iterate" in value
+
 
 def dict_permutations(d: Dict[str, ConfigEntry]) -> Iterator[Config]:
     """
@@ -63,45 +65,50 @@ def iterate_generator(iterates: List[ConfigEntry]) -> Iterator[ConfigEntry]:
     """
     return itertools.chain(*(config_generator(i) for i in iterates))
 
+
 def is_smqtk(value: Any) -> bool:
     """Return `True` if `value` is a "smqtk" directive."""
     return type(value) is dict and "smqtk" in value
 
+
 def smqtk_generator(smqtk_def):
-    """
-    Find implementation of and instantiate a SMQTK class with a config
-    all values specified by "smqtk" directive.
+    r"""
+    Find implementation of and instantiate a SMQTK class.
+
+    Instantiated with a config all values specified
+    by "smqtk" directive.
 
 
     """
-    
-    # get available implementations 
+
+    # get available implementations
     # (from environment variable and entrypoint extension)
     candidate_types = Pluggable.get_impls()
-    
+
     # check if our class matches any of the implementations
-    class_name = smqtk_def['class']
+    class_name = smqtk_def["class"]
     matched_class = None
     for candidate in candidate_types:
         if candidate.__name__ == class_name:
             matched_class = candidate
             break
     if matched_class is None:
-        raise ValueError('No SMQTK definition found: {}'.format(class_name))
-    
+        raise ValueError("No SMQTK definition found: {}".format(class_name))
+
     # Check with is_usable (inherits from Pluggable)
     if not matched_class.is_usable():
-       raise ValueError('SMQTK impl {} not usable'.format(class_name))
- 
+        raise ValueError("SMQTK impl {} not usable".format(class_name))
+
     # TODO: add explicit checks that inherits from Pluggable and Configurable
     # rather than these implicit checks
-   
+
     # TODO: maybe check to call is_valid_plugin
 
-    smqtk_config = smqtk_def.get('config',{})
+    smqtk_config = smqtk_def.get("config", {})
 
     # needs to be as list so it is iterable
     return [matched_class.from_config(smqtk_config)]
+
 
 def config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     """
@@ -116,7 +123,7 @@ def config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     if is_iterate(value):
         return iterate_generator(cast(IterateDirective, value)["iterate"])
     elif is_smqtk(value):
-        return smqtk_generator(value['smqtk']) 
+        return smqtk_generator(value["smqtk"])
     elif type(value) is dict:
         return dict_permutations(cast(Dict[str, Any], value))
     else:
