@@ -25,7 +25,11 @@ class SMQTKDirective(TypedDict):
 # The two instances of `Any` should rightfully be `ConfigEntry`, but
 # unfortunately, mypy does not currently support recursive structural typing:
 # https://github.com/python/mypy/issues/731.
-ConfigEntry = Union[SMQTKDirective, IterateDirective, Dict[str, Any], List[Any], str, int, float]
+# Also, the instance of Pluggable or Configurable probably should instead be
+# Pluggable AND Configurable
+ConfigEntry = Union[
+    SMQTKDirective, IterateDirective, Dict[str, Any], List[Any], str, int, float, Pluggable, Configurable
+]
 Config = Dict[str, Any]
 
 
@@ -118,7 +122,7 @@ def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
     smqtk_config = smqtk_def.get("config", {})
 
     # needs to be an iterator to match type-checking
-    smqtk_impl = matched_class.from_config(smqtk_config)
+    smqtk_impl = matched_class.from_config(cast(Dict[str, Any], smqtk_config))
     return (x for x in [smqtk_impl])
 
 
