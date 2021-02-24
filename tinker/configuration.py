@@ -106,7 +106,7 @@ def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
         raise ValueError("No SMQTK definition found: {}".format(class_name))
 
     # explict check that matched_class is Configurable
-    if not isinstance(matched_class, Configurable):
+    if not issubclass(matched_class, Configurable):
         raise ValueError("{} must be Configurable".format(class_name))
 
     # Check with is_usable (inherits from Pluggable)
