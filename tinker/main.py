@@ -4,12 +4,12 @@ The `tinker` CLI utility.
 For command line documentation, run `tinker --help`.
 """
 import click
+import datetime
 import importlib.util
 import logging
 import os
 import socket
 import sys
-import time
 from typing import List, Set, Union, Type
 
 from . import algorithm
@@ -82,7 +82,7 @@ def print_objects(objects: Union[Set[Type[algorithm.Algorithm]], Set[Type[protoc
 @click.option("--list-algorithms", is_flag=True, help="Print the available algorithms")
 @click.option(
     "--log-file",
-    default=f"tinker_{socket.gethostname()}_{time.asctime().replace(' ', '_')}.log",
+    default=f"""tinker_{socket.gethostname()}_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S.%f")}.log""",
     help="Path to log file",
 )
 @click.option("--log-level", default=logging.INFO, type=int, help="Logging level")
