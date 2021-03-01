@@ -96,6 +96,13 @@ what has been detected by Tinker Engine. The options will, respectively, print
 out all the `Protocol` and `Algorithm` objects found by Tinker Engine. These are
 the objects available for use when Tinker Engine is run.
 
+# Acknowledgments
+
+This material is based upon work supported by the Defense Advanced Research
+Projects Agency (DARPA) under Contract No. HR001120C0055. Any opinions, findings
+and conclusions or recommendations expressed in this material are those of the
+author(s) and do not necessarily reflect the views of the DARPA.
+
 # IGNORE EVERYTHING BELOW
 
 ## Getting started
