@@ -32,7 +32,7 @@ jobs:
         id: cache
         with:
           path: /home/runner/.local/share/virtualenvs/
-          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/tinker-engine/tinker-engine/Pipfile.lock') }}-${{ steps.pipenv-version.outputs.pipenv-version }}-pipenv-cache
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/tinker-engine/tinker-engine/Pipfile.lock') }}-${{ steps.pipenv-version.outputs.pipenv-version }}-pipenv-cache2
 
       - name: Install Pip dependencies
         if: steps.cache.outputs.cache-hit != 'true'
