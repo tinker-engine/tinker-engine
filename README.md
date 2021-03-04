@@ -99,9 +99,12 @@ the objects available for use when Tinker Engine is run.
 # Acknowledgments
 
 This material is based upon work supported by the Defense Advanced Research
-Projects Agency (DARPA) under Contract No. HR001120C0055. Any opinions, findings
-and conclusions or recommendations expressed in this material are those of the
-author(s) and do not necessarily reflect the views of the DARPA.
+Projects Agency (DARPA) under Contract No. HR001120C0055 and research sponsored
+by DARPA under agreement number FA8750-19-1-0504. Any opinions, findings and
+conclusions or recommendations expressed in this material are those of the
+author(s) and do not necessarily reflect the views of the DARPA. The U.S.
+Government is authorized to reproduce and distribute reprints for Governmental
+purposes notwithstanding any copyright notation thereon.
 
 # IGNORE EVERYTHING BELOW
 
