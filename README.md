@@ -1,5 +1,9 @@
 # tinker-engine
 
+## Documentation for Examples
+
+Check out the [examples](examples/) to get started using Tinker Engine.
+
 ## Developer setup
 
 ### Build Tinker Engine
