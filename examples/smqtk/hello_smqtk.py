@@ -16,11 +16,6 @@ class HelloWorldSmqtk(Pluggable, Configurable):
         -c examples/smqtk/hello_smqtk.yaml examples/smqtk/show_smqtk.py
     """
 
-    @classmethod
-    def is_usable(cls):
-        """Fulfill required implementation from Pluggable."""
-        return True
-
     def __init__(self, foo=1, bar=2, baz=3):
         """Initialize by storing passed arguments."""
         self.foo = foo
