@@ -12,7 +12,7 @@ using Tinker Engine.
 
 ### Step 1: Model Your Experiment
 
-Start by looking at the [CoinFlipper](examples/coinflip/CoinFlipper.py)
+Start by looking at the [CoinFlipper](coinflip/CoinFlipper.py)
 definitions. `CoinFlipper` is an abstract base class that represents the act of
 flipping a coin--it returns a `bool`: `true` for heads, `false` for tails. That
 file also defines `WeightedCoin`, which is a regular old coin that you're used
@@ -48,7 +48,7 @@ number of heads, given the specified coin weighting.
 
 ### Step 3: Set Up an Experimental Configuration
 
-The `config` value comes from the [configuration file](examples/coinflip/coinflip.yaml).
+The `config` value comes from the [configuration file](coinflip/coinflip.yaml).
 Take a look at it--you see that `trials` is set to `1000`, while `weight` has a
 more curious structure, reproduced below:
 
@@ -78,7 +78,7 @@ You should see results similar to the following:
 1000 heads out of 1000 flips; expected 1000.0
 ```
 
-If you look back at the [protocol definition](examples/coinflip/coinflip.py),
+If you look back at the [protocol definition](coinflip/coinflip.py),
 you'll recognize that each of the five lines of output corresponds to one run of
 the protocol, each with a different value of `config["weight"]` passed in.
 
