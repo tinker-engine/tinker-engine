@@ -1,5 +1,5 @@
 alg:
-    - smqtk: 
+    smqtk: 
         class: HelloWorldSmqtk
         config:
             foo:

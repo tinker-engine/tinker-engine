@@ -46,13 +46,12 @@ def dict_permutations(d: Dict[str, ConfigEntry]) -> Iterator[Config]:
     iterations for that key. This function runs the product of all the
     generators in order to instantiate each version of the dict.
     """
-    iterators = (zip(itertools.repeat(k), config_generator(v)) for k, v in d.items())
+    iterators = (zip(itertools.repeat(k), preprocess_config_generator(v)) for k, v in d.items())
     for combo in itertools.product(*iterators):
         t = {}
         for k, v in combo:
-            t[k] = v
+            t[k] = process_config(v)
         yield t
-
 
 def singleton(v: ConfigEntry) -> Iterator[ConfigEntry]:
     """
@@ -74,7 +73,7 @@ def iterate_generator(iterates: List[ConfigEntry]) -> Iterator[ConfigEntry]:
     them into a single list of values. Any nested "iterate" directives, for
     instance, will unfold into a portion of this list.
     """
-    return itertools.chain(*(config_generator(i) for i in iterates))
+    return itertools.chain(*(preprocess_config_generator(i) for i in iterates))
 
 
 def is_smqtk(value: Any) -> bool:
@@ -88,8 +87,6 @@ def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
 
     Instantiated with a config all values specified
     by "smqtk" directive.
-
-
     """
 
     # get available implementations
@@ -121,27 +118,34 @@ def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
 
     smqtk_config = smqtk_def.get("config", {})
 
-    # needs to be an iterator to match type-checking
     smqtk_impl = matched_class.from_config(cast(Dict[str, Any], smqtk_config))
-    return (x for x in [smqtk_impl])
+    return smqtk_impl
 
+def process_config(value: ConfigEntry):
+    if is_smqtk(value):
+        return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
+    else:
+        return value
 
-def config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
+def preprocess_config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     """
     Generate values for any type that may appear in the configuration object.
 
     This is the top-level "entry point" for meta-configuration expansion. It
-    dispatches on the type passed to it, invoking the proper processing routine
+    dispatches on the type passed to it, invoking the proper preprocessing routine
     to generate partial results. The function is ultimately recursive, as those
     processing routines (listed above) examine the contents of the values passed
     to them, invoking this function again as needed.
     """
     if is_iterate(value):
         return iterate_generator(cast(IterateDirective, value)["iterate"])
-    elif is_smqtk(value):
-        return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
+    #elif is_smqtk(value):
+    #if is_smqtk(value):
+    #    return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
     elif type(value) is dict:
         return dict_permutations(cast(Dict[str, Any], value))
+    # TODO: add support for directive in list / tuple - 
+    # some sort of "list_permutations" function
     else:
         return singleton(value)
 
@@ -154,5 +158,4 @@ def parse_configuration(text: str) -> Iterator[Config]:
     # TODO: add schema validation for `config` so that an error occurs before
     # this assert if the type of `config` is incorrect.
     assert isinstance(config, dict)
-
     return dict_permutations(config)
