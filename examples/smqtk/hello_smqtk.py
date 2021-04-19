@@ -1,9 +1,10 @@
 """Simple SMQTK demonstration."""
 
 from smqtk_core import Pluggable, Configurable
+import json
 
 
-class HelloWorldSmqtk(Pluggable, Configurable):
+class HelloWorldSmqtk(Pluggable, Configurable, json.JSONEncoder):
     r"""
     A simple SMQTK implementation of Pluggable and Configurable.
 

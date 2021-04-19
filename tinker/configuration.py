@@ -53,6 +53,7 @@ def dict_permutations(d: Dict[str, ConfigEntry]) -> Iterator[Config]:
             t[k] = process_config(v)
         yield t
 
+
 def singleton(v: ConfigEntry) -> Iterator[ConfigEntry]:
     """
     Create a singleton generator for a value.
@@ -121,11 +122,19 @@ def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
     smqtk_impl = matched_class.from_config(cast(Dict[str, Any], smqtk_config))
     return smqtk_impl
 
-def process_config(value: ConfigEntry):
+
+def process_config(value: ConfigEntry) -> Iterator[ConfigEntry]:
+    """
+    Process any directives not specified in 'preprocess_config_generator'.
+
+    After 'preprocess_config_generator' is called and expands the config, 
+    this will process any other directive. 
+    """
     if is_smqtk(value):
         return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
     else:
         return value
+
 
 def preprocess_config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     """
@@ -141,7 +150,7 @@ def preprocess_config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
         return iterate_generator(cast(IterateDirective, value)["iterate"])
     elif type(value) is dict:
         return dict_permutations(cast(Dict[str, Any], value))
-    # TODO: add support for directive in list / tuple - 
+    # TODO: add support for directive in list / tuple -
     # some sort of "list_permutations" function
     else:
         return singleton(value)
@@ -150,11 +159,11 @@ def preprocess_config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
 def parse_configuration(text: str) -> Iterator[Config]:
     """Read in and process the contents of a configuration file."""
     config = yaml.safe_load(text)
-    
+
     # This assert is for the typechecker.
     #
     # TODO: add schema validation for `config` so that an error occurs before
     # this assert if the type of `config` is incorrect.
     assert isinstance(config, dict)
-    
+
     return dict_permutations(config)

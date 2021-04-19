@@ -17,6 +17,7 @@ class ShowSmqtk(protocol.Protocol):
 
     def run_protocol(self, config):
         """Run the protocol by printout out the config."""
+        # TODO: make this recursive to support multiple-inheritance in the config
         for k, v in config.items():
             if isinstance(v, Configurable):
                 v = v.__str__() + "\n\t" + (str(v.get_config()))
