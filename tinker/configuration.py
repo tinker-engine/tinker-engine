@@ -82,7 +82,7 @@ def is_smqtk(value: Any) -> bool:
     return type(value) is dict and "smqtk" in value
 
 
-def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
+def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> ConfigEntry:
     r"""
     Find implementation of and instantiate a SMQTK class.
 
@@ -123,7 +123,7 @@ def smqtk_generator(smqtk_def: Dict[str, ConfigEntry]) -> Iterator[ConfigEntry]:
     return smqtk_impl
 
 
-def process_config(value: ConfigEntry) -> Iterator[ConfigEntry]:
+def process_config(value: ConfigEntry) -> ConfigEntry:
     """
     Process any directives not specified in 'preprocess_config_generator'.
 
