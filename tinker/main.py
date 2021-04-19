@@ -12,9 +12,9 @@ import socket
 import sys
 from typing import List, Set, Union, Type
 
-from tinker import algorithm
-from tinker import protocol
-from tinker.configuration import parse_configuration
+from . import algorithm
+from . import protocol
+from .configuration import parse_configuration
 
 
 def import_source(path: str, paths: Set[str] = set()) -> None:  # noqa: B006
