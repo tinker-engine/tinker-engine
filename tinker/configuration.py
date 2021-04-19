@@ -127,8 +127,8 @@ def process_config(value: ConfigEntry) -> Iterator[ConfigEntry]:
     """
     Process any directives not specified in 'preprocess_config_generator'.
 
-    After 'preprocess_config_generator' is called and expands the config, 
-    this will process any other directive. 
+    After 'preprocess_config_generator' is called and expands the config,
+    this will process any other directive.
     """
     if is_smqtk(value):
         return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
