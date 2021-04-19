@@ -139,9 +139,6 @@ def preprocess_config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
     """
     if is_iterate(value):
         return iterate_generator(cast(IterateDirective, value)["iterate"])
-    #elif is_smqtk(value):
-    #if is_smqtk(value):
-    #    return smqtk_generator(cast(SMQTKDirective, value)["smqtk"])
     elif type(value) is dict:
         return dict_permutations(cast(Dict[str, Any], value))
     # TODO: add support for directive in list / tuple - 
@@ -153,9 +150,11 @@ def preprocess_config_generator(value: ConfigEntry) -> Iterator[ConfigEntry]:
 def parse_configuration(text: str) -> Iterator[Config]:
     """Read in and process the contents of a configuration file."""
     config = yaml.safe_load(text)
+    
     # This assert is for the typechecker.
     #
     # TODO: add schema validation for `config` so that an error occurs before
     # this assert if the type of `config` is incorrect.
     assert isinstance(config, dict)
+    
     return dict_permutations(config)
