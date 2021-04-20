@@ -66,6 +66,18 @@ expected:
 $ tinker -c examples/config/vanilla.yaml examples/config/show_config.py
 ```
 
+##### SMQTK Directive 
+
+The examples/smqtk folder contains examples of a SMQTK implementation,
+SMQTK configuration files, and a protocol specifically for displaying
+SMQTK instantiations.
+
+From the root directory, we can test the SMQTK support.
+
+```
+$ SMQTK_PLUGIN_PATH=examples.smqtk.hello_smqtk tinker  -c examples/smqtk/hello_smqtk.yaml examples/smqtk/show_smqtk.py
+```
+
 ### Command Line Documentation
 
 ```

@@ -1,0 +1,6 @@
+alg:
+    smqtk: 
+        class: HelloWorldSmqtk
+        config:
+            foo: 11
+            bar: 12
