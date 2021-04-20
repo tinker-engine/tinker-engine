@@ -11,6 +11,7 @@ import os
 import socket
 import sys
 from typing import List, Set, Union, Type
+import traceback
 
 from . import algorithm
 from . import protocol
@@ -141,7 +142,7 @@ def main(
             try:
                 p.run_protocol(config)
             except BaseException:
-                exc = sys.exc_info()[1]
+                exc = traceback.format_exc()
                 logging.error(f"Protocol runtime error: {exc}")
                 error = True
     else:
