@@ -1,0 +1,2 @@
+click>=7.1
+smqtk-core==0.15.0
