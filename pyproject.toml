@@ -1,2 +1,45 @@
 [tool.black]
 line_length = 120
+
+[tool.poetry]
+name = "tinker-engine"
+version = "0.8.0"
+description = "Framework for configuring and running machine learning algorithms"
+authors = ["Roni Choudhury <roni.choudhury@kitware.com>",
+           "Christopher Funk <christopher.funk@kitware.com>",
+           "Ameya Shringi <ameya.shringi@kitware.com>",
+           "Benjamin Pikus <benjamin.pikus@kitware.com>",
+           "Taylor Cook <taylor.cook@kitware.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+click = "^7.1"
+smqtk-core = "=0.15.0"
+pyyaml = "^5.4.1"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.7"
+flake8-black = "=0.2.0"
+flake8-bugbear = "^20.1"
+flake8-builtins = "^1.5"
+flake8-comprehensions = "^3.2"
+flake8-docstrings = "^1.5"
+flake8-eradicate = "=0.3.0"
+flake8-mutable = "^1.2"
+flake8-polyfill = "^1.0"
+flake8-quotes = "^3.0"
+pep8-naming = "=0.10.0"
+mypy = "=0.770"
+black = "=19.10b"
+sphinx-rtd-theme = "=0.5.0"
+m2r = "=0.2.1"
+mistune = "=0.8.4"
+sphinx = "=2.4.4"
+sphinx-autobuild = "=0.7.1"
+"pytest" = "^6.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
