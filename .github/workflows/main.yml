@@ -28,19 +28,7 @@ jobs:
           virtualenvs-path: ~/.local/share/poetry-virtualenvs
           version: 1.1.11
 
-      - name: Capture poetry version
-        run: echo "::set-output name=poetry-version::$(poetry --version | sed 's/[()]//g')"
-        id: poetry-version
-
-      - name: Cache Poetry environment
-        uses: actions/cache@v2
-        id: poetry-cache
-        with:
-          path: ~/.local/share/poetry-virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('tinker-engine/poetry.lock') }}-${{ steps.poetry-version.outputs.poetry-version }}-${{ secrets.CACHE_VERSION }}
-
       - name: Install Using Poetry
-        if: steps.poetry-cache.outputs.cache-hit != 'true'
         run: poetry install --no-interaction -vvv
 
       - name: Run linting
