@@ -12,6 +12,7 @@ authors = ["Roni Choudhury <roni.choudhury@kitware.com>",
            "Taylor Cook <taylor.cook@kitware.com>"]
 license = "Apache-2.0"
 readme = "README.md"
+packages = [{include = "tinker"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
