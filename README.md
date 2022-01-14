@@ -8,14 +8,14 @@ Check out the [examples](examples/) to get started using Tinker Engine.
 
 ### Build Tinker Engine
 
-The easiest way to build Tinker Engine locally is by using Pipenv. These steps
-will create a Pipenv environment where Tinker Engine is built and installed and
+The easiest way to build Tinker Engine locally is by using [poetry](https://python-poetry.org/docs/).
+These steps will create a vistual environment where Tinker Engine is built and installed and
 available for use.
 
 1. Clone this repository.
-2. In the `tinker-engine` directory, install the Pipenv dependencies with
-   `pipenv install -d`.
-3. Activate the Pipenv shell: `pipenv shell`.
+2. In the `tinker-engine` directory, install the dependencies with
+   `poetry install`.
+3. Activate the virtual environment using : `poetry shell`.
 4. Run Tinker Engine to ensure it works: `tinker --help`.
 
 ### Running Tinker Engine
