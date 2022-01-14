@@ -112,6 +112,29 @@ what has been detected by Tinker Engine. The options will, respectively, print
 out all the `Protocol` and `Algorithm` objects found by Tinker Engine. These are
 the objects available for use when Tinker Engine is run.
 
+### Publishing on PYPI
+
+Tinker uses github actions to publish packages on pypi. The action is triggered
+when a [semver](https://semver.org/) tag is pushed to tinker.
+
+We support the following version format `<major>.<minor>.<patch>` and
+`<major>.<minor>.<patch>-alpha.<alpha-version>` for tags. To publish a package
+on pypi, the tag must match with the version maintained in `pyproject.toml`.
+This is implemented as a mandatory check in the workflow. Poetry provides support
+for both querying and bumping version via cli. Please refer to
+[version](https://python-poetry.org/docs/cli/#version) for more details.
+
+Thus to publish tinker on pypi use the following commands
+
+1. Bump the version in pyproject.toml using `poetry version <version_rule>`.
+2. Use `poetry version --short` to determine the version that would be used in the tag.
+3. Generate and push the tag using
+   ```
+    git tag <package-version>
+    git push origin --tags
+   ```
+
+
 # Acknowledgments
 
 This material is based upon work supported by the Defense Advanced Research
