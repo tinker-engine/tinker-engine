@@ -43,10 +43,6 @@ jobs:
         if: steps.poetry-cache.outputs.cache-hit != 'true'
         run: poetry install --no-interaction -vvv
 
-      - name: Install Pip dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pipenv install --dev --deploy
-
       - name: Run linting
         run: poetry run flake8
 
