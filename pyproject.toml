@@ -17,7 +17,7 @@ packages = [{include = "tinker"}]
 [tool.poetry.dependencies]
 python = "^3.7"
 click = "^7.1"
-smqtk-core = "=0.15.0"
+smqtk-core = "=0.18.1"
 pyyaml = "^5.4.1"
 
 [tool.poetry.dev-dependencies]
