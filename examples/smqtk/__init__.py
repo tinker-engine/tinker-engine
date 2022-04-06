@@ -1,0 +1,1 @@
+"""Smqtk example for tinker."""
