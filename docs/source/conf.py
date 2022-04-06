@@ -140,7 +140,13 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "learn_framework.tex", u"LEARN framework Documentation", u"Kitware, Inc.", "manual",),
+    (
+        master_doc,
+        "learn_framework.tex",
+        "LEARN framework Documentation",
+        "Kitware, Inc.",
+        "manual",
+    ),
 ]
 
 latex_elements = {"extraclassoptions": "openany,oneside"}
@@ -149,7 +155,7 @@ latex_elements = {"extraclassoptions": "openany,oneside"}
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "learn_framework", u"learn_framework Documentation", [author], 1)]
+man_pages = [(master_doc, "learn_framework", "learn_framework Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------
@@ -161,7 +167,7 @@ texinfo_documents = [
     (
         master_doc,
         "learn_framework",
-        u"LEARN Framework Documentation",
+        "LEARN Framework Documentation",
         author,
         "learn_framework",
         "One line description of project.",
@@ -195,7 +201,7 @@ def patched_make_field(self, types, domain, items, **kw):
             # inconsistencies later when references are resolved
             fieldtype = types.pop(fieldarg)
             if len(fieldtype) == 1 and isinstance(fieldtype[0], nodes.Text):
-                typename = u"".join(n.astext() for n in fieldtype)
+                typename = "".join(n.astext() for n in fieldtype)
                 typename = typename.replace("int", "python:int")
                 typename = typename.replace("long", "python:long")
                 typename = typename.replace("float", "python:float")
